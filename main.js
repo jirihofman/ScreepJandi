@@ -214,7 +214,7 @@ module.exports.loop = function () {
                 // else try renew long sitance harvesters
                 name = -1;
                 let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_CREEPS,{
-                    filter: s => s.memory.role === 'longDistanceHarvester'
+                    filter: s => s.memory.role === 'longDistanceHarvester' || s.memory.role === 'harvester' || s.memory.role === 'builder'
                 }))
                 if (renewing === 0)
                   console.log('renewing:' + renewing)

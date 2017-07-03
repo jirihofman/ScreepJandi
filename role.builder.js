@@ -44,7 +44,7 @@ module.exports = {
                     // move towards the constructionSite
                     creep.moveTo(constructionSite);
                 } else {
-                    creep.say("Building...")
+                    creep.say("Building ...")
                 }
             }
             // if no constructionSite is found
