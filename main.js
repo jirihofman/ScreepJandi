@@ -203,7 +203,7 @@ module.exports.loop = function () {
             // if not enough longDistanceHarvesters for E97N66
             else if (numberOfLongDistanceHarvestersE97N66 < spawn.memory.minLDHE97N66) {
                 // try to spawn one
-                name = spawn.createLongDistanceHarvester(energy, 3, spawn.room.name, 'E97N66', 0);
+                name = spawn.createLongDistanceHarvester(energy, 2, spawn.room.name, 'E97N66', 0);
             }
             // if not enough longDistanceHarvesters for E98N66
             else if (numberOfLongDistanceHarvestersE98N66 < spawn.memory.minLDHE98N66) {
