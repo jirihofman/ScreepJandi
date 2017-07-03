@@ -51,11 +51,25 @@ module.exports = {
                 filter: s => s.resourceType == RESOURCE_ENERGY && s.amount > 40
             });
 
-
-            // try to harvest energy, if the source is not in range
-            if (creep.harvest(energy_dropped||source) == ERR_NOT_IN_RANGE) {
-                // move towards the source
-                creep.moveTo(source);
+            // TODO refactor. The same for long distance harvesting and lorries
+            if (energy_dropped != undefined) {
+                let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY)
+                if (l_result == ERR_NOT_IN_RANGE) {
+                    // move towards it
+                    creep.moveTo(energy_dropped);
+                    creep.memory.miving_to_source++;
+                    creep.say("EE")
+                } else if (l_result !== 0){
+                    creep.say("Error " + l_result)
+                } else {
+                    creep.memory.mining++;
+                }
+            } else {
+                // try to harvest energy, if the source is not in range
+                if (creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                    // move towards the source
+                    creep.moveTo(source);
+                }
             }
         }
     }
