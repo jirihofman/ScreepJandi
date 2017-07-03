@@ -25,7 +25,7 @@ module.exports = {
                 // a property called filter which can be a function
                 // we use the arrow operator to define it
                 // We repair ramparts only to certain extent
-                filter: (s) => (s.hits < s.hitsMax && s.structureType != STRUCTURE_WALL && s.structureType != STRUCTURE_RAMPART) || (s.hits < s.hitsMax && s.structureType === STRUCTURE_RAMPART && s.hits < 100000)
+                filter: (s) => (s.hits < s.hitsMax && s.structureType != STRUCTURE_WALL && s.structureType != STRUCTURE_RAMPART) || (s.hits < s.hitsMax && s.structureType === STRUCTURE_RAMPART && s.hits < 300000)
             });
 
             // if we find one
