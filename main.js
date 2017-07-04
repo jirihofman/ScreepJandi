@@ -168,7 +168,9 @@ module.exports.loop = function () {
             // if not enough lorries
             else if (numberOfLorries < spawn.memory.minLorries) {
                 // try to spawn one
-                name = spawn.createLorry(900);
+                if (energy > 899)
+                    energy = 900
+                name = spawn.createLorry(energy);
             }
             // if there is a claim order defined
             else if (spawn.memory.claimRoom != undefined) {

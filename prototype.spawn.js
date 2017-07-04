@@ -63,7 +63,7 @@ module.exports = function() {
     // create a new function for StructureSpawn
     StructureSpawn.prototype.createMiner =
         function (sourceId) {
-            return this.createCreep([WORK, WORK, WORK, WORK, WORK, MOVE], undefined,
+            return this.createCreep([WORK, WORK, WORK, WORK, WORK, MOVE, MOVE], undefined,
                                     { role: 'miner', sourceId: sourceId });
         };
 
