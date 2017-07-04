@@ -12,9 +12,11 @@ module.exports = {
             // find targets: CREEPS, SPAWNS, STRUCUTERS
             let target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 
+/*
             target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: s => (s.structureType == STRUCTURE_WALL)
             });
+*/
             if (!target)
                 target = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES);
             if (!target)
@@ -27,7 +29,7 @@ module.exports = {
                 } else if (l_attack !== 0) {
                     console.log("Attacker problem: " + l_attack)
                 } else {
-                    creep.say("Huraa")                    
+                    creep.say("Attacking")
                 }
             }
         }
