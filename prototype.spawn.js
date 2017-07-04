@@ -34,7 +34,6 @@ module.exports = function() {
             for (let i = 0; i < numberOfWorkParts; i++) {
                 body.push(WORK);body.push(MOVE);body.push(CARRY);
             }
-            energy -= 400 // when  roads
             // 150 = 100 (cost of WORK) + 50 (cost of MOVE) + 50 (CARRY)
             energy -= 200 * numberOfWorkParts;
 
