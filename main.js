@@ -26,7 +26,7 @@ module.exports.loop = function () {
     for (let name in Game.creeps) {
         // get the creep object
         var creep = Game.creeps[name];
-        
+
         // if creep is harvester, call harvester script
         if (creep.memory.role == 'harvester') {
             roleHarvester.run(creep);
@@ -216,8 +216,9 @@ module.exports.loop = function () {
                 // else try renew long sitance harvesters
                 name = -1;
                 let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_CREEPS,{
-                    filter: s => s.memory.role === 'longDistanceHarvester' || s.memory.role === 'harvester' || s.memory.role === 'builder'
+                    filter: s => s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder'
                 }))
+
                 if (renewing === 0)
                   console.log('renewing:' + renewing)
             }
