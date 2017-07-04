@@ -31,9 +31,13 @@ module.exports = {
             // if we find one
             if (structure != undefined) {
                 // try to repair it, if it is out of range
-                if (creep.repair(structure) == ERR_NOT_IN_RANGE) {
+                let e = creep.carry[RESOURCE_ENERGY];
+                let r = creep.repair(structure)
+                if (r == ERR_NOT_IN_RANGE) {
                     // move towards it
                     creep.moveTo(structure);
+                } else if (r === 0){
+                    creep.say('🔧🔧')
                 }
             }
             // if we can't fine one

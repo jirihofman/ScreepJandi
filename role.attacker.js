@@ -29,7 +29,7 @@ module.exports = {
                 } else if (l_attack !== 0) {
                     console.log("Attacker problem: " + l_attack)
                 } else {
-                    creep.say("Attacking")
+                    creep.say("⚔️⚔️")
                 }
             }
         }
