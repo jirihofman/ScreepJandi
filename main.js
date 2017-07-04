@@ -1,5 +1,5 @@
 // import modules
-require('prototype.spawn')();
+require('prototype.spawn')();//dd
 require('console_info')(); // prototype for Room
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
@@ -95,6 +95,15 @@ module.exports.loop = function () {
             //spawn.memory.maxedEnergy=0; // zatim nenulujeme
         }
 
+        /* Renew or Recycle */
+        let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_CREEPS,{
+            filter: s => s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder'
+        }))
+
+        if (renewing === 0)
+          console.log('renewing:' + renewing)
+
+
         // count the number of creeps alive for each role in this room
         // _.sum will count the number of properties in Game.creeps filtered by the
         //  arrow function, which checks for the creep being a specific role
@@ -111,7 +120,7 @@ module.exports.loop = function () {
         var numberOfLongDistanceHarvestersE98N66 = _.sum(Game.creeps, (c) =>
             c.memory.role == 'longDistanceHarvester' && c.memory.target == 'E98N66');
 
-        var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0); 
+        var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
         var name = undefined;
 
         // if no harvesters are left AND either no miners or no lorries are left
@@ -164,7 +173,7 @@ module.exports.loop = function () {
                 // try to spawn one
                 name = spawn.createCustomCreep(energy, 'harvester');
             }
-            
+
             // if not enough lorries
             else if (numberOfLorries < spawn.memory.minLorries) {
                 // try to spawn one
@@ -213,14 +222,7 @@ module.exports.loop = function () {
                 name = spawn.createLongDistanceHarvester(energy, 2, spawn.room.name, 'E98N66', 0);
             }
             else {
-                // else try renew long sitance harvesters
                 name = -1;
-                let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_CREEPS,{
-                    filter: s => s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder'
-                }))
-
-                if (renewing === 0)
-                  console.log('renewing:' + renewing)
             }
         }
 
