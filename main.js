@@ -14,12 +14,13 @@ var roleLorry = require('role.lorry');
 var roleAttacker = require('role.attacker');
 
 module.exports.loop = function () {
-    // check for memory entries of died creeps by iterating over Memory.creeps
+  // check for memory entries of died creeps by iterating over Memory.creeps
   for (let name in Memory.creeps) {
-        // and checking if the creep is still alive
+    // and checking if the creep is still alive
     if (!Game.creeps[name]) {
-            // if not, delete the memory entry
+      // if not, delete the memory entry
       delete Memory.creeps[name];
+      console.log('Clearing non-existing creep memory:', name);
     }
   }
 
@@ -71,7 +72,13 @@ module.exports.loop = function () {
 
     // self recycle
     if (creep.memory.to_recycle === 1){
-      let r = creep.moveTo(creep.room.find(FIND_MY_SPAWNS)[0]);
+      let l_spawn = creep.room.find(FIND_MY_SPAWNS)[0];
+      if (!l_spawn && creep.memory.home){
+        /* cant find spawn in this room, try home */
+        l_spawn = creep.room.findExitTo(creep.memory.home);
+        console.log('Recycling self, moving to exit');
+      }
+      let r = creep.moveTo(l_spawn);
       if (r===0){
         creep.say('🚫');
       } else {
@@ -81,6 +88,7 @@ module.exports.loop = function () {
   }
 
   // find all my towers
+  /* Priorities: ATTACK, REPAIR, ... */
   var towers = _.filter(Game.structures, s => s.structureType === STRUCTURE_TOWER);
     // for each tower
   for (let tower of towers) {
@@ -90,8 +98,12 @@ module.exports.loop = function () {
     if (target) {
       tower.attack(target); // ...FIRE!
     } else {
-      var road_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 4900} )[0];
-      tower.repair(road_to_repair);
+      var ramp_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_RAMPART && s.hits < 200000} )[0];
+      var road_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
+      let r = tower.repair(road_to_repair || ramp_to_repair); // should be two ticks of repair (680)
+      if (r !== 0 && r !== -7){
+        console.log('Error repairing road: ' + r);
+      }
     }
   }
 

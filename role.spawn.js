@@ -23,8 +23,8 @@ module.exports = {
         //console.log(c.name + " is " + c.memory.role + " and has parts: " + c.body.length);
         //console.log(spawn.room.energyCapacityAvailable)//
         if (c.memory.to_recycle === 1){
-          spawn.recycleCreep(c)
-          console.log("Recycling " + c);
+          spawn.recycleCreep(c);
+          console.log('Recycling ' + c);
         }
       });
     }
@@ -78,7 +78,7 @@ module.exports = {
           if (containers.length > 0) {
             // spawn a miner
             name = spawn.createMiner(source.id);
-            console.log("Creating miner the OLD way");
+            console.log('Creating miner the OLD way');
             if (name === -6){
               name = null; // nejsou mineraly na minera, udelame harvestera
             } else {
@@ -91,23 +91,23 @@ module.exports = {
           let l_miner = source.pos.findInRange(FIND_MY_CREEPS, 1, {filter: s => s.memory.role === 'miner'})[0];
           let l_distance = [];
           if (l_miner){
-            l_distance = spawn.pos.findPathTo(l_miner.pos.x, l_miner.pos.y)
+            l_distance = spawn.pos.findPathTo(l_miner.pos.x, l_miner.pos.y);
           }
           // time needed to get miner there (BODY_PARTS*3) + (TILES*2) + reserve
-          let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 10 // 10 slight reserve
+          let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 5; // 5 slight reserve
           // The total spawn time of a creep is the number of body part * 3 ticks
           if (l_miner && l_time_needed >= l_miner.ticksToLive){
             var l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id && c.ticksToLive > l_time_needed);
             // miners for the source with acceptable age (ie. the newly created one)
             if (l_source_needs_miner){
               // or the spawning one
-              l_source_needs_miner = !(spawn.spawning && Game.creeps[spawn.spawning.name].memory.sourceId === source.id && Game.creeps[spawn.spawning.name].memory.role === 'miner')
+              l_source_needs_miner = !(spawn.spawning && Game.creeps[spawn.spawning.name].memory.sourceId === source.id && Game.creeps[spawn.spawning.name].memory.role === 'miner');
             }
 
             if (l_source_needs_miner){
-              console.log("Need ["+spawn.name+"] to replace ["+l_miner+"] dying miner ["+l_miner.pos.x+","+l_miner.pos.y+"]: " + l_miner);
+              console.log('Need ['+spawn.name+'] to replace ['+l_miner+'] dying miner ['+l_miner.pos.x+','+l_miner.pos.y+']' );
               name = spawn.createMiner(source.id);
-              console.log("New miner's name is " + name);
+              console.log('New miner\'s name is ' + name);
             }
           }
         }

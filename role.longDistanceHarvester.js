@@ -106,5 +106,11 @@ module.exports = {
         creep.moveTo(creep.pos.findClosestByPath(exit));
       }
     }
+
+    /* if creep lost the working parts, put it down */
+    /* TODO: refactor and put it in Creep prototype */
+    if (_.sum(creep.body, c => c.type === 'work' && c.hits > 0) === 0){
+      creep.memory.to_recycle = 1;
+    }
   }
 };
