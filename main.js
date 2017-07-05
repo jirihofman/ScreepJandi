@@ -80,6 +80,9 @@ module.exports.loop = function () {
     if (target) {
             // ...FIRE!
       tower.attack(target);
+    } else {
+      var road_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 4900} )[0];
+        tower.repair(road_to_repair)
     }
   }
 
