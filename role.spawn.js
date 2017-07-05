@@ -6,8 +6,6 @@ module.exports = {
     let room = spawn.room;
     if (room.energyAvailable === room.energyCapacityAvailable) {
       spawn.memory.maxedEnergy++;
-    } else {
-            //spawn.memory.maxedEnergy=0; // zatim nenulujeme
     }
 
     /* Renew or Recycle */
@@ -16,7 +14,7 @@ module.exports = {
     }));
 
     if (renewing === 0)
-          {console.log('renewing:' + renewing);}
+      {console.log('renewing:' + renewing);}
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
     if(l_adjecent_creeps.length > 0) {
@@ -24,6 +22,10 @@ module.exports = {
       l_adjecent_creeps.forEach(function(c) {
         //console.log(c.name + " is " + c.memory.role + " and has parts: " + c.body.length);
         //console.log(spawn.room.energyCapacityAvailable)//
+        if (c.memory.to_recycle === 1){
+          spawn.recycleCreep(c)
+          console.log("Recycling " + c);
+        }
       });
     }
         // count the number of creeps alive for each role in this room
@@ -68,35 +70,35 @@ module.exports = {
       for (let source of sources) {
         // if the source has aging moner
         // get the travel distance from miner's position to spawn
-        let l_miner_needed = false;
+        let l_source_needs_miner = false;
         let l_miner = source.pos.findInRange(FIND_MY_CREEPS, 1, {filter: s => s.memory.role === 'miner'})[0];
         let l_distance = [];
         if (l_miner){
           l_distance = spawn.pos.findPathTo(l_miner.pos.x, l_miner.pos.y)
         }
         // time needed to get miner there
-        let l_time_needed = (7 * 3 ) + (l_distance.length * 2)
+        let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 3 // 3 slight reserve
         // The total spawn time of a creep is the number of body part * 3 ticks
         //console.log("distance from [" + spawn.name +"] to source ["+l_miner.pos.x+","+l_miner.pos.y+"] is " + l_distance.length + " tiles. Miner's remaining ticks: " + l_miner.ticksToLive + '. Vs time needed: ' + l_time_needed);
-        if (l_miner && l_time_needed === l_miner.ticksToLive){
-          console.log("Need to replace ["+l_miner+"]dying miner ["+l_miner.pos.x+","+l_miner.pos.y+"]: " + l_miner);
-          l_miner_needed = true;
+        if (l_miner && l_time_needed >= l_miner.ticksToLive){
+          l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id);
+          console.log("Need ["+spawn.name+"] to replace ["+l_miner+"] dying miner ["+l_miner.pos.x+","+l_miner.pos.y+"]: " + l_miner);
+            name = spawn.createMiner(source.id);
+            console.log("New miner's name is " + name);
         }
 
 
         // if the source has no miner
-        if (
-          (!_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id))
-        || l_miner_needed
-        ) {
-                    // check whether or not the source has a container
+        if (!_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id)) {
+          // check whether or not the source has a container
           let containers = source.pos.findInRange(FIND_STRUCTURES, 1, {
             filter: s => s.structureType === STRUCTURE_CONTAINER
           });
                     // if there is a container next to the source
           if (containers.length > 0) {
-                        // spawn a miner
+            // spawn a miner
             name = spawn.createMiner(source.id);
+            console.log("Creating miner the OLD way");
             if (name === -6){
               name = null; // nejsou mineraly na minera, udelame harvestera
             } else {

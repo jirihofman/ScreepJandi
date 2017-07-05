@@ -14,6 +14,7 @@ module.exports = {
       creep.memory.working = true;
       creep.memory.steps_from_source = 0; // TODO: can get full from dropped energy too
       creep.memory.ticks_from_source = 0; // TODO: can get full from dropped energy too
+      creep.memory.maxed = false;
     }
 
         // if creep is supposed to transfer energy to a structure
