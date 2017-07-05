@@ -52,7 +52,7 @@ module.exports = {
     if (numberOfHarvesters === 0 && numberOfLorries === 0) {
             // if there are still miners left
       if (numberOfMiners > 0 ||
-                (!spawn.room.storage && spawn.room.storage.store[RESOURCE_ENERGY] >= 150 + 550)) {
+                (spawn.room.storage && spawn.room.storage.store[RESOURCE_ENERGY] >= 150 + 550)) {
                 // create a lorry
         name = spawn.createLorry(150);
       }
@@ -68,26 +68,6 @@ module.exports = {
       let sources = spawn.room.find(FIND_SOURCES);
             // iterate over all sources
       for (let source of sources) {
-        // if the source has aging moner
-        // get the travel distance from miner's position to spawn
-        let l_source_needs_miner = false;
-        let l_miner = source.pos.findInRange(FIND_MY_CREEPS, 1, {filter: s => s.memory.role === 'miner'})[0];
-        let l_distance = [];
-        if (l_miner){
-          l_distance = spawn.pos.findPathTo(l_miner.pos.x, l_miner.pos.y)
-        }
-        // time needed to get miner there
-        let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 3 // 3 slight reserve
-        // The total spawn time of a creep is the number of body part * 3 ticks
-        //console.log("distance from [" + spawn.name +"] to source ["+l_miner.pos.x+","+l_miner.pos.y+"] is " + l_distance.length + " tiles. Miner's remaining ticks: " + l_miner.ticksToLive + '. Vs time needed: ' + l_time_needed);
-        if (l_miner && l_time_needed >= l_miner.ticksToLive){
-          l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id);
-          console.log("Need ["+spawn.name+"] to replace ["+l_miner+"] dying miner ["+l_miner.pos.x+","+l_miner.pos.y+"]: " + l_miner);
-            name = spawn.createMiner(source.id);
-            console.log("New miner's name is " + name);
-        }
-
-
         // if the source has no miner
         if (!_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id)) {
           // check whether or not the source has a container
@@ -103,6 +83,32 @@ module.exports = {
               name = null; // nejsou mineraly na minera, udelame harvestera
             } else {
               break;
+            }
+          }
+        } else {
+          // if the source has aging moner
+          console.log( "if the source has aging moner" );
+          // get the travel distance from miner's position to spawn
+          let l_miner = source.pos.findInRange(FIND_MY_CREEPS, 1, {filter: s => s.memory.role === 'miner'})[0];
+          let l_distance = [];
+          if (l_miner){
+            l_distance = spawn.pos.findPathTo(l_miner.pos.x, l_miner.pos.y)
+          }
+          // time needed to get miner there (BODY_PARTS*3) + (TILES*2) + reserve
+          let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 10 // 10 slight reserve
+          // The total spawn time of a creep is the number of body part * 3 ticks
+          if (l_miner && l_time_needed >= l_miner.ticksToLive){
+            var l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id && c.ticksToLive > l_time_needed);
+            // miners for the source with acceptable age (ie. the newly created one)
+            if (l_source_needs_miner){
+              // or the spawning one
+              l_source_needs_miner = !(spawn.spawning && Game.creeps[spawn.spawning.name].memory.sourceId === source.id && Game.creeps[spawn.spawning.name].memory.role === 'miner')
+            }
+
+            if (l_source_needs_miner){
+              console.log("Need ["+spawn.name+"] to replace ["+l_miner+"] dying miner ["+l_miner.pos.x+","+l_miner.pos.y+"]: " + l_miner);
+              name = spawn.createMiner(source.id);
+              console.log("New miner's name is " + name);
             }
           }
         }
