@@ -10,7 +10,7 @@ module.exports = {
 
     /* Renew or Recycle */
     let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_CREEPS, {
-      filter: s => s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder'
+      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder')
     }));
 
     if (renewing === 0)
@@ -87,7 +87,6 @@ module.exports = {
           }
         } else {
           // if the source has aging moner
-          console.log( "if the source has aging moner" );
           // get the travel distance from miner's position to spawn
           let l_miner = source.pos.findInRange(FIND_MY_CREEPS, 1, {filter: s => s.memory.role === 'miner'})[0];
           let l_distance = [];

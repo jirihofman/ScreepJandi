@@ -1,5 +1,6 @@
 // import modules
-require('prototype.spawn')();//dd
+require('prototype.spawn')();// extra spawn functions
+var roleSpawn = require('role.spawn'); // spawn behaviour
 require('console_info')(); // prototype for Room
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
@@ -11,7 +12,6 @@ var roleClaimer = require('role.claimer');
 var roleMiner = require('role.miner');
 var roleLorry = require('role.lorry');
 var roleAttacker = require('role.attacker');
-var roleSpawn = require('role.spawn');
 
 module.exports.loop = function () {
     // check for memory entries of died creeps by iterating over Memory.creeps
@@ -68,25 +68,34 @@ module.exports.loop = function () {
     else if (creep.memory.role === 'attacker') {
       roleAttacker.run(creep);
     }
-  }
 
-    // find all towers
-  var towers = _.filter(Game.structures, s => s.structureType === STRUCTURE_TOWER);
-    // for each tower
-  for (let tower of towers) {
-        // find closes hostile creep
-    var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-        // if one is found...
-    if (target) {
-            // ...FIRE!
-      tower.attack(target);
-    } else {
-      var road_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 4900} )[0];
-        tower.repair(road_to_repair)
+    // self recycle
+    if (creep.memory.to_recycle === 1){
+      let r = creep.moveTo(creep.room.find(FIND_MY_SPAWNS)[0]);
+      if (r===0){
+        creep.say('🚫');
+      } else {
+        creep.say('Error ' + r);
+      }
     }
   }
 
-    // iterate over all the spawns
+  // find all my towers
+  var towers = _.filter(Game.structures, s => s.structureType === STRUCTURE_TOWER);
+    // for each tower
+  for (let tower of towers) {
+    // find closes hostile creep
+    var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    // if one is found...
+    if (target) {
+      tower.attack(target); // ...FIRE!
+    } else {
+      var road_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 4900} )[0];
+      tower.repair(road_to_repair);
+    }
+  }
+
+  // iterate over all the spawns
   for (let spawnName in Game.spawns) {
     let spawn = Game.spawns[spawnName];
     roleSpawn.run(spawn);

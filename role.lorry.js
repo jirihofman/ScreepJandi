@@ -23,9 +23,13 @@ module.exports = {
                 // we use the arrow operator to define it
                 filter: (s) => ((s.structureType == STRUCTURE_SPAWN
                              || s.structureType == STRUCTURE_EXTENSION
-                             || s.structureType == STRUCTURE_STORAGE
-                             || s.structureType == STRUCTURE_TOWER)
+                             || s.structureType == STRUCTURE_STORAGE)
                              && s.energy < s.energyCapacity)
+            }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+                // the second argument for findClosestByPath is an object which takes
+                // a property called filter which can be a function
+                // we use the arrow operator to define it
+                filter: (s) => (s.structureType == STRUCTURE_TOWER && s.energy < s.energyCapacity)
             });
 
             if (structure == undefined) {
@@ -63,7 +67,7 @@ module.exports = {
             if (container == undefined) {
                 container = creep.room.storage;
             }
-            
+
             // hledame spadlou energii na zemi - male kusy
             let energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
                 filter: s => s.resourceType == RESOURCE_ENERGY && s.amount > 40
@@ -74,7 +78,7 @@ module.exports = {
             });
             if (energy_dropped_huge)
                 energy_dropped = energy_dropped_huge // nasli jsme vetsi kus energie na zemi, jedeme tam. Jinak se furt vracime k minerovi
-                
+
             if (energy_dropped != undefined) {
                 let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY)
                 if (l_result == ERR_NOT_IN_RANGE) {
