@@ -4,11 +4,8 @@ Dobre prikazy
 Game.spawns.Spawn1.createLongDistanceHarvester(800, 3, 'E99N66', 'E98N66', 0); --350 carry
 Game.rooms.E99N66.ic();Game.rooms.E98N66.ic();
 Game.spawns.Spawn1.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
+Game.spawns.Spawn1.createCreep([WORK,WORK,WORK,, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
 */
-  m = function(p_creep_name, x, y){
-    Game.creeps[p_creep_name].moveTo(x,y);
-    console.log('Moving %s to [%s,%s]', p_creep_name, x, y);
-  }
 
   Room.prototype.ic =
     function() {

@@ -52,7 +52,7 @@ module.exports = {
             });
 
             // TODO refactor. The same for long distance harvesting and lorries
-            if (energy_dropped != undefined) {
+            if (energy_dropped != undefined && creep.carry < creep.carryCapacity) {
                 let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY)
                 if (l_result == ERR_NOT_IN_RANGE) {
                     // move towards it
