@@ -26,6 +26,7 @@ module.exports.loop = function () {
 
     // for every creep name in Game.creeps
   for (let name in Game.creeps) {
+    let l_cpu_used = Game.cpu.getUsed();
         // get the creep object
     var creep = Game.creeps[name];
 
@@ -85,6 +86,9 @@ module.exports.loop = function () {
         creep.say('Error ' + r);
       }
     }
+
+    l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    //console.log(name, l_cpu_used);
   }
 
   // find all my towers
@@ -93,23 +97,29 @@ module.exports.loop = function () {
     // for each tower
   for (let tower of towers) {
     // find closes hostile creep
+    let l_cpu_used = Game.cpu.getUsed();
     var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     // if one is found...
     if (target) {
       tower.attack(target); // ...FIRE!
     } else {
-      var ramp_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_RAMPART && s.hits < 200000} )[0];
+      var ramp_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_RAMPART && s.hits < 220000} )[0];
       var road_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
       let r = tower.repair(road_to_repair || ramp_to_repair); // should be two ticks of repair (680)
       if (r !== 0 && r !== -7){
         console.log('Error repairing road: ' + r);
       }
     }
+    l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    console.log('Tower: ', tower, l_cpu_used);
   }
 
   // iterate over all the spawns
   for (let spawnName in Game.spawns) {
     let spawn = Game.spawns[spawnName];
+    let l_cpu_used = Game.cpu.getUsed();
     roleSpawn.run(spawn);
+    l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    //console.log('Spawn: ', spawnName, l_cpu_used);
   }
 };
