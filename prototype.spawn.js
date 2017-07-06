@@ -61,6 +61,10 @@ module.exports = function() {
     // create a new function for StructureSpawn
   StructureSpawn.prototype.createMiner =
         function (sourceId) {
+          /* if the source has also LINK nearby, add one CARRY part and some WORK parts to catch on the transfering part */
+          // find the container. If there is, find the adjecent LINK
+
+          // if there is, add the parts
           return this.createCreep([WORK, WORK, WORK, WORK, WORK, MOVE, MOVE], null,
                                     { role: 'miner', sourceId: sourceId });
         };

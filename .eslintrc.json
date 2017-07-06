@@ -120,6 +120,7 @@
 		"Game": false,
 		"Room": false,
 		"Memory": false,
+		"StructureSpawn": false,
 		    "OK": true,
 		    "ERR_NOT_OWNER": true,
 		    "ERR_NO_PATH": true,
@@ -347,7 +348,6 @@
 		    "ORDER_SELL": true,
 		    "ORDER_BUY": true,
 		    "MARKET_FEE": true,
-
 		    "FLAGS_LIMIT": true,
 		    "SUBSCRIPTION_TOKEN": true,
 		    "RESOURCE_ENERGY": true,
