@@ -9,6 +9,7 @@ module.exports = {
             var exit = creep.room.findExitTo(creep.memory.target);
             // move to exit
             creep.moveTo(creep.pos.findClosestByRange(exit));
+            creep.say('B->exit')
             // return the function to not do anything else
             return;
         }
@@ -24,7 +25,7 @@ module.exports = {
             // switch state
             creep.memory.working = true;
         }
-        
+
         if (creep.memory.maxed === true){
             // sam reknu, ze ma jit makat s tim objemem co ma v sobe
             creep.memory.working = true;
@@ -32,10 +33,10 @@ module.exports = {
 
         // if creep is supposed to complete a constructionSite
         if (creep.memory.working == true) {
-            
-            // find closest constructionSite. Non-roads first
+
+            // find closest constructionSite. Non-roads, non-labs first
             var constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES, {
-                filter: s => (s.structureType !== STRUCTURE_ROAD)
+                filter: s => (s.structureType !== STRUCTURE_ROAD) && (s.structureType !== STRUCTURE_LAB)
             }) || creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
             // if one is found
             if (constructionSite != undefined) {
@@ -58,13 +59,16 @@ module.exports = {
         else {
             // find closest container
             let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: s => (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE) &&
-                             s.store[RESOURCE_ENERGY] > 50 /* Nesockuju u minera, ktery to tam sype po 10 */
+                filter: s => (
+                  (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 50 /* Nesockuju u minera, ktery to tam sype po 10 */
+                )
+              || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
             });
-            
+
             // if no found, try extension when emergency
             if (container == undefined) {
                 container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                  // TODO docs for creep.memory.ext
                     filter: s => s.structureType == STRUCTURE_EXTENSION && creep.memory.ext && s.energy > 0
                 });
             }

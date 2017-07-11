@@ -24,7 +24,25 @@ module.exports.loop = function () {
     }
   }
 
-    // for every creep name in Game.creeps
+  /* MINERAL lorries every 300 */
+  if (Game.time % 500 === 0){
+    //_.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;})
+  }
+  /* LINKS. TODO: every 5 ticks maybe enough */
+  if (Game.time % 6 === 0){
+    _.each(Game.flags, (v, k)=>{
+      if(Game.flags[k].color===COLOR_YELLOW && Game.flags[k].secondaryColor===COLOR_RED){
+        let target = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && !s.pos.isEqualTo(v.pos)});
+        let source = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && s.pos.isEqualTo(v.pos)});
+        if (source[0].energy > 200){
+          let r = Game.getObjectById(source[0].id).transferEnergy(target[0]);
+          console.log('Link ', source[0], ' transfering', source[0].energy, ' energy to ', target, r);
+        }
+      }
+    });
+  }
+
+  // for every creep name in Game.creeps
   for (let name in Game.creeps) {
     let l_cpu_used = Game.cpu.getUsed();
         // get the creep object
@@ -103,15 +121,18 @@ module.exports.loop = function () {
     if (target) {
       tower.attack(target); // ...FIRE!
     } else {
-      var ramp_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_RAMPART && s.hits < 220000} )[0];
-      var road_to_repair = tower.room.find(FIND_STRUCTURES, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
-      let r = tower.repair(road_to_repair || ramp_to_repair); // should be two ticks of repair (680)
-      if (r !== 0 && r !== -7){
-        console.log('Error repairing road: ' + r);
+      // containers and ramparts. ramparts up to 220k
+      // TODO: reduce the repair range to 8
+      // TODO: needs to create repairer in order to do this
+      var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 300000)} )[0];
+      var road_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
+      let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
+      if (r !== 0 && r !== -6 && r !== -7){
+        console.log('Error tower repairing : ', r);
       }
     }
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
-    console.log('Tower: ', tower, l_cpu_used);
+    //console.log('Tower: ', tower, l_cpu_used);
   }
 
   // iterate over all the spawns
