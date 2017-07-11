@@ -2,7 +2,7 @@ module.exports = function() {
 
     // create a new function for StructureSpawn
   StructureSpawn.prototype.createCustomCreep =
-        function(energy, roleName) {
+        function(energy, roleName, p_memory) {
             // create a balanced body as big as possible with the given energy
 
           var numberOfParts = Math.floor(energy / 200);
@@ -22,7 +22,7 @@ module.exports = function() {
           }
 
             // create creep with the created body and the given role
-          return this.createCreep(body, null, { role: roleName, working: false });
+          return this.createCreep(body, null, { role: roleName, working: false, maxed: false });
         };
 
     // create a new function for StructureSpawn
@@ -65,7 +65,7 @@ module.exports = function() {
           // find the container. If there is, find the adjecent LINK
 
           // if there is, add the parts
-          return this.createCreep([WORK, WORK, WORK, WORK, WORK, MOVE, MOVE], null,
+          return this.createCreep([WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, CARRY], null,
                                     { role: 'miner', sourceId: sourceId });
         };
 
