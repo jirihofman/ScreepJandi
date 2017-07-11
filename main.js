@@ -124,7 +124,7 @@ module.exports.loop = function () {
       // containers and ramparts. ramparts up to 220k
       // TODO: reduce the repair range to 8
       // TODO: needs to create repairer in order to do this
-      var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 300000)} )[0];
+      var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 400000)} )[0];
       var road_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
       let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
       if (r !== 0 && r !== -6 && r !== -7){

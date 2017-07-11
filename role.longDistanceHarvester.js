@@ -34,6 +34,7 @@ module.exports = {
                                  || s.structureType === STRUCTURE_TOWER)
                                  && s.energy < s.energyCapacity)
                                  || (s.structureType === STRUCTURE_CONTAINER /* unloading into containers as well*/ && s.store[RESOURCE_ENERGY] < 2000)
+                                 || (s.structureType === STRUCTURE_LINK /* unloading into links as well*/ && s.energy < s.energyCapacity)
         });
 
         if (!structure) {
@@ -66,7 +67,7 @@ module.exports = {
           }
         }
         // find exit to home room
-        var exit = creep.room.findExitTo(creep.memory.home);
+        let exit = creep.room.findExitTo(creep.memory.home);
                 // and move to exit
         creep.moveTo(creep.pos.findClosestByPath(exit));
         creep.memory.miving_to_unload++;
@@ -123,7 +124,7 @@ module.exports = {
       // if not in target room
       else {
         // find exit to target room
-        let exit = creep.room.findExitTo(creep.memory.target);
+        var exit = creep.room.findExitTo(creep.memory.target);
         // move to exit
         creep.moveTo(creep.pos.findClosestByPath(exit));
       }
