@@ -3,7 +3,6 @@ var roleBuilder = require('role.builder');
 module.exports = {
     // a function to run the logic for this role
     run: function(creep) {
-      creep.say("[R]")
         // if creep is trying to repair something but has no energy left
         if (creep.memory.working == true && creep.carry.energy == 0) {
             // switch state
@@ -17,6 +16,24 @@ module.exports = {
 
         // if creep is supposed to repair something
         if (creep.memory.working == true) {
+          /* look for brown flags. If any, dismantle buildings on them */
+          let l_flags_to_dismantle = creep.pos.findClosestByPath(FIND_FLAGS, {filter: s=>s.color===COLOR_BROWN && s.secondaryColor===COLOR_BROWN});
+          if (l_flags_to_dismantle){
+            let l_structs_to_dismantle = creep.room.find(FIND_STRUCTURES, {filter: s=>s.pos.x===l_flags_to_dismantle.pos.x && s.pos.y===l_flags_to_dismantle.pos.y})[0];
+            if (l_structs_to_dismantle){
+              let d = creep.dismantle(l_structs_to_dismantle)
+              if (d == ERR_NOT_IN_RANGE) {
+                // move towards it
+                creep.moveTo(l_structs_to_dismantle);
+                creep.say("[D]")
+              } else if (d === 0){
+                creep.say('🔧x🔧')
+              }
+            } else {
+              l_flags_to_dismantle.remove();
+              console.log("Odstranena vlajka");
+            }
+          } else {
             // find closest structure with less than max hits
             // Exclude walls because they have way too many max hits and would keep
             // our repairers busy forever. We have to find a solution for that later.
@@ -24,30 +41,34 @@ module.exports = {
                 // the second argument for findClosestByPath is an object which takes
                 // a property called filter which can be a function
                 // we use the arrow operator to define it
+                // Each repairer can have different treshold, no need to repair full
                 // We repair ramparts only to certain extent
-                filter: (s) => (s.hits < s.hitsMax && s.structureType != STRUCTURE_WALL && s.structureType != STRUCTURE_RAMPART) || (s.hits < s.hitsMax && s.structureType === STRUCTURE_RAMPART && s.hits < 300000)
+                filter: (s) => (s.hits < s.hitsMax*(creep.memory._rep_treshold_max || 0.9) && s.structureType != STRUCTURE_WALL && s.structureType != STRUCTURE_RAMPART) || (s.hits < (creep.memory._rep_treshold_max || 0.9) && s.structureType === STRUCTURE_RAMPART && s.hits < 300000)
             });
 
             // if we find one
-            if (structure != undefined) {
+            if (structure) {
                 // try to repair it, if it is out of range
                 let e = creep.carry[RESOURCE_ENERGY];
                 let r = creep.repair(structure)
                 if (r == ERR_NOT_IN_RANGE) {
                     // move towards it
                     creep.moveTo(structure);
+                    creep.say("[R]")
                 } else if (r === 0){
                     creep.say('🔧🔧')
                 }
             }
             // if we can't fine one
             else {
-                // look for construction sites
-                roleBuilder.run(creep);
+              // look for construction sites
+              roleBuilder.run(creep);
             }
+          }
         }
             // if creep is supposed to get energy
         else {
+          creep.say("[R->E]")
             // find closest container
             let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: s => (s.structureType == STRUCTURE_CONTAINER || s.structureType == STRUCTURE_STORAGE) &&
