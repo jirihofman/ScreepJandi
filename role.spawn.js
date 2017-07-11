@@ -94,6 +94,10 @@ module.exports = {
             c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N66');
     var numberOfLongDistanceHarvestersE98N66 = _.sum(Game.creeps, (c) =>
             c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N66');
+    var numberOfLongDistanceHarvestersE99N65 = _.sum(Game.creeps, (c) =>
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E99N65');
+    var numberOfLongDistanceHarvestersE98N65 = _.sum(Game.creeps, (c) =>
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N65');
 
     var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
     var name = '';
@@ -115,7 +119,7 @@ module.exports = {
     }
         // if no backup creep is required
     else {
-            // check if all sources have miners
+      // check if all sources have miners
       let sources = spawn.room.find(FIND_SOURCES);
             // iterate over all sources
       for (let source of sources) {
@@ -125,7 +129,7 @@ module.exports = {
           let containers = source.pos.findInRange(FIND_STRUCTURES, 1, {
             filter: s => s.structureType === STRUCTURE_CONTAINER
           });
-                    // if there is a container next to the source
+          // if there is a container next to the source
           if (containers.length > 0) {
             // spawn a miner
             name = spawn.createMiner(source.id);
@@ -145,7 +149,7 @@ module.exports = {
             l_distance = spawn.pos.findPathTo(l_miner.pos.x, l_miner.pos.y);
           }
           // time needed to get miner there (BODY_PARTS*3) + (TILES*2) + reserve
-          let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 5; // 5 slight reserve
+          let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 3; // 3 slight reserve
           // The total spawn time of a creep is the number of body part * 3 ticks
           if (l_miner && l_time_needed >= l_miner.ticksToLive){
             var l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id && c.ticksToLive > l_time_needed);
@@ -156,13 +160,63 @@ module.exports = {
             }
 
             if (l_source_needs_miner){
-              console.log('Need ['+spawn.name+'] to replace ['+l_miner+'] dying miner ['+l_miner.pos.x+','+l_miner.pos.y+']' );
               name = spawn.createMiner(source.id);
-              console.log('New miner\'s name is ' + name);
+              console.log('Need ['+spawn.name+'] to replace '+l_miner+' dying miner ['+l_miner.pos.x+','+l_miner.pos.y+']. New miner\'s name is ' + name );
             }
           }
         }
-      }
+      } // end loop sources
+
+      /* LOOP MIONERAL MINERS */
+      // check if all sources have miners
+      let minerals = spawn.room.find(FIND_MINERALS);
+            // iterate over all sources
+      for (let source of minerals) {
+        // if the source has no miner
+        if (!_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id)) {
+          // check whether or not the source has a container
+          let containers = source.pos.findInRange(FIND_STRUCTURES, 1, {
+            filter: s => s.structureType === STRUCTURE_CONTAINER
+          });
+                    // if there is a container next to the source
+          if (containers.length > 0) {
+            // spawn a miner
+            name = spawn.createMiner(source.id);
+            console.log('Creating mineral miner the OLD way');
+            if (name === -6){
+              name = null; // nejsou mineraly na minera, udelame harvestera
+            } else {
+              break;
+            }
+          }
+        } else {
+          // if the source has aging moner
+          // get the travel distance from miner's position to spawn
+          let l_miner = source.pos.findInRange(FIND_MY_CREEPS, 1, {filter: s => s.memory.role === 'miner'})[0];
+          let l_distance = [];
+          if (l_miner){
+            l_distance = spawn.pos.findPathTo(l_miner.pos.x, l_miner.pos.y);
+          }
+          // time needed to get miner there (BODY_PARTS*3) + (TILES*2) + reserve
+          let l_time_needed = (8 * 3 ) + (l_distance.length * 2) + 5; // 5 slight reserve
+          // The total spawn time of a creep is the number of body part * 3 ticks
+          if (l_miner && l_time_needed >= l_miner.ticksToLive){
+            var l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id && c.ticksToLive > l_time_needed);
+            // miners for the source with acceptable age (ie. the newly created one)
+            if (l_source_needs_miner){
+              // or the spawning one
+              l_source_needs_miner = !(spawn.spawning && Game.creeps[spawn.spawning.name].memory.sourceId === source.id && Game.creeps[spawn.spawning.name].memory.role === 'miner');
+            }
+
+            if (l_source_needs_miner){
+              console.log('Need ['+spawn.name+'] to replace ['+l_miner+'] dying mineral miner ['+l_miner.pos.x+','+l_miner.pos.y+']' );
+              name = spawn.createMiner(source.id);
+              console.log('New mineral miner\'s name is ' + name);
+            }
+          }
+        }
+      } // end loop mineral sources
+
     }
         // if none of the above caused a spawn command check for other roles
     if (!name) {
@@ -199,6 +253,7 @@ module.exports = {
       else if (numberOfRepairers < spawn.memory.minRepairers) {
                 // try to spawn one
         name = spawn.createCustomCreep(energy, 'repairer');
+        Game.creeps[name].memory._rep_treshold_max = 0.8;
       }
             // if not enough builders
       else if (numberOfBuilders < spawn.memory.minBuilders) {
@@ -210,15 +265,20 @@ module.exports = {
                 // try to spawn one
         name = spawn.createCustomCreep(energy, 'wallRepairer');
       }
-            // if not enough longDistanceHarvesters for E97N66
+      // if not enough longDistanceHarvesters for E97N66
       else if (numberOfLongDistanceHarvestersE97N66 < spawn.memory.minLDHE97N66) {
-                // try to spawn one
-        name = spawn.createLongDistanceHarvester(energy, 2, spawn.room.name, 'E97N66', 0);
+        // try to spawn one
+        name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E97N66', 0);
       }
-            // if not enough longDistanceHarvesters for E98N66
+      // no longer valid
       else if (numberOfLongDistanceHarvestersE98N66 < spawn.memory.minLDHE98N66) {
-                // try to spawn one
         name = spawn.createLongDistanceHarvester(energy, 2, spawn.room.name, 'E98N66', 0);
+      }
+      else if (numberOfLongDistanceHarvestersE99N65 < spawn.memory.minLDHE99N65) {
+        name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E99N65', 0);
+      }
+      else if (numberOfLongDistanceHarvestersE98N65 < spawn.memory.minLDHE98N65) {
+        name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E98N65', 0);
       }
       else {
         name = -1;
@@ -238,6 +298,8 @@ module.exports = {
       console.log('Lorries (450) : ' + numberOfLorries);
       console.log('LDH E97N66    : ' + numberOfLongDistanceHarvestersE97N66);
       console.log('LDH E98N66    : ' + numberOfLongDistanceHarvestersE98N66);
+      console.log('LDH E99N65    : ' + numberOfLongDistanceHarvestersE99N65);
+      console.log('LDH E98N65    : ' + numberOfLongDistanceHarvestersE98N65);
     }
   }
 };
