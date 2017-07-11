@@ -8,8 +8,59 @@ module.exports = {
       spawn.memory.maxedEnergy++;
     }
 
+    /* Things to do every 10 ticks
+       - search for old roads. If enough, make a repairer (switch upgrader or create new one)
+    */
+    if (Game.time % 10 === 0){
+      /* find structures having ie below 50% of life */
+      let l_structures_needing_repair = _.size(room.find(FIND_STRUCTURES, {filter: (s) => s.structureType !== STRUCTURE_RAMPART && s.structureType !== STRUCTURE_WALL && s.hits < (s.hitsMax * (spawn.memory._rep_treshold_min || 0.5))}));
+      if (l_structures_needing_repair > 0){
+        console.log("Structures ",room," below ", (spawn.memory._rep_treshold_min || 0.5) * 100, '%: ', l_structures_needing_repair);
+        // get a repairer if there is none
+        // TODO: Creep must by in the spawn room OMG
+        let l_repairer_in_room = _.size(room.find(FIND_MY_CREEPS, {filter: (s) => s.memory.role === 'repairer'}));
+        console.log("Repairer count: ", l_repairer_in_room);
+        if (l_repairer_in_room === 0){
+          // no repairer in the room. try 1) change builder/upgrader, 2) spawn one
+          let l_upgraders_in_room = _.size(room.find(FIND_MY_CREEPS, {filter: (s) => s.memory.role === 'builder'}));
+          if (l_upgraders_in_room > 0){
+            // 1)
+            let l_repairer = room.find(FIND_CREEPS, {filter: (s) => s.memory.role === 'builder'})[0];
+            l_repairer.memory.role = 'repairer';
+            l_repairer.memory._rep_treshold_max = spawn.memory._rep_treshold_min + 0.1; // repair a bit more then spawn treshold
+            console.log("Changed an upgrader to repairer. Set _rep_treshold_max: ", l_repairer.memory._rep_treshold_max);
+          } else {
+            // 2)
+            if (spawn.memory.minRepairers === 0){
+              spawn.memory.minRepairers = 1;
+              if (spawn.memory.minUpgraders > 0){
+                spawn.memory.minUpgraders-= 1;
+              }
+            } else {
+              console.log("Repairer min count set to: ", spawn.memory.minRepairers);
+              if (spawn.spawning && Game.creeps[spawn.spawning.name].memory.role === 'repairer'){
+                console.log("OK, already spawning repairer");
+              } else {
+                console.log("Should be spawning repairer in few ticks");
+              }
+            }
+          }
+        }
+      } else {
+        if (spawn.memory.minRepairers === 1){
+          // the tick when the buildings are OK
+          spawn.memory.minBuilders++; // we change back the minUpgraders (builder behaves as upgrader when there are no buildings)
+          // change role of the repairer to builder
+          room.find(FIND_CREEPS, {filter: (s) => s.memory.role === 'repairer'})[0].memory.role = 'builder';
+          console.log("changing repairer back to builder");
+        }
+        spawn.memory.minRepairers = 0; // we dont need repairers
+      }
+    }
+
+
     /* Renew or Recycle */
-    let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_CREEPS, {
+    let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
       filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder')
     }));
 
