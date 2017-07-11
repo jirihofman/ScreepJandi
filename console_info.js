@@ -6,6 +6,9 @@ Game.rooms.E99N66.ic();Game.rooms.E98N66.ic();
 Game.spawns.Spawn1.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
 Game.spawns.Spawn1.createCreep([WORK,WORK,WORK,, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
 Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'), "ScreepJandi on GitHub ♥ https://github.com/jirihofman/ScreepJandi")
+_.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;})
+Game.getObjectById('595d44d43d3c7b2a254e0ce6').transferEnergy(Game.getObjectById('595e3495025803287c09413d'))
+Game.market.calcTransactionCost(2000, 'W55N98', 'E99N66'); //Game.market.deal('595f21ca23327405bfd8b048', 100, 'E99N66')//595f21ca23327405bfd8b048	0.135	10,000	10,000	W55N98
 */
 
   Room.prototype.ic =
@@ -32,6 +35,10 @@ Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'
           c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N66');
       var numberOfLongDistanceHarvestersE98N66 = _.sum(Game.creeps, (c) =>
           c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N66');
+      var numberOfLongDistanceHarvestersE99N65 = _.sum(Game.creeps, (c) =>
+          c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E99N65');
+      var numberOfLongDistanceHarvestersE98N65 = _.sum(Game.creeps, (c) =>
+          c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N65');
 
       var spawn = room.find(FIND_MY_SPAWNS)[0]; // prvni spawn v mistnosti
       var minHarvesters = Game.spawns[spawn.name].memory.minHarvesters;
@@ -43,6 +50,8 @@ Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'
       var minLorries = Game.spawns[spawn.name].memory.minLorries || 0;
       var minLDHE97N66 = Game.spawns[spawn.name].memory.minLDHE97N66 || 0;
       var minLDHE98N66 = Game.spawns[spawn.name].memory.minLDHE98N66 || 0;
+      var minLDHE99N65 = Game.spawns[spawn.name].memory.minLDHE99N65 || 0;
+      var minLDHE98N65 = Game.spawns[spawn.name].memory.minLDHE98N65 || 0;
 
       console.log('Harvesters    : ' + numberOfHarvesters, ' out of ', minHarvesters);
       console.log('Upgraders     : ' + numberOfUpgraders, ' out of ', minUpgraders);
@@ -51,8 +60,9 @@ Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'
       console.log('WallRepairers : ' + numberOfWallRepairers, ' out of ', minWallRepairers);
       console.log('Miners        : ' + numberOfMiners, ' out of ', minMiners);
       console.log('Lorries       : ' + numberOfLorries, ' out of ', minLorries);
-      console.log('LDH E97N66    : ' + numberOfLongDistanceHarvestersE97N66, ' out of ', minLDHE97N66);
-      console.log('LDH E98N66    : ' + numberOfLongDistanceHarvestersE98N66, ' out of ', minLDHE98N66);
-
+      console.log('LDH E97N66    : ' + numberOfLongDistanceHarvestersE97N66);
+      console.log('LDH E98N66    : ' + numberOfLongDistanceHarvestersE98N66);
+      console.log('LDH E99N65    : ' + numberOfLongDistanceHarvestersE99N65);
+      console.log('LDH E98N65    : ' + numberOfLongDistanceHarvestersE98N65);
     };
 };
