@@ -21,3 +21,9 @@
 1. **miving_to_unload** - total time moving from energy to unload
 
 ## Flag play (WiP)
+
+### Yellow
+Used for LINKs. Transfering from **yellow-red** to **yellow-yellow**.
+
+### Brown
+Used for role **repairer** to recycle constructions.
