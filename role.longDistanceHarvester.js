@@ -115,6 +115,10 @@ module.exports = {
               // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(BOTTOM);
             }
+            if (creep.pos.y === 49){
+              // could get stuck when next move was to the left/right and was thrown back to exit
+              creep.move(TOP);
+            }
             creep.memory.miving_to_source++;
           } else {
             creep.memory.mining++;
