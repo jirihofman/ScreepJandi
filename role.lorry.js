@@ -55,7 +55,7 @@ module.exports = {
         }
 
         if (!structure) {
-          structure = creep.room.storage;
+          structure = creep.room.storage || creep.room.spawn;
         }
         if (structure)
                 {creep.memory.kam_to_vezu = JSON.stringify(structure.pos);}
