@@ -98,6 +98,8 @@ module.exports = {
             c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E99N65');
     var numberOfLongDistanceHarvestersE98N65 = _.sum(Game.creeps, (c) =>
             c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N65');
+    var numberOfLongDistanceHarvestersE97N68 = _.sum(Game.creeps, (c) =>
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N68');
 
     var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
     var name = '';
@@ -280,6 +282,9 @@ module.exports = {
       else if (numberOfLongDistanceHarvestersE98N65 < spawn.memory.minLDHE98N65) {
         name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E98N65', 0);
       }
+      else if (numberOfLongDistanceHarvestersE97N68 < spawn.memory.minLDHE97N68) {
+        name = spawn.createLongDistanceHarvester(energy, 3, spawn.room.name, 'E97N68', 0);
+      }
       else {
         name = -1;
       }
@@ -299,7 +304,7 @@ module.exports = {
       console.log('LDH E97N66    : ' + numberOfLongDistanceHarvestersE97N66);
       console.log('LDH E98N66    : ' + numberOfLongDistanceHarvestersE98N66);
       console.log('LDH E99N65    : ' + numberOfLongDistanceHarvestersE99N65);
-      console.log('LDH E98N65    : ' + numberOfLongDistanceHarvestersE98N65);
+      console.log('LDH E97N68    : ' + numberOfLongDistanceHarvestersE97N68);
     }
   }
 };
