@@ -20,15 +20,18 @@ module.exports = {
         let re = creep.reserveController(creep.room.controller);
         if (re !== 0) {
           console.log('Claimer reservation error: ' + re);
+          creep.moveTo(creep.room.controller);
         }
       } else if (r !== 0) {
         console.log('Claimer error: ' + r);
       }
 
       /* if it is not signed by me, SIGN it */
-      let sign = creep.room.controller.sign;
-      if (!sign || (sign && sign.username !== creep.owner.username && !sign.text)){
-        creep.signController(creep.room.controller, 'ScreepJandi on GitHub ♥ https://github.com/jirihofman/ScreepJandi');
+      if (creep.room.controller){
+        let sign = creep.room.controller.sign;
+        if (!sign || (sign && sign.username !== creep.owner.username && !sign.text)){
+          creep.signController(creep.room.controller, 'ScreepJandi on GitHub ♥ https://github.com/jirihofman/ScreepJandi');
+        }
       }
     }
   }
