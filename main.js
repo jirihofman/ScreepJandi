@@ -25,8 +25,9 @@ module.exports.loop = function () {
   }
 
   /* MINERAL lorries every 300 */
-  if (Game.time % 500 === 0){
-    //_.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;})
+  if (Game.time % 2000 === 0){
+    _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;});
+    //_.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59668a2706e2ae3bb796faa5', id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;})
   }
   /* LINKS. TODO: every 5 ticks maybe enough */
   if (Game.time % 6 === 0){
@@ -95,7 +96,7 @@ module.exports.loop = function () {
       if (!l_spawn && creep.memory.home){
         /* cant find spawn in this room, try home */
         l_spawn = creep.room.findExitTo(creep.memory.home);
-        console.log('Recycling self, moving to exit');
+        console.log('Recycling self, moving to exit: ', creep.pos);
       }
       let r = creep.moveTo(l_spawn);
       if (r===0){
@@ -122,7 +123,7 @@ module.exports.loop = function () {
       tower.attack(target); // ...FIRE!
     } else {
       // containers and ramparts. ramparts up to 220k
-      var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 400000)} )[0];
+      var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 500000)} )[0];
       var road_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
       let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
       if (r !== 0 && r !== -6 && r !== -7){
