@@ -62,9 +62,6 @@ module.exports = {
       }
       // if creep is supposed to get energy
       else {
-        // TODO transfer minerals ...
-
-
         // find closest container or LINK
         let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
           filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0)
@@ -95,14 +92,23 @@ module.exports = {
           } else if (l_result !== 0){
             creep.say('Error ' + l_result);
           }
+          // Try to withdraw from building if it is possible (STRUCTURE_CONTAINER, STRUCTURE_TERMINAL)
+          if (energy_dropped.amount < creep.carryCapacity-creep.carry.energy && l_result === 0){
+            let w = creep.withdraw(_.filter(creep.room.lookForAt(LOOK_STRUCTURES, energy_dropped.pos.x, energy_dropped.pos.y), c=>c.structureType===STRUCTURE_CONTAINER)[0], RESOURCE_ENERGY, creep.carryCapacity-creep.carry.energy-energy_dropped.amount);
+            if (w===0){
+              console.log(creep, 'small pile: ', energy_dropped.amount, creep.carryCapacity-creep.carry.energy-energy_dropped.amount);
+            } else {
+              console.log(creep, 'ERROR', w, ' small pile: ', creep.room.lookForAt(LOOK_STRUCTURES, energy_dropped)[0], energy_dropped.amount, creep.carryCapacity-creep.carry.energy, creep.carryCapacity, creep.carry.energy);
+            }
+          }
         } else {
-                  // if one was found and we are not harvesting dropped energy
+          // if one was found and we are not harvesting dropped energy
           if (container) {
-                      // try to withdraw energy, if the container is not in range
+            // try to withdraw energy, if the container is not in range
             if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
               // move towards it
               creep.say('🚚->🏭');
-              creep.moveTo(container, {reusePath: 5, visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dashed'}});
+              creep.moveTo(container, {reusePath: 3, visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dashed'}});
             }
           }
         }
