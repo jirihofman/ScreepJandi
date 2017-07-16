@@ -12,7 +12,7 @@
 ### Creep (all types)
 
 1. **to_recycle**
-  1. **1**: go to spawn in the same room and get recycled by it
+   1. **1**: go to spawn in the same room and get recycled by it
 1. **maxed**: if *true*, creep stops harvesting/collecting energy and goes to work (harvest, repair, build, upgrade, lorry)
 
 #### longDistanceHarvester
@@ -24,9 +24,9 @@
 #### lorry
 
 1. **_task**
-  1. *id_to*: Where does it unload
-  1. *id_from*: Optional. From where withdraw resources
-  1. *mineral_type*: RESOURCE_*
+   1. *id_to*: Where does it unload
+   1. *id_from*: Optional. From where withdraw resources
+   1. *mineral_type*: RESOURCE_*
 
 ## Flag play (WiP)
 
