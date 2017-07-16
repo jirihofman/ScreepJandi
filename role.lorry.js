@@ -81,7 +81,7 @@ module.exports = {
         });
 
         let energy_dropped_huge = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-          filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 1000
+          filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 600
         });
         if (energy_dropped_huge)
           {energy_dropped = energy_dropped_huge;} // nasli jsme vetsi kus energie na zemi, jedeme tam. Jinak se furt vracime k minerovi
