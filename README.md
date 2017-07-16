@@ -15,6 +15,10 @@
    1. **1**: go to spawn in the same room and get recycled by it
 1. **maxed**: if *true*, creep stops harvesting/collecting energy and goes to work (harvest, repair, build, upgrade, lorry)
 
+#### builder
+
+1. **ext** - when **true**, withdraws energy from extensions as well. Usually used around RCL 4 for storage building.
+
 #### longDistanceHarvester
 
 1. steps_from_source - tiles traveled from source to unload. One way only

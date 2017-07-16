@@ -18,7 +18,7 @@ module.exports = {
         creep.memory.working = true;
       }
 
-      if (creep.carry.energy > 400 && !creep.memory.working){
+      if (creep.memory._move && creep.carry.energy > 400 && !creep.memory.working){
         let l_range = creep.pos.getRangeTo(creep.memory._move.dest.x, creep.memory._move.dest.y);
         /* if the range to another pickup is too long and we have enough energy (400), fuck it */
         if (l_range > 20){

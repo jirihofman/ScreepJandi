@@ -60,17 +60,16 @@ module.exports = {
       // find closest container
       let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
         filter: s => (
-                  (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 50 /* Nesockuju u minera, ktery to tam sype po 10 */
+                  // try extension when emergency
+                  creep.memory.ext && s.structureType === STRUCTURE_EXTENSION && s.energy > 0
+            ) || (
+                  (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 70 /* Nesockuju u minera, ktery to tam sype po 10 */
                 )
               || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
       });
 
-            // if no found, try extension when emergency
       if (!container) {
-        container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                  // TODO docs for creep.memory.ext
-          filter: s => s.structureType === STRUCTURE_EXTENSION && creep.memory.ext && s.energy > 0
-        });
+        container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: s => s.structureType === STRUCTURE_EXTENSION && creep.memory.ext && s.energy > 0});
       }
 
       // if one was found

@@ -10,6 +10,7 @@ _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry
 Game.creeps.Bella.transfer(Game.getObjectById('59668a2706e2ae3bb796faa5'), RESOURCE_CATALYST); delete Game.creeps.Bella.memory._task;
 Game.getObjectById('595d44d43d3c7b2a254e0ce6').transferEnergy(Game.getObjectById('595e3495025803287c09413d'))
 Game.market.calcTransactionCost(2000, 'W55N98', 'E99N66'); //Game.market.deal('595f21ca23327405bfd8b048', 100, 'E99N66')//595f21ca23327405bfd8b048	0.135	10,000	10,000	W55N98
+Game.creeps.Allison.memory._task = {id_from: Game.creeps.Allison.pos.findClosestByRange(FIND_STRUCTURES, {filter: s => s.structureType===STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 666}).id, mineral_type: RESOURCE_ENERGY}
 */
 
   Room.prototype.ic =

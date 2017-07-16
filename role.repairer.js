@@ -1,27 +1,26 @@
 var roleBuilder = require('role.builder');
 
 module.exports = {
-    // a function to run the logic for this role
+  // a function to run the logic for this role
   run: function(creep) {
-        // if creep is trying to repair something but has no energy left
+    // if creep is trying to repair something but has no energy left
     if (creep.memory.working === true && creep.carry.energy === 0) {
       creep.memory.working = false;  // switch state
     }
-        // if creep is harvesting energy but is full
+    // if creep is harvesting energy but is full
     else if (creep.memory.working === false && creep.carry.energy === creep.carryCapacity) {
       creep.memory.working = true; // switch state
     }
 
-        // if creep is supposed to repair something
+    // if creep is supposed to repair something
     if (creep.memory.working === true) {
-          /* look for brown flags. If any, dismantle buildings on them */
+      /* look for brown flags. If any, dismantle buildings on them */
       let l_flags_to_dismantle = creep.pos.findClosestByPath(FIND_FLAGS, {filter: s=>s.color===COLOR_BROWN && s.secondaryColor===COLOR_BROWN});
       if (l_flags_to_dismantle){
         let l_structs_to_dismantle = creep.room.find(FIND_STRUCTURES, {filter: s=>s.pos.x===l_flags_to_dismantle.pos.x && s.pos.y===l_flags_to_dismantle.pos.y})[0];
         if (l_structs_to_dismantle){
           let d = creep.dismantle(l_structs_to_dismantle);
           if (d === ERR_NOT_IN_RANGE) {
-                // move towards it
             creep.moveTo(l_structs_to_dismantle);
             creep.say('🔜💣');
           } else if (d === 0){
