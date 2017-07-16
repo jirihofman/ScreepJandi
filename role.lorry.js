@@ -32,24 +32,15 @@ module.exports = {
         /* TODO: in case of attack, switch priorities. Towers fill first */
         // find closest spawn, extension or tower which is not full
         var structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-                  // the second argument for findClosestByPath is an object which takes
-                  // a property called filter which can be a function
-                  // we use the arrow operator to define it
           filter: (s) => ((s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
                                && s.energy < s.energyCapacity)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-                  // the second argument for findClosestByPath is an object which takes
-                  // a property called filter which can be a function
-                  // we use the arrow operator to define it
           filter: (s) => (s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity/2)
         });
 
         if (!structure) {
           creep.say('to_storage');
           structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-                      // the second argument for findClosestByPath is an object which takes
-                      // a property called filter which can be a function
-                      // we use the arrow operator to define it
             filter: (s) => s.structureType === STRUCTURE_STORAGE
           });
         }
@@ -65,7 +56,7 @@ module.exports = {
                   // try to transfer energy, if it is not in range
           if (creep.transfer(structure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                       // move towards it
-            creep.moveTo(structure, {reusePath: 10});
+            creep.moveTo(structure, {reusePath: 10, visualizePathStyle: {stroke: '#ffff00', lineStyle: null}});
           }
         }
       }
@@ -84,7 +75,7 @@ module.exports = {
           container = creep.room.storage;
         }
 
-              // hledame spadlou energii na zemi - male kusy
+        // hledame spadlou energii na zemi - male kusy
         let energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
           filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 40
         });
@@ -99,7 +90,7 @@ module.exports = {
           let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY);
           if (l_result === ERR_NOT_IN_RANGE) {
             // move towards it
-            creep.moveTo(energy_dropped);
+            creep.moveTo(energy_dropped, {visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dotted'}});
             creep.say('EE');
           } else if (l_result !== 0){
             creep.say('Error ' + l_result);
@@ -109,8 +100,9 @@ module.exports = {
           if (container) {
                       // try to withdraw energy, if the container is not in range
             if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                          // move towards it
-              creep.moveTo(container, {reusePath: 10});
+              // move towards it
+              creep.say('🚚->🏭');
+              creep.moveTo(container, {reusePath: 5, visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dashed'}});
             }
           }
         }

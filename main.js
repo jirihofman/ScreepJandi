@@ -27,7 +27,11 @@ module.exports.loop = function () {
 
   /* MINERAL lorries every 300 */
   if (Game.time % 2000 === 0){
-    _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;});
+    if (_.size(Game.rooms.E99N66.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_UTRIUM] > 300})) > 0){
+      _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;});
+    } else {
+      _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
+    }
     //_.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59668a2706e2ae3bb796faa5', id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;})
   }
   /* LINKS. TODO: every 5 ticks maybe enough */
@@ -36,9 +40,11 @@ module.exports.loop = function () {
       if(Game.flags[k].color===COLOR_YELLOW && Game.flags[k].secondaryColor===COLOR_RED){
         let target = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && !s.pos.isEqualTo(v.pos)});
         let source = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && s.pos.isEqualTo(v.pos)});
-        if (source[0].energy > 200){
+        if (source[0] && source[0].energy > 200){
           let r = Game.getObjectById(source[0].id).transferEnergy(target[0]);
-          //console.log('Link ', source[0], ' transfering', source[0].energy, ' energy to ', target, r);
+          if (r!==0){
+            console.log('Link [error] ', source[0], ' transfering', source[0].energy, ' energy to ', target, r);
+          }
         }
       }
     });

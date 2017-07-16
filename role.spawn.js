@@ -174,6 +174,9 @@ module.exports = {
       let minerals = spawn.room.find(FIND_MINERALS);
             // iterate over all sources
       for (let source of minerals) {
+        if (source.mineralAmount < 500){
+          break; // donw want to build miners where there are almost no minerals
+        }
         // if the source has no miner
         if (!_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id)) {
           // check whether or not the source has a container
@@ -223,26 +226,24 @@ module.exports = {
         // if none of the above caused a spawn command check for other roles
     if (!name) {
 
-            // if not enough harvesters
+      // if not enough harvesters
       if (numberOfHarvesters < spawn.memory.minHarvesters) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'harvester');
       }
 
-            // if not enough lorries
+      // if not enough lorries
       else if (numberOfLorries < spawn.memory.minLorries) {
-                // try to spawn one
         if (energy > 899)
           {energy = 900;}
         name = spawn.createLorry(energy);
       }
-            // if there is a claim order defined
+      // if there is a claim order defined
       else if (spawn.memory.claimRoom) {
-                // try to spawn a claimer
+        // try to spawn a claimer
         name = spawn.createClaimer(spawn.memory.claimRoom);
-                // if that worked
+        // if that worked
         if (!(name < 0)) {
-                    // delete the claim order
+          // delete the claim order
           delete spawn.memory.claimRoom;
         }
       }

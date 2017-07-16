@@ -9,6 +9,7 @@ module.exports = {
         let b = flag.room.createConstructionSite(flag.pos, STRUCTURE_EXTENSION);
         if (b === 0){
           console.log('createConstructionSite extension: ', flag.pos.x, flag.pos.y, flag.room);
+          flag.remove(); // remove the flag when the constructionSite is created
         }
         break;
       }

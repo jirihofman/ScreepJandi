@@ -69,7 +69,7 @@ module.exports = {
         // find exit to home room
         let exit = creep.room.findExitTo(creep.memory.home);
                 // and move to exit
-        creep.moveTo(creep.pos.findClosestByPath(exit));
+        creep.moveTo(creep.pos.findClosestByPath(exit), {visualizePathStyle: {stroke: '#ff0000'}});
         creep.memory.miving_to_unload++;
       }
     }
@@ -110,7 +110,7 @@ module.exports = {
           let h = creep.harvest(source);
           if (h === ERR_NOT_IN_RANGE || h === ERR_NOT_ENOUGH_RESOURCES) {
             // move towards the source
-            creep.moveTo(source);
+            creep.moveTo(source, {visualizePathStyle: {stroke: '#ff0000'}});
             if (creep.pos.y === 0){
               // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(BOTTOM);

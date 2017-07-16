@@ -57,7 +57,7 @@ module.exports = {
     }
         // if creep is supposed to get energy
     else {
-            // find closest container
+      // find closest container
       let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
         filter: s => (
                   (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 50 /* Nesockuju u minera, ktery to tam sype po 10 */
@@ -73,7 +73,7 @@ module.exports = {
         });
       }
 
-            // if one was found
+      // if one was found
       if (container) {
         if (container.structureType === STRUCTURE_EXTENSION)
           {creep.say('B<-ext');}
