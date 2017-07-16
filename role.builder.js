@@ -8,7 +8,7 @@ module.exports = {
             // find exit to target room
       var exit = creep.room.findExitTo(creep.memory.target);
             // move to exit
-      creep.moveTo(creep.pos.findClosestByRange(exit));
+      creep.moveTo(creep.pos.findClosestByRange(exit), {visualizePathStyle: {stroke: '#ffaa00'}});
       creep.say('B->exit');
             // return the function to not do anything else
       return;
@@ -43,7 +43,7 @@ module.exports = {
                 // try to build, if the constructionSite is not in range
         if (creep.build(constructionSite) === ERR_NOT_IN_RANGE) {
                     // move towards the constructionSite
-          creep.moveTo(constructionSite);
+          creep.moveTo(constructionSite, {visualizePathStyle: {stroke: '#ffaa00'}});
         } else {
           creep.say('Building ...');
         }
@@ -89,7 +89,7 @@ module.exports = {
                 // try to harvest energy, if the source is not in range
         if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
                     // move towards it
-          creep.moveTo(source);
+          creep.moveTo(source, {visualizePathStyle: {stroke: '#ffgggg'}});
         }
       }
     }

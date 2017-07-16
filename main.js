@@ -1,6 +1,7 @@
 // import modules
 require('prototype.spawn')();// extra spawn functions
 var roleSpawn = require('role.spawn'); // spawn behaviour
+var roleFlag = require('role.flag'); // spawn behaviour
 require('console_info')(); // prototype for Room
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
@@ -139,6 +140,15 @@ module.exports.loop = function () {
     let spawn = Game.spawns[spawnName];
     let l_cpu_used = Game.cpu.getUsed();
     roleSpawn.run(spawn);
+    l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    //console.log('Spawn: ', spawnName, l_cpu_used);
+  }
+
+  // iterate over all the flags
+  for (let flagName in Game.flags) {
+    let flag = Game.flags[flagName];
+    let l_cpu_used = Game.cpu.getUsed();
+    roleFlag.run(flag);
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
     //console.log('Spawn: ', spawnName, l_cpu_used);
   }

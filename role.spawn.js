@@ -15,11 +15,11 @@ module.exports = {
       /* find structures having ie below 50% of life */
       let l_structures_needing_repair = _.size(room.find(FIND_STRUCTURES, {filter: (s) => s.structureType !== STRUCTURE_RAMPART && s.structureType !== STRUCTURE_WALL && s.hits < (s.hitsMax * (spawn.memory._rep_treshold_min || 0.5))}));
       if (l_structures_needing_repair > 0){
-        console.log("Structures ",room," below ", (spawn.memory._rep_treshold_min || 0.5) * 100, '%: ', l_structures_needing_repair);
+        console.log('Structures ', room, ' below ', (spawn.memory._rep_treshold_min || 0.5) * 100, '%: ', l_structures_needing_repair);
         // get a repairer if there is none
         // TODO: Creep must by in the spawn room OMG
         let l_repairer_in_room = _.size(room.find(FIND_MY_CREEPS, {filter: (s) => s.memory.role === 'repairer'}));
-        console.log("Repairer count: ", l_repairer_in_room);
+        console.log('Repairer count: ', l_repairer_in_room);
         if (l_repairer_in_room === 0){
           // no repairer in the room. try 1) change builder/upgrader, 2) spawn one
           let l_upgraders_in_room = _.size(room.find(FIND_MY_CREEPS, {filter: (s) => s.memory.role === 'builder'}));
@@ -28,7 +28,7 @@ module.exports = {
             let l_repairer = room.find(FIND_CREEPS, {filter: (s) => s.memory.role === 'builder'})[0];
             l_repairer.memory.role = 'repairer';
             l_repairer.memory._rep_treshold_max = spawn.memory._rep_treshold_min + 0.1; // repair a bit more then spawn treshold
-            console.log("Changed an upgrader to repairer. Set _rep_treshold_max: ", l_repairer.memory._rep_treshold_max);
+            console.log('Changed an upgrader to repairer. Set _rep_treshold_max: ', l_repairer.memory._rep_treshold_max);
           } else {
             // 2)
             if (spawn.memory.minRepairers === 0){
@@ -37,11 +37,11 @@ module.exports = {
                 spawn.memory.minUpgraders-= 1;
               }
             } else {
-              console.log("Repairer min count set to: ", spawn.memory.minRepairers);
+              console.log('Repairer min count set to: ', spawn.memory.minRepairers);
               if (spawn.spawning && Game.creeps[spawn.spawning.name].memory.role === 'repairer'){
-                console.log("OK, already spawning repairer");
+                console.log('OK, already spawning repairer');
               } else {
-                console.log("Should be spawning repairer in few ticks");
+                console.log('Should be spawning repairer in few ticks');
               }
             }
           }
@@ -52,7 +52,7 @@ module.exports = {
           spawn.memory.minBuilders++; // we change back the minUpgraders (builder behaves as upgrader when there are no buildings)
           // change role of the repairer to builder
           room.find(FIND_CREEPS, {filter: (s) => s.memory.role === 'repairer'})[0].memory.role = 'builder';
-          console.log("changing repairer back to builder");
+          console.log('changing repairer back to builder');
         }
         spawn.memory.minRepairers = 0; // we dont need repairers
       }
@@ -154,7 +154,7 @@ module.exports = {
           let l_time_needed = (7 * 3 ) + (l_distance.length * 2) + 3; // 3 slight reserve
           // The total spawn time of a creep is the number of body part * 3 ticks
           if (l_miner && l_time_needed >= l_miner.ticksToLive){
-            var l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id && c.ticksToLive > l_time_needed);
+            let l_source_needs_miner = !_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id && c.ticksToLive > l_time_needed);
             // miners for the source with acceptable age (ie. the newly created one)
             if (l_source_needs_miner){
               // or the spawning one
@@ -237,7 +237,7 @@ module.exports = {
         name = spawn.createLorry(energy);
       }
             // if there is a claim order defined
-      else if (spawn.memory.claimRoom !== undefined) {
+      else if (spawn.memory.claimRoom) {
                 // try to spawn a claimer
         name = spawn.createClaimer(spawn.memory.claimRoom);
                 // if that worked
@@ -270,7 +270,7 @@ module.exports = {
       // if not enough longDistanceHarvesters for E97N66
       else if (numberOfLongDistanceHarvestersE97N66 < spawn.memory.minLDHE97N66) {
         // try to spawn one
-        name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E97N66', 0);
+        name = spawn.createLongDistanceHarvester(energy, 3, spawn.room.name, 'E97N66', 0);
       }
       // no longer valid
       else if (numberOfLongDistanceHarvestersE98N66 < spawn.memory.minLDHE98N66) {
@@ -306,5 +306,22 @@ module.exports = {
       console.log('LDH E99N65    : ' + numberOfLongDistanceHarvestersE99N65);
       console.log('LDH E97N68    : ' + numberOfLongDistanceHarvestersE97N68);
     }
+
+    /* Set default number of roles for the spawn depending on controller level */
+    if (spawn.room.controller.level === 1 && !spawn.memory._pt_lvl){
+      console.log('Default number of creeps set for room ', spawn.room);
+      spawn.memory.minHarvesters = spawn.memory.minHarvesters || 1;
+      spawn.memory.minLorries = spawn.memory.minLorries || 0;
+      spawn.memory.minBuilders = spawn.memory.minBuilders || 1;
+      spawn.memory.minUpgraders = spawn.memory.minUpgraders || 1;
+    } else if (spawn.room.controller.level === 2 && spawn.memory._pt_lvl !== 2) {
+      // upgraded form 1 to 2
+      console.log('Room upgraded to lvl 2 ', spawn.room);
+      spawn.memory.minBuilders = 3; // 3 builders, 1 harvester, 1 upgrader
+    } else if (spawn.room.controller.level !== spawn.memory._pt_lvl) {
+      console.log('upgraded from ', spawn.memory._pt_lvl, ' to ', spawn.room.controller.level);
+    }
+    //console.log(spawn.room.controller.level);
+    spawn.memory._pt_lvl = spawn.room.controller.level; // lvl previous tick
   }
 };
