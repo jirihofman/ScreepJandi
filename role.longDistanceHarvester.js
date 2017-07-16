@@ -1,7 +1,7 @@
 var roleBuilder = require('role.builder');
 
 module.exports = {
-    // a function to run the logic for this role
+  // a function to run the logic for this role
   run: function(creep) {
     // if creep is bringing energy to a structure but has no energy left
     if (creep.memory.working === true && creep.carry.energy === 0) {
@@ -10,9 +10,9 @@ module.exports = {
       creep.memory.maxed = false;
       creep.memory.cycles++;
     }
-        // if creep is harvesting energy but is full
+    // if creep is harvesting energy but is full
     else if (creep.memory.working === false && (creep.carry.energy === creep.carryCapacity || creep.memory.maxed)) {
-            // switch state
+      // switch state
       creep.memory.working = true;
       creep.memory.steps_from_source = 0; // TODO: can get full from dropped energy too
       creep.memory.ticks_from_source = 0; // TODO: can get full from dropped energy too
@@ -31,21 +31,21 @@ module.exports = {
           filter: (s) => ((s.structureType === STRUCTURE_SPAWN
                                  || s.structureType === STRUCTURE_EXTENSION
                                  || s.structureType === STRUCTURE_STORAGE
-                                 || s.structureType === STRUCTURE_TOWER)
+                                 || s.structureType === STRUCTURE_TOWER
+                                 || s.structureType === STRUCTURE_LINK /* unloading into links as well*/)
                                  && s.energy < s.energyCapacity)
                                  || (s.structureType === STRUCTURE_CONTAINER /* unloading into containers as well*/ && s.store[RESOURCE_ENERGY] < 2000)
-                                 || (s.structureType === STRUCTURE_LINK /* unloading into links as well*/ && s.energy < s.energyCapacity)
         });
 
         if (!structure) {
           structure = creep.room.storage;
         }
 
-                // if we found one
+        // if we found one
         if (structure) {
-                    // try to transfer energy, if it is not in range
+          // try to transfer energy, if it is not in range
           if (creep.transfer(structure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                        // move towards it
+            // move towards it
             let m = creep.moveTo(structure);
             if (m === 0){
               creep.memory.steps_from_source++; // TODO: can get full from dropped energy too
@@ -68,17 +68,17 @@ module.exports = {
         }
         // find exit to home room
         let exit = creep.room.findExitTo(creep.memory.home);
-                // and move to exit
+        // and move to exit
         creep.moveTo(creep.pos.findClosestByPath(exit), {visualizePathStyle: {stroke: '#ff0000'}});
         creep.memory.miving_to_unload++;
       }
     }
     // if creep is supposed to harvest energy from source
     else {
-            // if in target room
+      // if in target room
       if (creep.room.name === creep.memory.target) {
-                // find source
-                // hledame spadlou energii na zemi
+        // find source
+        // hledame spadlou energii na zemi
         let energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
           filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 40
         });
@@ -86,8 +86,8 @@ module.exports = {
         if (energy_dropped) {
           let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY);
           if (l_result === ERR_NOT_IN_RANGE) {
-                        // move towards it
-            creep.moveTo(energy_dropped);
+            // move towards it. reusePath=0 helps unwanted jumping to and fro between rooms
+            creep.moveTo(energy_dropped, {reusePath:0});
             creep.memory.miving_to_source++;
             creep.say('EE');
           } else if (l_result !== 0){
@@ -96,9 +96,7 @@ module.exports = {
             creep.memory.mining++;
           }
         } else {
-
           var source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE) || creep.room.find(FIND_SOURCES)[creep.memory.sourceIndex];
-                    //.find(FIND_SOURCES)[creep.memory.sourceIndex];
 
           /* Takes too long to replenish the source, head back and unload */
           if (source && source.energy === 0 && source.ticksToRegeneration > 130){
@@ -109,8 +107,8 @@ module.exports = {
           // try to harvest energy, if the source is not in range
           let h = creep.harvest(source);
           if (h === ERR_NOT_IN_RANGE || h === ERR_NOT_ENOUGH_RESOURCES) {
-            // move towards the source
-            creep.moveTo(source, {visualizePathStyle: {stroke: '#ff0000'}});
+            // move towards source. reusePath=0 helps unwanted jumping to and fro between rooms
+            creep.moveTo(source, {reusePath:0, visualizePathStyle: {stroke: '#ff0000'}});
             if (creep.pos.y === 0){
               // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(BOTTOM);

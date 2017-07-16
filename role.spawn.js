@@ -64,18 +64,15 @@ module.exports = {
       filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder')
     }));
 
-    if (renewing === 0)
-      {console.log('renewing:' + renewing);}
+//    if (renewing === 0)
+//      {console.log('renewing:' + renewing);}
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
     if(l_adjecent_creeps.length > 0) {
-      //console.log(l_adjecent_creeps.length + " creeps adjecent to " + spawn.name);
       l_adjecent_creeps.forEach(function(c) {
-        //console.log(c.name + " is " + c.memory.role + " and has parts: " + c.body.length);
-        //console.log(spawn.room.energyCapacityAvailable)//
         if (c.memory.to_recycle === 1){
           spawn.recycleCreep(c);
-          console.log('Recycling ' + c);
+          console.log('Recycling creep: ' + c);
         }
       });
     }
