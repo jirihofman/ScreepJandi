@@ -3,8 +3,7 @@ module.exports = function() {
     // create a new function for StructureSpawn
   StructureSpawn.prototype.createCustomCreep =
         function(energy, roleName, p_memory) {
-            // create a balanced body as big as possible with the given energy
-
+          // create a balanced body as big as possible with the given energy
           var numberOfParts = Math.floor(energy / 200);
           var body = [];
           for (let i = 0; i < numberOfParts; i++) {
@@ -21,8 +20,18 @@ module.exports = function() {
             body = [WORK, WORK, MOVE, CARRY, MOVE, CARRY, MOVE, CARRY];
           }
 
-            // create creep with the created body and the given role
-          return this.createCreep(body, null, { role: roleName, working: false, maxed: false });
+          if (!p_memory){
+            p_memory = { role: roleName, working: false, maxed: false };
+          }
+          if (p_memory && !p_memory.working){
+            p_memory.working = false;
+          }
+          if (p_memory && !p_memory.maxed){
+            p_memory.maxed = false;
+          }
+
+          // create creep with the created body and the given role
+          return this.createCreep(body, null, p_memory);
         };
 
     // create a new function for StructureSpawn
