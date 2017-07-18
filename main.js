@@ -3,7 +3,7 @@ require('prototype.spawn')();// extra spawn functions
 var roleSpawn = require('role.spawn'); // spawn behaviour
 var roleFlag = require('role.flag'); // spawn behaviour
 require('console_info')(); // prototype for Room
-var roleHarvester = require('role.harvester');
+var roleHarvester = require('role.harvester') ;
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 var roleRepairer = require('role.repairer');
@@ -15,7 +15,7 @@ var roleLorry = require('role.lorry');
 var roleAttacker = require('role.attacker');
 
 module.exports.loop = function () {
-  // check for memory entries of died creeps by iterating over Memory.creeps
+    // check for memory entries of died creeps by iterating over Memory.creeps
   for (let name in Memory.creeps) {
     // and checking if the creep is still alive
     if (!Game.creeps[name]) {
@@ -32,7 +32,7 @@ module.exports.loop = function () {
     } else {
       _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
     }
-    //_.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59668a2706e2ae3bb796faa5', id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;})
+    _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59668a2706e2ae3bb796faa5', id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;});
   }
   /* LINKS. TODO: every 5 ticks maybe enough */
   if (Game.time % 6 === 0){
@@ -55,6 +55,7 @@ module.exports.loop = function () {
     let l_cpu_used = Game.cpu.getUsed();
         // get the creep object
     var creep = Game.creeps[name];
+
 
         // if creep is harvester, call harvester script
     if (creep.memory.role === 'harvester') {

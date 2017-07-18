@@ -62,6 +62,9 @@ module.exports = {
       }
       // if creep is supposed to get energy
       else {
+        // TODO transfer minerals ...
+
+
         // find closest container or LINK
         let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
           filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0)
