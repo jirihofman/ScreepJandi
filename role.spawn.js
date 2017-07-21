@@ -84,15 +84,15 @@ module.exports = {
     var numberOfLorries = _.sum(creepsInRoom, (c) => c.memory.role === 'lorry');
         // count the number of long distance harvesters globally
     var numberOfLongDistanceHarvestersE97N66 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N66');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N66' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE98N66 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N66');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N66' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE99N65 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E99N65');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E99N65' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE98N65 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N65');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N65' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE97N68 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N68');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N68' && c.memory.home === spawn.room.name);
 
     var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
     var name = '';
