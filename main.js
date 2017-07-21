@@ -26,13 +26,17 @@ module.exports.loop = function () {
   }
 
   /* MINERAL lorries every 300 */
-  if (Game.time % 2000 === 0){
+  if (Game.time % 1000 === 0){
     if (_.size(Game.rooms.E99N66.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_UTRIUM] > 300})) > 0){
       _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;});
     } else {
       _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
     }
-    _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59668a2706e2ae3bb796faa5', id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;});
+    if (_.size(Game.rooms.E98N66.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_UTRIUM] > 300})) > 0){
+      _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59668a2706e2ae3bb796faa5', id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;});
+    } else {
+      _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
+    }
   }
   /* LINKS. TODO: every 5 ticks maybe enough */
   if (Game.time % 6 === 0){
@@ -53,11 +57,9 @@ module.exports.loop = function () {
   // for every creep name in Game.creeps
   for (let name in Game.creeps) {
     let l_cpu_used = Game.cpu.getUsed();
-        // get the creep object
-    var creep = Game.creeps[name];
+    var creep = Game.creeps[name]; // get the creep object
 
-
-        // if creep is harvester, call harvester script
+    // if creep is harvester, call harvester script
     if (creep.memory.role === 'harvester') {
       roleHarvester.run(creep);
     }
