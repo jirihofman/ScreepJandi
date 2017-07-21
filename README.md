@@ -38,4 +38,4 @@
 Used for LINKs. Transfering from **yellow-red** to **yellow-yellow**.
 
 ### Brown
-Used for role **repairer** to recycle constructions.
+Used for role **repairer** to recycle constructions. When a repairer sees this flag, it dismantles it.
