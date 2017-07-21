@@ -313,5 +313,12 @@ module.exports = {
     }
     //console.log(spawn.room.controller.level);
     spawn.memory._pt_lvl = spawn.room.controller.level; // lvl previous tick
+  },
+
+  is_reserver_needed: (spawn, target) => {
+    console.log('is_reserver_needed start for: ', target);
+    let l_needed = false;
+
+    return l_needed;
   }
 };
