@@ -136,7 +136,17 @@ module.exports = {
         // find exit to target room
         var exit = creep.room.findExitTo(creep.memory.target);
         // move to exit
-        creep.moveTo(creep.pos.findClosestByPath(exit));
+        creep.moveTo(creep.pos.findClosestByPath(exit), {reusePath:0, visualizePathStyle: {dashed: '#ff0000'}});
+
+        /* TODO hardcoded for room E97N67 */
+        if (creep.pos.y >= 46 && creep.pos.x < 23 && creep.memory.home === 'E97N67'){
+          creep.moveTo(23, 46, {reusePath:0, visualizePathStyle: {stroke: '#ff0000'}});
+          if (creep.pos.y === 46 && creep.pos.x < 23 && creep.memory.home === 'E97N67'){
+            creep.move(RIGHT)
+          }
+          creep.say('lol');
+        }
+
       }
     }
 
@@ -144,25 +154,24 @@ module.exports = {
     if (creep.room.name === creep.memory.target) {
       /* Reserve rooms with LDH, https://github.com/jirihofman/ScreepJandi/issues/3 */
       let l_owner = creep.room.controller.owner;
-      console.log('LDH ', creep.name, ' controller in ', creep.room, l_owner, l_owner !== creep.owner, ', creep: ', creep.memory.home, creep.memory.target);
-      /* not mine, need to reserve it
-      OR
-      TODO: will diminish soon */
-      if (l_owner !== creep.owner){
+      /* not mine, need to reserve it OR will diminish soon */
+      if (l_owner !== creep.owner || creep.room.controller.reservation.ticksToEnd < 1500){
         // spawn a claimer in home room
         // set mode reserve   only
         // check wether there is not a claimer with the same task
         let l_creeps_reserving = _.filter(Game.creeps, c=>c.memory && c.memory.role==='claimer' && c.memory.mode==='c' && c.memory.target===creep.memory.target && c.memory.home===creep.memory.home).length;
         if (l_creeps_reserving===0){
-          console.log('--- no claimers found: ', l_creeps_reserving);
           //Game.spawns.Spawn2.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: 'E98N65', home: 'E98N66', mode: 'c' })
           // find spawn
-          let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
-          l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+          //console.log('LDH ', creep.name, ' controller in ', creep.room, l_owner, l_owner !== creep.owner, ', creep: ', creep.memory.home, creep.memory.target);
+          if (creep.room.controller.reservation.ticksToEnd < 1500){
+            console.log('Room ', creep.room, ' No claimer-reservator creeps. Progress:', creep.room.controller.reservation.ticksToEnd);
+            let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
+            l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+          }
         }
       }
     }
-
 
     /* if creep lost the working parts, put it down */
     /* TODO: refactor and put it in Creep prototype */
