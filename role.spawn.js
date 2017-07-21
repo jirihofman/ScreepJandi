@@ -58,14 +58,10 @@ module.exports = {
       }
     }
 
-
     /* Renew or Recycle */
-    let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
+    spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
       filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder')
     }));
-
-//    if (renewing === 0)
-//      {console.log('renewing:' + renewing);}
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
     if(l_adjecent_creeps.length > 0) {
