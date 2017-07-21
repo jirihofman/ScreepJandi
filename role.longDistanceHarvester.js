@@ -1,4 +1,4 @@
-var roleBuilder = require('role.builder');
+var roleBuilder = require('role.builder'); // builds things when there are constructionSites
 
 module.exports = {
   // a function to run the logic for this role
@@ -46,7 +46,7 @@ module.exports = {
           // try to transfer energy, if it is not in range
           if (creep.transfer(structure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
             // move towards it
-            let m = creep.moveTo(structure);
+            let m = creep.moveTo(structure, {reusePath:0, visualizePathStyle: {stroke: '#00ffaa'}});
             if (m === 0){
               creep.memory.steps_from_source++; // TODO: can get full from dropped energy too
             }
@@ -87,11 +87,19 @@ module.exports = {
           let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY);
           if (l_result === ERR_NOT_IN_RANGE) {
             // move towards it. reusePath=0 helps unwanted jumping to and fro between rooms
-            creep.moveTo(energy_dropped, {reusePath:0});
+            creep.moveTo(energy_dropped, {reusePath:0, visualizePathStyle: {stroke: '#0000ff'}});
             creep.memory.miving_to_source++;
+            if (creep.pos.y === 0){
+              // could get stuck when next move was to the left/right and was thrown back to exit
+              creep.move(BOTTOM);
+            }
+            if (creep.pos.y === 49){
+              // could get stuck when next move was to the left/right and was thrown back to exit
+              creep.move(TOP);
+            }
             creep.say('EE');
           } else if (l_result !== 0){
-            creep.say('Error ' + l_result);
+            creep.say('Error LDH ' + l_result);
           } else {
             creep.memory.mining++;
           }
@@ -131,6 +139,29 @@ module.exports = {
         creep.moveTo(creep.pos.findClosestByPath(exit));
       }
     }
+
+    if (creep.room.name === creep.memory.target) {
+      /* Reserve rooms with LDH, https://github.com/jirihofman/ScreepJandi/issues/3 */
+      let l_owner = creep.room.controller.owner;
+      console.log('LDH ', creep.name, ' controller in ', creep.room, l_owner, l_owner !== creep.owner, ', creep: ', creep.memory.home, creep.memory.target);
+      /* not mine, need to reserve it
+      OR
+      TODO: will diminish soon */
+      if (l_owner !== creep.owner){
+        // spawn a claimer in home room
+        // set mode reserve   only
+        // check wether there is not a claimer with the same task
+        let l_creeps_reserving = _.filter(Game.creeps, c=>c.memory && c.memory.role==='claimer' && c.memory.mode==='c' && c.memory.target===creep.memory.target && c.memory.home===creep.memory.home).length;
+        if (l_creeps_reserving===0){
+          console.log('--- no claimers found: ', l_creeps_reserving);
+          //Game.spawns.Spawn2.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: 'E98N65', home: 'E98N66', mode: 'c' })
+          // find spawn
+          let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
+          l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+        }
+      }
+    }
+
 
     /* if creep lost the working parts, put it down */
     /* TODO: refactor and put it in Creep prototype */

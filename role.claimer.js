@@ -1,3 +1,5 @@
+var roleReserver = require('role.reserver'); // reserve only
+
 module.exports = {
     // a function to run the logic for this role
   run: function(creep) {
@@ -9,6 +11,13 @@ module.exports = {
       creep.moveTo(creep.pos.findClosestByRange(exit));
     }
     else {
+      /* if it is reserverve mode only */
+      if (creep.memory.mode === 'c'){
+        roleReserver.run(creep);
+        creep.say('Claimer->Reserver');
+        return;
+      }
+
       // try to claim controller
       let r = creep.claimController(creep.room.controller);
       //let r = creep.reserveController(creep.room.controller)

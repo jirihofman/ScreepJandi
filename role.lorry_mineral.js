@@ -3,7 +3,6 @@ module.exports = {
   run: function (creep) {
     let l_creep_carry = _.sum(creep.carry);
     creep.say('[M]');
-    console.log('MINER lorry carries: ', l_creep_carry);
     // if creep is bringing energy to a structure but has no energy left
     if (creep.memory.working === true && l_creep_carry === 0) {
       // switch state
@@ -25,8 +24,7 @@ module.exports = {
         // try to transfer energy, if it is not in range
         let t = creep.transfer(structure, creep.memory._task.mineral_type);
         if (t === ERR_NOT_IN_RANGE) {
-          // move towards it
-          creep.moveTo(structure);
+          creep.moveTo(structure);  // move towards it
         } else if (t === 0) {
           console.log('Lorry switching back from task to energy mode.');
           delete creep.memory._task;

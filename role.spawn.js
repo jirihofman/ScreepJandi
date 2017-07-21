@@ -244,25 +244,21 @@ module.exports = {
           delete spawn.memory.claimRoom;
         }
       }
-            // if not enough upgraders
+      // if not enough upgraders
       else if (numberOfUpgraders < spawn.memory.minUpgraders) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'upgrader');
       }
-            // if not enough repairers
+      // if not enough repairers
       else if (numberOfRepairers < spawn.memory.minRepairers) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'repairer');
         Game.creeps[name].memory._rep_treshold_max = 0.8;
       }
-            // if not enough builders
+      // if not enough builders
       else if (numberOfBuilders < spawn.memory.minBuilders) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'builder');
       }
-            // if not enough wallRepairers
+      // if not enough wallRepairers
       else if (numberOfWallRepairers < spawn.memory.minWallRepairers) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'wallRepairer');
       }
       // if not enough longDistanceHarvesters for E97N66
@@ -270,7 +266,7 @@ module.exports = {
         // try to spawn one
         name = spawn.createLongDistanceHarvester(energy, 3, spawn.room.name, 'E97N66', 0);
       }
-      // no longer valid
+      // no longer valid, TODO: automate this section
       else if (numberOfLongDistanceHarvestersE98N66 < spawn.memory.minLDHE98N66) {
         name = spawn.createLongDistanceHarvester(energy, 2, spawn.room.name, 'E98N66', 0);
       }
