@@ -39,3 +39,7 @@ Used for LINKs. Transfering from **yellow-red** to **yellow-yellow**.
 
 ### Brown
 Used for role **repairer** to recycle constructions. When a repairer sees this flag, it dismantles it.
+
+# Lairs
+## Patrol
+25 move, 6 heal, rest attack

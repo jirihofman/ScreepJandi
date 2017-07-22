@@ -283,7 +283,10 @@ module.exports = {
         // print name to console if spawning was a success
         // name > 0 would not work since string > 0 returns false
     if (!(name < 0)) {
-      console.log(spawn.name + ' spawned new creep: ' + name + ' (' + Game.creeps[name].memory.role + ')');
+      console.log(spawn.name + ' spawned new creep in ', spawn.room, ': ' + name + ' (' + Game.creeps[name].memory.role + ')');
+      if (Game.creeps[name].memory.target){
+        console.log(' -- target: ', Game.creeps[name].memory.target);
+      }
       console.log('Harvesters    : ' + numberOfHarvesters);
       console.log('Upgraders     : ' + numberOfUpgraders);
       console.log('Builders      : ' + numberOfBuilders);

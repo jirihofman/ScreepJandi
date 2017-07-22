@@ -55,7 +55,7 @@ module.exports.loop = function () {
         let source = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && s.pos.isEqualTo(v.pos)});
         if (source[0] && source[0].energy > 200){
           let r = Game.getObjectById(source[0].id).transferEnergy(target[0]);
-          if (r!==0 && r!==11){ /* 11=cooldown */
+          if (r!==0 && r!==ERR_TIRED && r!==ERR_FULL){
             console.log('Link [error] ', source[0], ' transfering', source[0].energy, ' energy to ', target, r);
           }
         }
@@ -178,12 +178,12 @@ module.exports.loop = function () {
   }
 
   /* CPU used per tick */
-  console.log('====================');
-  console.log('CPU stats: ', Game.cpu.limit, Game.cpu.tickLimit, Game.cpu.bucket);
-  console.log('CPU used per tick: ');
-  console.log(' CREEPS: ', l_cpu.creeps);
-  console.log(' SPAWNS: ', l_cpu.spawns);
-  console.log(' TOWERS: ', l_cpu.towers);
-  console.log(' FLAGS : ', l_cpu.flags);
-  console.log('====================');
+  // console.log('====================');
+  // console.log('CPU stats: ', Game.cpu.limit, Game.cpu.tickLimit, Game.cpu.bucket);
+  // console.log('CPU used per tick: ');
+  // console.log(' CREEPS: ', l_cpu.creeps);
+  // console.log(' SPAWNS: ', l_cpu.spawns);
+  // console.log(' TOWERS: ', l_cpu.towers);
+  // console.log(' FLAGS : ', l_cpu.flags);
+  // console.log('====================');
 };
