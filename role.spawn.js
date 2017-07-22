@@ -58,14 +58,10 @@ module.exports = {
       }
     }
 
-
     /* Renew or Recycle */
-    let renewing = spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
+    spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
       filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder')
     }));
-
-//    if (renewing === 0)
-//      {console.log('renewing:' + renewing);}
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
     if(l_adjecent_creeps.length > 0) {
@@ -88,15 +84,15 @@ module.exports = {
     var numberOfLorries = _.sum(creepsInRoom, (c) => c.memory.role === 'lorry');
         // count the number of long distance harvesters globally
     var numberOfLongDistanceHarvestersE97N66 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N66');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N66' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE98N66 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N66');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N66' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE99N65 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E99N65');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E99N65' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE98N65 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N65');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E98N65' && c.memory.home === spawn.room.name);
     var numberOfLongDistanceHarvestersE97N68 = _.sum(Game.creeps, (c) =>
-            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N68');
+            c.memory.role === 'longDistanceHarvester' && c.memory.target === 'E97N68' && c.memory.home === spawn.room.name);
 
     var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
     var name = '';
@@ -244,25 +240,21 @@ module.exports = {
           delete spawn.memory.claimRoom;
         }
       }
-            // if not enough upgraders
+      // if not enough upgraders
       else if (numberOfUpgraders < spawn.memory.minUpgraders) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'upgrader');
       }
-            // if not enough repairers
+      // if not enough repairers
       else if (numberOfRepairers < spawn.memory.minRepairers) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'repairer');
         Game.creeps[name].memory._rep_treshold_max = 0.8;
       }
-            // if not enough builders
+      // if not enough builders
       else if (numberOfBuilders < spawn.memory.minBuilders) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'builder');
       }
-            // if not enough wallRepairers
+      // if not enough wallRepairers
       else if (numberOfWallRepairers < spawn.memory.minWallRepairers) {
-                // try to spawn one
         name = spawn.createCustomCreep(energy, 'wallRepairer');
       }
       // if not enough longDistanceHarvesters for E97N66
@@ -270,7 +262,7 @@ module.exports = {
         // try to spawn one
         name = spawn.createLongDistanceHarvester(energy, 3, spawn.room.name, 'E97N66', 0);
       }
-      // no longer valid
+      // no longer valid, TODO: automate this section
       else if (numberOfLongDistanceHarvestersE98N66 < spawn.memory.minLDHE98N66) {
         name = spawn.createLongDistanceHarvester(energy, 2, spawn.room.name, 'E98N66', 0);
       }
@@ -291,7 +283,10 @@ module.exports = {
         // print name to console if spawning was a success
         // name > 0 would not work since string > 0 returns false
     if (!(name < 0)) {
-      console.log(spawn.name + ' spawned new creep: ' + name + ' (' + Game.creeps[name].memory.role + ')');
+      console.log(spawn.name + ' spawned new creep in ', spawn.room, ': ' + name + ' (' + Game.creeps[name].memory.role + ')');
+      if (Game.creeps[name].memory.target){
+        console.log(' -- target: ', Game.creeps[name].memory.target);
+      }
       console.log('Harvesters    : ' + numberOfHarvesters);
       console.log('Upgraders     : ' + numberOfUpgraders);
       console.log('Builders      : ' + numberOfBuilders);
@@ -321,5 +316,12 @@ module.exports = {
     }
     //console.log(spawn.room.controller.level);
     spawn.memory._pt_lvl = spawn.room.controller.level; // lvl previous tick
+  },
+
+  is_reserver_needed: (spawn, target) => {
+    console.log('is_reserver_needed start for: ', target);
+    let l_needed = false;
+
+    return l_needed;
   }
 };

@@ -14,6 +14,14 @@ var roleMiner = require('role.miner');
 var roleLorry = require('role.lorry');
 var roleAttacker = require('role.attacker');
 
+/* used CPU */
+let l_cpu = {
+  creeps: 0,
+  spawns: 0,
+  towers: 0,
+  flags:  0
+};
+
 module.exports.loop = function () {
     // check for memory entries of died creeps by iterating over Memory.creeps
   for (let name in Memory.creeps) {
@@ -38,19 +46,22 @@ module.exports.loop = function () {
       _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
     }
   }
-  /* LINKS. TODO: every 5 ticks maybe enough */
-  if (Game.time % 6 === 0){
+  /* LINKS. TODO: every 11 ticks maybe enough */
+  if (Game.time % 11 === 0){
     _.each(Game.flags, (v, k)=>{
+      let l_cpu_used = Game.cpu.getUsed();
       if(Game.flags[k].color===COLOR_YELLOW && Game.flags[k].secondaryColor===COLOR_RED){
         let target = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && !s.pos.isEqualTo(v.pos)});
         let source = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && s.pos.isEqualTo(v.pos)});
         if (source[0] && source[0].energy > 200){
           let r = Game.getObjectById(source[0].id).transferEnergy(target[0]);
-          if (r!==0){
+          if (r!==0 && r!==ERR_TIRED && r!==ERR_FULL){
             console.log('Link [error] ', source[0], ' transfering', source[0].energy, ' energy to ', target, r);
           }
         }
       }
+      l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+      l_cpu.flags+= l_cpu_used;
     });
   }
 
@@ -117,6 +128,7 @@ module.exports.loop = function () {
     }
 
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    l_cpu.creeps+= l_cpu_used;
     //console.log(name, l_cpu_used);
   }
 
@@ -141,6 +153,7 @@ module.exports.loop = function () {
       }
     }
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    l_cpu.spawns+= l_cpu_used;
     //console.log('Tower: ', tower, l_cpu_used);
   }
 
@@ -150,6 +163,7 @@ module.exports.loop = function () {
     let l_cpu_used = Game.cpu.getUsed();
     roleSpawn.run(spawn);
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    l_cpu.spawns+= l_cpu_used;
     //console.log('Spawn: ', spawnName, l_cpu_used);
   }
 
@@ -159,6 +173,17 @@ module.exports.loop = function () {
     let l_cpu_used = Game.cpu.getUsed();
     roleFlag.run(flag);
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
+    l_cpu.flags+= l_cpu_used;
     //console.log('Spawn: ', spawnName, l_cpu_used);
   }
+
+  /* CPU used per tick */
+  // console.log('====================');
+  // console.log('CPU stats: ', Game.cpu.limit, Game.cpu.tickLimit, Game.cpu.bucket);
+  // console.log('CPU used per tick: ');
+  // console.log(' CREEPS: ', l_cpu.creeps);
+  // console.log(' SPAWNS: ', l_cpu.spawns);
+  // console.log(' TOWERS: ', l_cpu.towers);
+  // console.log(' FLAGS : ', l_cpu.flags);
+  // console.log('====================');
 };
