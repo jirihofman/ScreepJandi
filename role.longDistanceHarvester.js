@@ -142,7 +142,7 @@ module.exports = {
         if (creep.pos.y >= 46 && creep.pos.x < 23 && creep.memory.home === 'E97N67'){
           creep.moveTo(23, 46, {reusePath:0, visualizePathStyle: {stroke: '#ff0000'}});
           if (creep.pos.y === 46 && creep.pos.x < 23 && creep.memory.home === 'E97N67'){
-            creep.move(RIGHT)
+            creep.move(RIGHT);
           }
           creep.say('lol');
         }
@@ -164,10 +164,15 @@ module.exports = {
           //Game.spawns.Spawn2.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: 'E98N65', home: 'E98N66', mode: 'c' })
           // find spawn
           //console.log('LDH ', creep.name, ' controller in ', creep.room, l_owner, l_owner !== creep.owner, ', creep: ', creep.memory.home, creep.memory.target);
-          if (creep.room.controller.reservation.ticksToEnd < 1500){
-            console.log('Room ', creep.room, ' No claimer-reservator creeps. Progress:', creep.room.controller.reservation.ticksToEnd);
+          if ((creep.room.controller.reservation && creep.room.controller.reservation.ticksToEnd < 1500) || !creep.room.controller.reservation){
+            let l_ticksToEnd = creep.room.controller.reservation ? creep.room.controller.reservation.ticksToEnd : 'NOT RESERVED';
             let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
-            l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+            let s = l_spawn.createCreep([CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+            console.log('Room ', creep.memory.home, ' No claimer-reservator creeps in ', creep.room, '. Progress:', l_ticksToEnd, ' Result: ', s);
+            if (s === -6){
+              l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+              console.log(' -- creating slighlty smaller claimer');
+            }
           }
         }
       }
