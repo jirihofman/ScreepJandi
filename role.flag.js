@@ -23,6 +23,16 @@ module.exports = {
         }
         break;
       }
+      case COLOR_GREY: {
+        let b = flag.room.createConstructionSite(flag.pos, STRUCTURE_ROAD);
+        if (b === 0){
+          console.log('createConstructionSite STRUCTURE_ROAD: ', flag.pos.x, flag.pos.y, flag.room);
+          flag.remove(); // remove the flag when the constructionSite is created
+        } else {
+          console.log('Flag constructionSite error: ', b, flag.room, JSON.stringify(flag.pos));
+        }
+        break;
+      }
       default:
 
       }
