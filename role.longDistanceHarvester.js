@@ -30,11 +30,11 @@ module.exports = {
                     // we use the arrow operator to define it
           filter: (s) => ((s.structureType === STRUCTURE_SPAWN
                                  || s.structureType === STRUCTURE_EXTENSION
-                                 || s.structureType === STRUCTURE_STORAGE
                                  || s.structureType === STRUCTURE_TOWER
                                  || s.structureType === STRUCTURE_LINK /* unloading into links as well*/)
                                  && s.energy < s.energyCapacity)
-                                 || (s.structureType === STRUCTURE_CONTAINER /* unloading into containers as well*/ && s.store[RESOURCE_ENERGY] < 2000)
+                                 || (s.structureType === STRUCTURE_STORAGE && _.sum(s.store) < s.storeCapacity)
+                                 || (s.structureType === STRUCTURE_CONTAINER /* unloading into containers as well*/ && _.sum(s.store) < 2000)
         });
 
         if (!structure) {
@@ -171,11 +171,23 @@ module.exports = {
             console.log('Room ', creep.memory.home, ' No claimer-reservator creeps in ', creep.room, '. Progress:', l_ticksToEnd, ' Result: ', s);
             if (s === -6){
               l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+              new RoomVisual(creep.memory.home).text("Spawning Reserver", l_spawn, {color: 'green', font: 0.8});
               console.log(' -- creating slighlty smaller claimer');
             }
           }
         }
       }
+    }
+    
+    if (creep.room.name === creep.memory.target) {
+        let l_count_hostiles = _.size(creep.room.find(FIND_HOSTILE_CREEPS));
+        //console.log('hhhhh ', l_count_hostiles, _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length)
+        if (l_count_hostiles > 0 && _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length === 0){
+            console.log('spawning attacker creep for ', creep.room, ' in ', creep.memory.home)
+            let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
+            let s = l_spawn.createCreep([TOUGH, TOUGH, ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE, ATTACK, MOVE, MOVE], null, {role: 'attacker', target: creep.memory.target})
+            creep.memory.maxed = true; // go home
+        }
     }
 
     /* if creep lost the working parts, put it down */
