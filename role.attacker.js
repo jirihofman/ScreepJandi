@@ -19,8 +19,7 @@ module.exports = {
 */
       if (!target)
         {target = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES);}
-      if (!target)
-        {target = creep.pos.findClosestByRange(FIND_STRUCTURES);}
+      //if (!target){target = creep.pos.findClosestByRange(FIND_STRUCTURES);}
       if(target) {
         console.log(JSON.stringify(target));
         let l_attack = creep.attack(target);
