@@ -60,7 +60,7 @@ module.exports = {
 
     /* Renew or Recycle */
     spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
-      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder')
+      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder') && s.ticksToLive > 800
     }));
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
@@ -167,7 +167,7 @@ module.exports = {
       let minerals = spawn.room.find(FIND_MINERALS);
             // iterate over all sources
       for (let source of minerals) {
-        if (source.mineralAmount < 500){
+        if (source.mineralAmount < 10){
           break; // donw want to build miners where there are almost no minerals
         }
         // if the source has no miner
@@ -260,7 +260,7 @@ module.exports = {
       // if not enough longDistanceHarvesters for E97N66
       else if (numberOfLongDistanceHarvestersE97N66 < spawn.memory.minLDHE97N66) {
         // try to spawn one
-        name = spawn.createLongDistanceHarvester(energy, 3, spawn.room.name, 'E97N66', 0);
+        name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E97N66', 0);
       }
       // no longer valid, TODO: automate this section
       else if (numberOfLongDistanceHarvestersE98N66 < spawn.memory.minLDHE98N66) {
@@ -273,7 +273,7 @@ module.exports = {
         name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E98N65', 0);
       }
       else if (numberOfLongDistanceHarvestersE97N68 < spawn.memory.minLDHE97N68) {
-        name = spawn.createLongDistanceHarvester(energy, 3, spawn.room.name, 'E97N68', 0);
+        name = spawn.createLongDistanceHarvester(energy, 4, spawn.room.name, 'E97N68', 0);
       }
       else {
         name = -1;
