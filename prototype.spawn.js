@@ -5,6 +5,10 @@ module.exports = function() {
         function(energy, roleName, p_memory) {
           // create a balanced body as big as possible with the given energy
           var numberOfParts = Math.floor(energy / 200);
+          if (numberOfParts > 16){
+            // max body parts: 48
+            numberOfParts = 16;
+          }
           var body = [];
           for (let i = 0; i < numberOfParts; i++) {
             body.push(WORK);
@@ -47,6 +51,10 @@ module.exports = function() {
 
           var numberOfParts = Math.floor(energy / 150); //(when no roads)
           for (let i = 0; i < numberOfParts; i++) {
+            if (numberOfWorkParts*3 + i*3 === 48){
+              // max body parts: 48
+              break;
+            }
             body.push(CARRY);body.push(CARRY);body.push(MOVE);
           }
 

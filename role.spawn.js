@@ -1,7 +1,6 @@
 module.exports = {
   // a function to run the logic for this role
   run: function(spawn) {
-      // if in target room
     let creepsInRoom = spawn.room.find(FIND_MY_CREEPS);
     let room = spawn.room;
     if (room.energyAvailable === room.energyCapacityAvailable) {
@@ -218,7 +217,6 @@ module.exports = {
     }
         // if none of the above caused a spawn command check for other roles
     if (!name) {
-
       // if not enough harvesters
       if (numberOfHarvesters < spawn.memory.minHarvesters) {
         name = spawn.createCustomCreep(energy, 'harvester');
@@ -247,7 +245,9 @@ module.exports = {
       // if not enough repairers
       else if (numberOfRepairers < spawn.memory.minRepairers) {
         name = spawn.createCustomCreep(energy, 'repairer');
-        Game.creeps[name].memory._rep_treshold_max = 0.8;
+        if (_.isString(name)){ // only if it spawned
+          Game.creeps[name].memory._rep_treshold_max = 0.8;
+        }
       }
       // if not enough builders
       else if (numberOfBuilders < spawn.memory.minBuilders) {
@@ -280,8 +280,8 @@ module.exports = {
       }
     }
 
-        // print name to console if spawning was a success
-        // name > 0 would not work since string > 0 returns false
+    // print name to console if spawning was a success
+    // name > 0 would not work since string > 0 returns false
     if (!(name < 0)) {
       console.log(spawn.name + ' spawned new creep in ', spawn.room, ': ' + name + ' (' + Game.creeps[name].memory.role + ')');
       if (Game.creeps[name].memory.target){
@@ -298,6 +298,8 @@ module.exports = {
       console.log('LDH E98N66    : ' + numberOfLongDistanceHarvestersE98N66);
       console.log('LDH E99N65    : ' + numberOfLongDistanceHarvestersE99N65);
       console.log('LDH E97N68    : ' + numberOfLongDistanceHarvestersE97N68);
+    } else if (name !== ERR_BUSY && name !== ERR_NOT_ENOUGH_ENERGY && name !== ERR_NOT_OWNER) {
+      console.log('Error spawning creep in ', spawn, name);
     }
 
     /* Set default number of roles for the spawn depending on controller level */
