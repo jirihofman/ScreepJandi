@@ -5,6 +5,7 @@ Game.spawns.Spawn1.createLongDistanceHarvester(800, 3, 'E99N66', 'E98N66', 0); -
 Game.rooms.E99N66.ic();Game.rooms.E98N66.ic();Game.rooms.E97N67.ic();
 Game.spawns.Spawn1.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
   Game.spawns.Spawn3.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E97N68'})
+  Game.spawns.Spawn3.createCreep([CLAIM, MOVE,CLAIM, MOVE,CLAIM, MOVE,CLAIM, MOVE],'ccc',{role: 'claimer', target: 'E98N69'})
 Game.spawns.Spawn1.createCreep([WORK,WORK,WORK,, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
 Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'), "ScreepJandi on GitHub ♥ https://github.com/jirihofman/ScreepJandi")
 _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;})

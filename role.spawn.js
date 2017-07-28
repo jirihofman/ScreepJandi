@@ -6,6 +6,7 @@ module.exports = {
     if (room.energyAvailable === room.energyCapacityAvailable) {
       spawn.memory.maxedEnergy++;
     }
+    // console.log(spawn, ' energy: ', room.energyAvailable, room.energyCapacityAvailable);
 
     /* Things to do every 10 ticks
        - search for old roads. If enough, make a repairer (switch upgrader or create new one)
@@ -24,7 +25,7 @@ module.exports = {
           let l_upgraders_in_room = _.size(room.find(FIND_MY_CREEPS, {filter: (s) => s.memory.role === 'builder'}));
           if (l_upgraders_in_room > 0){
             // 1)
-            let l_repairer = room.find(FIND_CREEPS, {filter: (s) => s.memory.role === 'builder'})[0];
+            let l_repairer = room.find(FIND_MY_CREEPS, {filter: (s) => s.memory.role === 'builder'})[0];
             l_repairer.memory.role = 'repairer';
             l_repairer.memory._rep_treshold_max = spawn.memory._rep_treshold_min + 0.1; // repair a bit more then spawn treshold
             console.log('Changed an upgrader to repairer. Set _rep_treshold_max: ', l_repairer.memory._rep_treshold_max);
@@ -50,7 +51,7 @@ module.exports = {
           // the tick when the buildings are OK
           spawn.memory.minBuilders++; // we change back the minUpgraders (builder behaves as upgrader when there are no buildings)
           // change role of the repairer to builder
-          room.find(FIND_CREEPS, {filter: (s) => s.memory.role === 'repairer'})[0].memory.role = 'builder';
+          room.find(FIND_MY_CREEPS, {filter: (s) => s.memory.role === 'repairer'})[0].memory.role = 'builder';
           console.log('changing repairer back to builder');
         }
         spawn.memory.minRepairers = 0; // we dont need repairers
@@ -71,6 +72,9 @@ module.exports = {
         }
       });
     }
+    if (spawn.name === 'Spawn11' || spawn.name === 'Spawn22')
+      {console.log('TODO: Preskakuju druhej spawn ', spawn.name);return;}
+
         // count the number of creeps alive for each role in this room
         // _.sum will count the number of properties in Game.creeps filtered by the
         //  arrow function, which checks for the creep being a specific role
@@ -313,6 +317,9 @@ module.exports = {
       // upgraded form 1 to 2
       console.log('Room upgraded to lvl 2 ', spawn.room);
       spawn.memory.minBuilders = 3; // 3 builders, 1 harvester, 1 upgrader
+    } else if (spawn.room.controller.level === 7 && spawn.memory._pt_lvl !== 7) {
+      // reduce the number of builders. Thez get much much bigger
+      spawn.memory.minBuilders = 1;
     } else if (spawn.room.controller.level !== spawn.memory._pt_lvl) {
       console.log('upgraded from ', spawn.memory._pt_lvl, ' to ', spawn.room.controller.level);
     }
