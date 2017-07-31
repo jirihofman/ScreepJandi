@@ -34,8 +34,9 @@ module.exports.loop = function () {
   }
 
   /* MINERAL lorries every 300 */
-  if (Game.time % 1200 === 0 || Game.time % 1200 === 1 || Game.time % 1200 === 2 || Game.time % 1200 === 3 || Game.time % 1200 === 4){
-    //Game.spawns.Spawn3.createCreep([CLAIM, MOVE,CLAIM, MOVE,CLAIM, MOVE],'ccc',{role: 'claimer', target: 'E98N69'});
+  if (Game.time % 1600 === 0 || Game.time % 1600 === 1 || Game.time % 1600 === 2 || Game.time % 1600 === 3 || Game.time % 1600 === 4){
+    Game.spawns.Spawn3.createCreep([ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], 'ccc', {role: 'attacker', target: 'E98N69'});
+    console.log("TODO PRyc");
     //Game.spawns.Spawn11.createCreep([ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], null, {role: 'attacker', target: 'E98N69'});
     //Game.spawns.Spawn2.createCreep([ATTACK, MOVE, ATTACK, MOVE], null, {role: 'attacker', target: 'E98N69'});
     //Game.spawns.Spawn3.createCreep([CLAIM, MOVE, CLAIM, CLAIM, MOVE], null, {role: 'claimer', target: 'E98N69'});

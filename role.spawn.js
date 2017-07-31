@@ -72,8 +72,15 @@ module.exports = {
         }
       });
     }
-    if (spawn.name === 'Spawn11' || spawn.name === 'Spawn22')
-      {console.log('TODO: Preskakuju druhej spawn ', spawn.name);return;}
+    if (spawn.name === 'Spawn11' || spawn.name === 'Spawn22'){
+        if (Game.time % 1400 === 0){
+            name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable, 4, 'E98N69', 'E98N68', 0);
+            console.log("Delam LDH pro E98N68 ")
+        }
+        console.log('TODO: Preskakuju druhej spawn ', spawn.name);
+        return;
+        
+    }
 
         // count the number of creeps alive for each role in this room
         // _.sum will count the number of properties in Game.creeps filtered by the
