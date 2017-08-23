@@ -3,17 +3,17 @@ var roleLorryMineral = require('role.lorry_mineral');
 module.exports = {
     // a function to run the logic for this role
   run: function (creep) {
-    if (creep.memory._task && (creep.carry.energy === 0 || creep.memory._task.mineral_type === RESOURCE_ENERGY)){
+    if (creep.memory._task){
       roleLorryMineral.run(creep);
     } else {
       // if creep is bringing energy to a structure but has no energy left
-      if (creep.memory.working === true && creep.carry.energy === 0) {
+      if (creep.memory.working === true && _.sum(creep.carry) === 0) {
               // switch state
         creep.memory.working = false;
         creep.memory.maxed   = false;
       }
           // if creep is harvesting energy but is full
-      else if (creep.memory.working === false && (creep.carry.energy === creep.carryCapacity || creep.memory.maxed)) {
+      else if (creep.memory.working === false && (_.sum(creep.carry) === creep.carryCapacity || creep.memory.maxed)) {
               // switch state
         creep.memory.working = true;
       }
@@ -47,13 +47,19 @@ module.exports = {
           });
         }
 
+        //find builders working
+        if (!structure) {
+            structure = creep.pos.findClosestByPath(FIND_MY_CREEPS, {
+                filter: (s) => (s.memory.role === 'builder' || s.memory.role === 'upgrader') && s.memory.working
+            });
+        }
         if (!structure) {
           structure = creep.room.storage || creep.room.spawn;
         }
         if (structure)
                 {creep.memory.kam_to_vezu = JSON.stringify(structure.pos);}
 
-              // if we found one
+        // if we found one
         if (structure) {
                   // try to transfer energy, if it is not in range
           if (creep.transfer(structure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
@@ -67,22 +73,36 @@ module.exports = {
         // TODO transfer minerals ...
 
 
-        // find closest container or LINK
-        let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 0)
+        // find closest container or LINK, with a lot of energy
+        let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 1600)
             || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
         });
+        // find closest container or LINK
+        if (!container) {
+          container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 999)
+            || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
+          });
+        }
+        // find closest container or LINK
+        if (!container) {
+          container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 10)
+            || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
+          });
+        }
 
         if (!container) {
           container = creep.room.storage;
         }
 
         // hledame spadlou energii na zemi - male kusy
-        let energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+        let energy_dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
           filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 40
         });
 
-        let energy_dropped_huge = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+        let energy_dropped_huge = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
           filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 600
         });
         if (energy_dropped_huge)
