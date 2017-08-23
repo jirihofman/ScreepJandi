@@ -8,6 +8,15 @@ module.exports = {
     }
     // console.log(spawn, ' energy: ', room.energyAvailable, room.energyCapacityAvailable);
 
+    if (Game.time % 900 >= 0 && Game.time % 900 <= 50){
+        if (spawn.name === 'Spawn1')
+          name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E6N39', 'E5N39', 0);
+    }
+    if (Game.time % 700 >= 0 && Game.time % 700 <= 50){
+        if (spawn.name === 'Spawn2')
+          name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N39', 'E8N38', 0);
+    }
+
     /* Things to do every 10 ticks
        - search for old roads. If enough, make a repairer (switch upgrader or create new one)
     */
@@ -47,7 +56,7 @@ module.exports = {
           }
         }
       } else {
-        if (spawn.memory.minRepairers === 1){
+        if (spawn.memory.minRepairers === 1 && spawn.memory.minBuilders < 8){
           // the tick when the buildings are OK
           spawn.memory.minBuilders++; // we change back the minUpgraders (builder behaves as upgrader when there are no buildings)
           // change role of the repairer to builder
@@ -60,7 +69,7 @@ module.exports = {
 
     /* Renew or Recycle */
     spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
-      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder') && s.ticksToLive > 800
+      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder' || s.memory.role === 'miner' || s.memory.role === 'upgrader') && s.ticksToLive > 600 && s.ticksToLive < 1400
     }));
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
@@ -73,13 +82,23 @@ module.exports = {
       });
     }
     if (spawn.name === 'Spawn11' || spawn.name === 'Spawn22'){
-        if (Game.time % 1400 === 0){
-            name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable, 4, 'E98N69', 'E98N68', 0);
+        if (Game.time % 800 === 0 || Game.time % 800 === 1 || Game.time % 800 === 2 || Game.time % 800 === 3){
+            name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, 5, 'E6N39', 'E5N39', 0);
+            console.log("Delam LDH pro E99N67 ")
+        }
+        console.log('TODO: Preskakuju druhej spawn ', spawn.name);
+        return;
+    }
+    if (spawn.name === 'Spawn33'){
+        if (Game.time % 1500 === 0 || Game.time % 1500 === 1 || Game.time % 1500 === 2 || Game.time % 1500 === 3){
+            //Game.spawns.Spawn1.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE], null, {role: 'attacker', target: 'E96N67'})
+        }
+        if (Game.time % 900 === 750 || Game.time % 900 === 800 || Game.time % 900 === 752 || Game.time % 900 === 753){
+            name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, 5, 'E98N69', 'E98N68', 0);
             console.log("Delam LDH pro E98N68 ")
         }
         console.log('TODO: Preskakuju druhej spawn ', spawn.name);
         return;
-        
     }
 
         // count the number of creeps alive for each role in this room
@@ -174,6 +193,7 @@ module.exports = {
 
       /* LOOP MIONERAL MINERS */
       // check if all sources have miners
+      
       let minerals = spawn.room.find(FIND_MINERALS);
             // iterate over all sources
       for (let source of minerals) {
@@ -224,7 +244,7 @@ module.exports = {
           }
         }
       } // end loop mineral sources
-
+    
     }
         // if none of the above caused a spawn command check for other roles
     if (!name) {
@@ -295,6 +315,14 @@ module.exports = {
     // name > 0 would not work since string > 0 returns false
     if (!(name < 0)) {
       console.log(spawn.name + ' spawned new creep in ', spawn.room, ': ' + name + ' (' + Game.creeps[name].memory.role + ')');
+      if (!spawn.memory._spawned){
+          spawn.memory._spawned = {};
+      }
+      if (spawn.memory._spawned[Game.creeps[name].memory.role]){
+        spawn.memory._spawned[Game.creeps[name].memory.role]++;
+      } else {
+        spawn.memory._spawned[Game.creeps[name].memory.role] = 1;
+      }
       if (Game.creeps[name].memory.target){
         console.log(' -- target: ', Game.creeps[name].memory.target);
       }
