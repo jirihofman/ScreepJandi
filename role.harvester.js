@@ -23,7 +23,8 @@ module.exports = {
                 // we use the arrow operator to define it
         filter: (s) => (s.structureType === STRUCTURE_SPAWN
                              || s.structureType === STRUCTURE_EXTENSION
-                             || s.structureType === STRUCTURE_TOWER)
+                             || s.structureType === STRUCTURE_TOWER
+                             )
                              && s.energy < s.energyCapacity
       });
 
@@ -45,7 +46,17 @@ module.exports = {
     }
         // if creep is supposed to harvest energy from source
     else {
-            // find closest source
+      // find closest source
+      /* emergency: full towers, no creeps
+      let t = creep.room.find(FIND_STRUCTURES, {filter: (c)=> c.structureType === STRUCTURE_TOWER && c.energy > 0})[0];
+      if (t){
+        if (creep.withdraw(t, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+          // move towards the source
+          creep.moveTo(t);
+        }
+        return;
+      }
+      */
       var source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
 
       if (!source) {
