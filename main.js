@@ -13,6 +13,7 @@ var roleClaimer = require('role.claimer');
 var roleMiner = require('role.miner');
 var roleLorry = require('role.lorry');
 var roleAttacker = require('role.attacker');
+var roleThief = require('role.thief');
 
 /* used CPU */
 let l_cpu = {
@@ -34,14 +35,16 @@ module.exports.loop = function () {
   }
 
   /* MINERAL lorries every 300 */
-  if (Game.time % 1600 === 0 || Game.time % 1600 === 1 || Game.time % 1600 === 2 || Game.time % 1600 === 3 || Game.time % 1600 === 4){
-    Game.spawns.Spawn3.createCreep([ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], 'ccc', {role: 'attacker', target: 'E98N69'});
-    console.log("TODO PRyc");
-    //Game.spawns.Spawn11.createCreep([ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], null, {role: 'attacker', target: 'E98N69'});
-    //Game.spawns.Spawn2.createCreep([ATTACK, MOVE, ATTACK, MOVE], null, {role: 'attacker', target: 'E98N69'});
-    //Game.spawns.Spawn3.createCreep([CLAIM, MOVE, CLAIM, CLAIM, MOVE], null, {role: 'claimer', target: 'E98N69'});
+  if (Game.time % 1480 === 0 || Game.time % 1480 === 1 || Game.time % 1480 === 2 || Game.time % 1480 === 3 || Game.time % 1480 === 4){
+    //Game.spawns.Spawn3.createCreep([ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], 'ccc', {role: 'attacker', target: 'E98N69'});
+    //Game.spawns.Spawn4.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,], 'hahaha', {role: 'attacker', target: 'E99N69'}); // 36 parts
+    //Game.spawns.Spawn4.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, HEAL, MOVE, HEAL, MOVE, MOVE], null ,{role: 'attacker', target: 'E99N71', home: 'E98N69', b: true})
   }
-  if (Game.time % 1000 === 0){
+  
+  if (Game.time % 1200 === 0){
+      /*
+      //Game.spawns.Spawn22.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL], null, {role: 'attacker', target: 'E98N64', home: 'E98N65', b: true})
+      //Game.spawns.Spawn11.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL], null, {role: 'attacker', target: 'E98N64', home: 'E98N65', b: true})
     if (_.size(Game.rooms.E99N66.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_UTRIUM] > 300})) > 0){
       let budovy = Game.rooms.E99N66.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_UTRIUM] > 300) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 300)});
       let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
@@ -50,17 +53,35 @@ module.exports.loop = function () {
       _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
     }
     if (_.size(Game.rooms.E98N66.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_CATALYST] > 300})) > 0){
-      _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59668a2706e2ae3bb796faa5', id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;});
+      let budovy = Game.rooms.E98N66.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_CATALYST] > 300) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 300)});
+      let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
+      _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to:'59664dfbdc5b4b363f41064d', mineral_type:'X'}; l.memory.working=false;});
     } else {
       _.each(Game.rooms.E98N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
     }
+    if (_.size(Game.rooms.E97N67.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_ZYNTHIUM] > 300})) > 0){
+      let budovy = Game.rooms.E97N67.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_ZYNTHIUM] > 300) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 300)});
+      let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
+      _.each(Game.rooms.E97N67.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to:'5986a868655ced56cf2ee647', mineral_type:'Z'}; l.memory.working=false;});
+    } else {
+      _.each(Game.rooms.E97N67.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
+    }
+    */
+    if (_.size(Game.rooms.E6N39.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_LEMERGIUM] > 300})) > 0){
+      let budovy = Game.rooms.E6N39.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[RESOURCE_LEMERGIUM] > 300) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 300)});
+      let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
+      _.each(Game.rooms.E6N39.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to:'599caa534c09ae350141872e', mineral_type:'L'}; l.memory.working=false;});
+    } else {
+      _.each(Game.rooms.E6N39.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
+    }
   }
+
   /* LINKS. TODO: every 11 ticks maybe enough */
-  if (Game.time % 11 === 0){
+  if (Game.time % 6 === 0){
     _.each(Game.flags, (v, k)=>{
       let l_cpu_used = Game.cpu.getUsed();
       if(Game.flags[k].color===COLOR_YELLOW && Game.flags[k].secondaryColor===COLOR_RED){
-        let target = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && !s.pos.isEqualTo(v.pos)});
+        let target = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && !s.pos.isEqualTo(v.pos) && _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && s.pos.isEqualTo(c.pos))});
         let source = Game.flags[k].room.find(FIND_MY_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LINK && s.pos.isEqualTo(v.pos)});
         if (source[0] && source[0].energy > 200){
           let r = Game.getObjectById(source[0].id).transferEnergy(target[0]);
@@ -73,7 +94,6 @@ module.exports.loop = function () {
       l_cpu.flags+= l_cpu_used;
     });
   }
-
   // for every creep name in Game.creeps
   for (let name in Game.creeps) {
     let l_cpu_used = Game.cpu.getUsed();
@@ -111,13 +131,16 @@ module.exports.loop = function () {
     else if (creep.memory.role === 'miner') {
       roleMiner.run(creep);
     }
-        // if creep is lorry, call miner lorry
+    // if creep is lorry, call miner lorry
     else if (creep.memory.role === 'lorry') {
       roleLorry.run(creep);
     }
-        // if creep is attacker, call attacker script
+    // if creep is attacker, call attacker script
     else if (creep.memory.role === 'attacker') {
       roleAttacker.run(creep);
+    }
+    else if (creep.memory.role === 'thief') {
+      roleThief.run(creep);
     }
 
     // self recycle
@@ -152,6 +175,11 @@ module.exports.loop = function () {
     // if one is found...
     if (target) {
       tower.attack(target); // ...FIRE!
+      if (tower.energy < 500){
+          // safe mode only when it is serious
+        tower.room.controller.activateSafeMode();    
+      }
+      
     } else {
       // containers and ramparts. ramparts up to 220k
       var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 500000)} )[0];
