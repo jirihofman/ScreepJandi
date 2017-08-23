@@ -2,10 +2,13 @@ module.exports = function(){
 /*
 Dobre prikazy
 Game.spawns.Spawn1.createLongDistanceHarvester(800, 3, 'E99N66', 'E98N66', 0); --350 carry
+Game.spawns.Spawn1.createLongDistanceHarvester(Game.spawns.Spawn1.room.energyAvailable, 4, 'W35N2', 'W35N2', 0);
 Game.rooms.E99N66.ic();Game.rooms.E98N66.ic();Game.rooms.E97N67.ic();
 Game.spawns.Spawn1.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
+Game.spawns.Spawn1.createCreep([MOVE, MOVE,MOVE,MOVE,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],null,{role: 'lorry', working: false})
   Game.spawns.Spawn3.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E97N68'})
   Game.spawns.Spawn3.createCreep([CLAIM, MOVE,CLAIM, MOVE,CLAIM, MOVE,CLAIM, MOVE],'ccc',{role: 'claimer', target: 'E98N69'})
+  Game.spawns.Spawn4.createCreep([CLAIM, MOVE,CLAIM, MOVE], null, {role: 'claimer', target: 'E98N67'})
 Game.spawns.Spawn1.createCreep([WORK,WORK,WORK,, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
 Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'), "ScreepJandi on GitHub ♥ https://github.com/jirihofman/ScreepJandi")
 _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;})
@@ -13,6 +16,7 @@ Game.creeps.Bella.transfer(Game.getObjectById('59668a2706e2ae3bb796faa5'), RESOU
 Game.getObjectById('595d44d43d3c7b2a254e0ce6').transferEnergy(Game.getObjectById('595e3495025803287c09413d'))
 Game.market.calcTransactionCost(2000, 'W55N98', 'E99N66'); //Game.market.deal('595f21ca23327405bfd8b048', 100, 'E99N66')//595f21ca23327405bfd8b048	0.135	10,000	10,000	W55N98
 Game.creeps.Allison.memory._task = {id_from: Game.creeps.Allison.pos.findClosestByRange(FIND_STRUCTURES, {filter: s => s.structureType===STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 666}).id, mineral_type: RESOURCE_ENERGY}
+Game.spawns.Spawn4.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, HEAL, MOVE, HEAL, MOVE, MOVE], null ,{role: 'attacker', target: 'E97N69', home: 'E98N69', b: true})
 
 TODO: https://stackoverflow.com/questions/30324353/screeps-memory-adding-how?rq=1
 */
