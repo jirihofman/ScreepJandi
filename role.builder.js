@@ -20,8 +20,9 @@ module.exports = {
       creep.memory.working = false;
       creep.memory.maxed   = false;
     }
-        // if creep is harvesting energy but is full
-    else if (creep.memory.working === false && creep.carry.energy === creep.carryCapacity) {
+    // if creep is harvesting energy but is full
+    // TODO: Large creeps might have something like: creep.carry.energy >= creep.carryCapacity*0.9
+    else if (creep.memory.working === false && creep.carry.energy >= creep.carryCapacity) {
             // switch state
       creep.memory.working = true;
     }
@@ -52,6 +53,9 @@ module.exports = {
       else {
                 // go upgrading the controller
         roleUpgrader.run(creep);
+          // if next to link or storage, withdraw energy
+          l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0) || (s.structureType===STRUCTURE_STORAGE)})[0];
+          if (l_vedle) creep.withdraw(l_vedle, RESOURCE_ENERGY)
         creep.say('B->U');
       }
     }
@@ -62,10 +66,11 @@ module.exports = {
         filter: s => (
                   // try extension when emergency
                   creep.memory.ext && s.structureType === STRUCTURE_EXTENSION && s.energy > 0
-            ) || (
-                  (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 70 /* Nesockuju u minera, ktery to tam sype po 10 */
+            ) || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy >= creep.carryCapacity*0.6)
+              || (
+                  (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 100 /* Nesockuju u minera, ktery to tam sype po 10 */
                 )
-              || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
+              
       });
 
       if (!container) {
@@ -79,7 +84,7 @@ module.exports = {
                 // try to withdraw energy, if the container is not in range
         if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     // move towards it
-          creep.moveTo(container);
+          creep.moveTo(container, {visualizePathStyle: {stroke: '#ff11gg'}});
         }
       }
       else {
@@ -88,7 +93,7 @@ module.exports = {
                 // try to harvest energy, if the source is not in range
         if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
                     // move towards it
-          creep.moveTo(source, {visualizePathStyle: {stroke: '#ffgggg'}});
+          creep.moveTo(source, {visualizePathStyle: {stroke: '#ff00gg'}});
         }
       }
     }
