@@ -3,6 +3,11 @@ var roleBuilder = require('role.builder'); // builds things when there are const
 module.exports = {
   // a function to run the logic for this role
   run: function(creep) {
+    if (creep.memory.home === creep.memory.target)  {
+        roleBuilder.run(creep)
+        return;
+    }
+      
     // if creep is bringing energy to a structure but has no energy left
     if (creep.memory.working === true && creep.carry.energy === 0) {
             // switch state
@@ -185,8 +190,11 @@ module.exports = {
         if (l_count_hostiles > 0 && _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length === 0){
             console.log('spawning attacker creep for ', creep.room, ' in ', creep.memory.home)
             let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
-            let s = l_spawn.createCreep([TOUGH, TOUGH, ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE, ATTACK, MOVE, MOVE], null, {role: 'attacker', target: creep.memory.target})
+            let s = l_spawn.createCreep([TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, ATTACK], null, {role: 'attacker', target: creep.memory.target})
             creep.memory.maxed = true; // go home
+        }
+        if (l_count_hostiles > 0){
+            console.log("Hostile creep in room, todo: check if the hostile creep has attack ranged attack parts. If not, stay")
         }
     }
 
