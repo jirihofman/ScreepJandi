@@ -8,7 +8,7 @@ module.exports = {
             // find exit to target room
       var exit = creep.room.findExitTo(creep.memory.target);
             // move to exit
-      creep.moveTo(creep.pos.findClosestByRange(exit), {visualizePathStyle: {stroke: '#ffaa00'}});
+      creep.moveTo(creep.pos.findClosestByRange(exit), {reusePath: 8, visualizePathStyle: {stroke: '#ffaa00'}});
       creep.say('B->exit');
             // return the function to not do anything else
       return;
@@ -38,13 +38,13 @@ module.exports = {
             // find closest constructionSite. Non-roads, non-labs first
       var constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES, {
         filter: s => (s.structureType !== STRUCTURE_ROAD) && (s.structureType !== STRUCTURE_LAB) && (s.structureType !== STRUCTURE_TERMINAL)
-      }) || creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+      }) || creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES/*, {filter: s => s.owner === creep.owner}*/);
             // if one is found
       if (constructionSite) {
                 // try to build, if the constructionSite is not in range
         if (creep.build(constructionSite) === ERR_NOT_IN_RANGE) {
                     // move towards the constructionSite
-          creep.moveTo(constructionSite, {visualizePathStyle: {stroke: '#ffaa00'}});
+          creep.moveTo(constructionSite, {reusePath: 3, visualizePathStyle: {stroke: '#ffaa00'}});
         } else {
           creep.say('Building ...');
         }
@@ -54,7 +54,9 @@ module.exports = {
                 // go upgrading the controller
         roleUpgrader.run(creep);
           // if next to link or storage, withdraw energy
-          l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0) || (s.structureType===STRUCTURE_STORAGE)})[0];
+          l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0)})[0];
+          if (!l_vedle)
+            l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_STORAGE && s.store[RESOURCE_ENERGY] > creep.carryCapacity)})[0];
           if (l_vedle) creep.withdraw(l_vedle, RESOURCE_ENERGY)
         creep.say('B->U');
       }
@@ -84,7 +86,7 @@ module.exports = {
                 // try to withdraw energy, if the container is not in range
         if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     // move towards it
-          creep.moveTo(container, {visualizePathStyle: {stroke: '#ff11gg'}});
+          creep.moveTo(container, {reusePath: 3, visualizePathStyle: {stroke: '#ff11gg'}});
         }
       }
       else {
@@ -93,7 +95,7 @@ module.exports = {
                 // try to harvest energy, if the source is not in range
         if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
                     // move towards it
-          creep.moveTo(source, {visualizePathStyle: {stroke: '#ff00gg'}});
+          creep.moveTo(source, {reusePath: 3, visualizePathStyle: {stroke: '#ff00gg', lineStyle: 'dashed'}});
         }
       }
     }
