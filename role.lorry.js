@@ -3,6 +3,10 @@ var roleLorryMineral = require('role.lorry_mineral');
 module.exports = {
     // a function to run the logic for this role
   run: function (creep) {
+      if (Game.time % 2 === 0){
+          console.log('Skipping LORRY tick')
+          return;
+      }
     if (creep.memory._task){
       roleLorryMineral.run(creep);
     } else {
@@ -33,7 +37,7 @@ module.exports = {
         // find closest spawn, extension or tower which is not full
         var structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => ((s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
-                               && s.energy < s.energyCapacity)
+                               && s.energy < s.energyCapacity*1)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => (s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity/2)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
