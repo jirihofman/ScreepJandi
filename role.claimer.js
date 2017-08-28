@@ -20,7 +20,8 @@ module.exports = {
         creep.moveTo(creep.room.controller); // move towards the controller
       } else if (r === ERR_GCL_NOT_ENOUGH){
         creep.say('NO GCL->reserving');
-        let re = creep.reserveController(creep.room.controller);
+        roleReserver.run(creep);
+        return;
         if (re !== 0) {
           console.log('Claimer reservation error: ' + re);
           creep.moveTo(creep.room.controller);
@@ -33,7 +34,7 @@ module.exports = {
       if (creep.room.controller){
         let sign = creep.room.controller.sign;
         if (!sign || (sign && sign.username !== creep.owner.username && !sign.text)){
-          creep.signController(creep.room.controller, 'ScreepJandi on GitHub ♥ https://github.com/jirihofman/ScreepJandi');
+          creep.signController(creep.room.controller, 'Jenjandi ♥ https://github.com/jirihofman/ScreepJandi');
         }
       }
     }

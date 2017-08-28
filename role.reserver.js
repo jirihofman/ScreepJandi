@@ -18,7 +18,7 @@ module.exports = {
       /* if it is not signed by me, SIGN it */
       if (creep.room.controller){
         let sign = creep.room.controller.sign;
-        if (!sign || (sign && sign.username !== creep.owner.username && !sign.text)){
+        if (!sign || (sign && sign.username !== creep.owner.username)){
           creep.signController(creep.room.controller, 'Jenjandi\'s, keep out!');
         }
       }
