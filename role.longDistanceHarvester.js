@@ -51,7 +51,7 @@ module.exports = {
           // try to transfer energy, if it is not in range
           if (creep.transfer(structure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
             // move towards it
-            let m = creep.moveTo(structure, {reusePath:0, visualizePathStyle: {stroke: '#00ffaa'}});
+            let m = creep.moveTo(structure, {reusePath:5, visualizePathStyle: {stroke: '#00ffaa'}});
             if (m === 0){
               creep.memory.steps_from_source++; // TODO: can get full from dropped energy too
             }
@@ -121,7 +121,7 @@ module.exports = {
           let h = creep.harvest(source);
           if (h === ERR_NOT_IN_RANGE || h === ERR_NOT_ENOUGH_RESOURCES) {
             // move towards source. reusePath=0 helps unwanted jumping to and fro between rooms
-            creep.moveTo(source, {reusePath:0, visualizePathStyle: {stroke: '#ff0000'}});
+            creep.moveTo(source, {reusePath:2, visualizePathStyle: {stroke: '#ff0000'}});
             if (creep.pos.y === 0){
               // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(BOTTOM);
@@ -141,17 +141,7 @@ module.exports = {
         // find exit to target room
         var exit = creep.room.findExitTo(creep.memory.target);
         // move to exit
-        creep.moveTo(creep.pos.findClosestByPath(exit), {reusePath:0, visualizePathStyle: {dashed: '#ff0000'}});
-
-        /* TODO hardcoded for room E97N67 */
-        if (creep.pos.y >= 46 && creep.pos.x < 23 && creep.memory.home === 'E97N67'){
-          creep.moveTo(23, 46, {reusePath:0, visualizePathStyle: {stroke: '#ff0000'}});
-          if (creep.pos.y === 46 && creep.pos.x < 23 && creep.memory.home === 'E97N67'){
-            creep.move(RIGHT);
-          }
-          creep.say('lol');
-        }
-
+        creep.moveTo(creep.pos.findClosestByPath(exit), {reusePath:2, visualizePathStyle: {dashed: '#ff0000'}});
       }
     }
 
