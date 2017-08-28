@@ -158,6 +158,12 @@ module.exports.loop = function () {
         creep.say('Error ' + r);
       }
     }
+    
+    if (creep.memory._alive){
+        creep.memory._alive++
+    } else {
+        creep.memory._alive = 1;
+    }
 
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
     l_cpu.creeps+= l_cpu_used;
