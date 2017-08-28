@@ -33,6 +33,12 @@ module.exports = function() {
           if (p_memory && !p_memory.maxed){
             p_memory.maxed = false;
           }
+          
+          /* special static builder/upgrader */
+          if (this.room.controller.level >= 5 && this.room.controller.level <= 6 && roleName === 'builder'){
+              console.log("Delam spcial buildera v ", this.room, this.room.controller.level, this.room.energyCapacityAvailable, this.room.energyAvailable)
+            //body = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
+          }
 
           // create creep with the created body and the given role
           return this.createCreep(body, null, p_memory);
