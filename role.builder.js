@@ -3,6 +3,7 @@ var roleUpgrader = require('role.upgrader');
 module.exports = {
     // a function to run the logic for this role
   run: function (creep) {
+      //return;
         // if target is defined and creep is not in target room
     if (creep.memory.target && creep.room.name !==creep.memory.target) {
             // find exit to target room

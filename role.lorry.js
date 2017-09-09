@@ -3,10 +3,11 @@ var roleLorryMineral = require('role.lorry_mineral');
 module.exports = {
     // a function to run the logic for this role
   run: function (creep) {
-      if (Game.time % 2 === 0){
-          console.log('Skipping LORRY tick')
-          return;
-      }
+
+    if (Game.time % 5 === 0){
+      console.log('Skipping LORRY tick');
+      return;
+    }
     if (creep.memory._task){
       roleLorryMineral.run(creep);
     } else {
@@ -37,25 +38,27 @@ module.exports = {
         // find closest spawn, extension or tower which is not full
         var structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => ((s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION)
-                               && s.energy < s.energyCapacity*1)
+                               && s.energy < Number(s.energyCapacity))
+        }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+          filter: (s) => (s.structureType === STRUCTURE_LAB && s.energy < s.energyCapacity)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => (s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity/2)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => (s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity)
+        }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
+          filter: (s) => (s.structureType === STRUCTURE_TERMINAL && s.store[RESOURCE_ENERGY] < 75000)
         });
 
         if (!structure) {
           creep.say('to_storage');
-          structure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-            filter: (s) => s.structureType === STRUCTURE_STORAGE
-          });
+          structure = creep.room.storage;
         }
 
         //find builders working
         if (!structure) {
-            structure = creep.pos.findClosestByPath(FIND_MY_CREEPS, {
-                filter: (s) => (s.memory.role === 'builder' || s.memory.role === 'upgrader') && s.memory.working
-            });
+          structure = creep.pos.findClosestByPath(FIND_MY_CREEPS, {
+            filter: (s) => (s.memory.role === 'builder' || s.memory.role === 'upgrader') && s.memory.working
+          });
         }
         if (!structure) {
           structure = creep.room.storage || creep.room.spawn;
@@ -68,7 +71,7 @@ module.exports = {
                   // try to transfer energy, if it is not in range
           if (creep.transfer(structure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                       // move towards it
-            creep.moveTo(structure, {reusePath: 10, visualizePathStyle: {stroke: '#ffff00', lineStyle: null}});
+            creep.moveTo(structure, {reusePath: 7, visualizePathStyle: {stroke: '#ffff00', lineStyle: null}});
           }
         }
       }
@@ -80,19 +83,21 @@ module.exports = {
         // find closest container or LINK, with a lot of energy
         let container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
           filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 1600)
-            || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
+            //|| _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
         });
+        
         // find closest container or LINK
         if (!container) {
           container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 999)
-            || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
+            filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 999)
+            //|| _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
           });
         }
         // find closest container or LINK
         if (!container) {
           container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 10)
+            filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 10)
+            || (s.structureType === STRUCTURE_STORAGE && s.store[RESOURCE_ENERGY] > 100000) /* taking energy from storage if there is plenty */
             || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
           });
         }
@@ -116,7 +121,7 @@ module.exports = {
           let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY);
           if (l_result === ERR_NOT_IN_RANGE) {
             // move towards it
-            creep.moveTo(energy_dropped, {visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dotted'}});
+            creep.moveTo(energy_dropped, {reusePath: 7, visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dotted'}});
             creep.say('EE');
           } else if (l_result !== 0){
             creep.say('Error ' + l_result);
@@ -137,7 +142,7 @@ module.exports = {
             if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
               // move towards it
               creep.say('🚚->🏭');
-              creep.moveTo(container, {reusePath: 3, visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dashed'}});
+              creep.moveTo(container, {reusePath: 7, visualizePathStyle: {stroke: '#ffff00', lineStyle: 'dashed'}});
             }
           }
         }

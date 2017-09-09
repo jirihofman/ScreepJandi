@@ -14,9 +14,12 @@ Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'
 _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;})
 Game.creeps.Bella.transfer(Game.getObjectById('59668a2706e2ae3bb796faa5'), RESOURCE_CATALYST); delete Game.creeps.Bella.memory._task;
 Game.getObjectById('595d44d43d3c7b2a254e0ce6').transferEnergy(Game.getObjectById('595e3495025803287c09413d'))
-Game.market.calcTransactionCost(2000, 'W55N98', 'E99N66'); //Game.market.deal('595f21ca23327405bfd8b048', 100, 'E99N66')//595f21ca23327405bfd8b048	0.135	10,000	10,000	W55N98
+Game.market.calcTransactionCost(2000, 'E8N39', 'E99N66'); //Game.market.deal('595f21ca23327405bfd8b048', 100, 'E99N66')//595f21ca23327405bfd8b048	0.135	10,000	10,000	W55N98
+Game.market.createOrder(ORDER_SELL, RESOURCE_OXYGEN, 0.899, 100000, 'E8N39');
+Game.rooms.E8N39.terminal.send(RESOURCE_OXYGEN, 33333, 'E5N33', 'Thx for the room, Jenjandi. More on the way ...'); /* Game.market.calcTransactionCost(33000, 'E8N39', 'E5N33'); 
 Game.creeps.Allison.memory._task = {id_from: Game.creeps.Allison.pos.findClosestByRange(FIND_STRUCTURES, {filter: s => s.structureType===STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 666}).id, mineral_type: RESOURCE_ENERGY}
 Game.spawns.Spawn4.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, HEAL, MOVE, HEAL, MOVE, MOVE], null ,{role: 'attacker', target: 'E97N69', home: 'E98N69', b: true})
+for(const i in Game.creeps) {if (Game.creeps[i].memory.home === 'E7N33'){console.log(i, Game.creeps[i].memory.role)}}
 
 TODO: https://stackoverflow.com/questions/30324353/screeps-memory-adding-how?rq=1
 */

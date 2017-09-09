@@ -1,6 +1,7 @@
 module.exports = {
   // a function to run the logic for this role
   run: function(spawn) {
+    //spawn.createCustomCreep(energy+energy+20000, 'builderr');
     let creepsInRoom = spawn.room.find(FIND_MY_CREEPS);
     let room = spawn.room;
     if (room.energyAvailable === room.energyCapacityAvailable) {
@@ -8,13 +9,40 @@ module.exports = {
     }
     // console.log(spawn, ' energy: ', room.energyAvailable, room.energyCapacityAvailable);
 
-    if (Game.time % 900 >= 0 && Game.time % 900 <= 50){
-        if (spawn.name === 'Spawn1')
-          name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E6N39', 'E5N39', 0);
+    if (Game.time % 750 >= 0 && Game.time % 750 <= 50){
+      if (spawn.name === 'Spawn1')
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E6N39', 'E5N39', 0);}
     }
-    if (Game.time % 700 >= 0 && Game.time % 700 <= 50){
-        if (spawn.name === 'Spawn2')
-          name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N39', 'E8N38', 0);
+    if (Game.time % 750 >= 0 && Game.time % 750 <= 50){
+      if (spawn.name === 'Spawn3')
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N39', 'E8N38', 0);}
+    }
+    if (Game.time % 1400 >= 0 && Game.time % 1400 <= 50){
+      if (spawn.name === 'Spawn2')
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N36', 'E7N36', 0);}
+    }
+    if (Game.time % 520 >= 0 && Game.time % 520 <= 100){
+      if (spawn.name === 'Spawn4')
+        {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E7N33', 'E8N33', 0);}
+    }
+    if (Game.time % 1500 >= 0 && Game.time % 1500 <= 10){
+      //if (spawn.name === 'Spawn4'){name = spawn.createCreep([MOVE, MOVE, ATTACK, ATTACK], null, {role: 'attacker', target: 'E9N32'});}
+    }
+    if (Game.time % 500 >= 0 && Game.time % 500 <= 50){
+      if (spawn.name === 'Spawn5')
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E9N36', 'E9N37', 0);}
+    }
+    if (Game.time % 500 >= 0 && Game.time % 500 <= 75){
+      if (spawn.name === 'Spawn6')
+          {
+              //Game.spawns.Spawn66.createCreep([TOUGH, TOUGH, MOVE, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK], null, {role: 'attacker', target: 'E9N32'}); 
+              //Game.spawns.Spawn6.createCreep([TOUGH, TOUGH, MOVE, ATTACK, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK], null, {role: 'attacker', target: 'E9N32'})
+              name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E7N33', 'E7N32', 0);
+          }
+    }
+    if (Game.time % 500 >= 0 && Game.time % 500 <= 50){
+      if (spawn.name === 'Spawn7')
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N32', 'E8N31', 0);}
     }
 
     /* Things to do every 10 ticks
@@ -69,7 +97,7 @@ module.exports = {
 
     /* Renew or Recycle */
     spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
-      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder' || s.memory.role === 'miner' || s.memory.role === 'upgrader') && s.ticksToLive > 600 && s.ticksToLive < 1400
+      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder' || s.memory.role === 'miner' || s.memory.role === 'upgrader') && s.ticksToLive > 300 && s.ticksToLive < 1400 && !s.memory.no_renew
     }));
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
@@ -82,25 +110,41 @@ module.exports = {
       });
     }
     if (spawn.name === 'Spawn11' || spawn.name === 'Spawn22'){
-        if (Game.time % 800 === 0 || Game.time % 800 === 1 || Game.time % 800 === 2 || Game.time % 800 === 3){
-            name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, 5, 'E6N39', 'E5N39', 0);
-            console.log("Delam LDH pro E99N67 ")
-        }
-        console.log('TODO: Preskakuju druhej spawn ', spawn.name);
-        return;
+      if (Game.time % 800 === 0 || Game.time % 800 === 1 || Game.time % 800 === 2 || Game.time % 800 === 3){
+        //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, 5, 'E6N39', 'E5N39', 0);
+        console.log('Delam LDH pro E99N67 ');
+      }
+      console.log('TODO: Preskakuju druhej spawn ', spawn.name);
+      return;
     }
     if (spawn.name === 'Spawn33'){
-        if (Game.time % 1500 === 0 || Game.time % 1500 === 1 || Game.time % 1500 === 2 || Game.time % 1500 === 3){
+      if (Game.time % 1500 === 0 || Game.time % 1500 === 1 || Game.time % 1500 === 2 || Game.time % 1500 === 3){
             //Game.spawns.Spawn1.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE], null, {role: 'attacker', target: 'E96N67'})
-        }
-        if (Game.time % 900 === 750 || Game.time % 900 === 800 || Game.time % 900 === 752 || Game.time % 900 === 753){
-            name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, 5, 'E98N69', 'E98N68', 0);
-            console.log("Delam LDH pro E98N68 ")
-        }
-        console.log('TODO: Preskakuju druhej spawn ', spawn.name);
-        return;
+      }
+      if (Game.time % 900 === 750 || Game.time % 900 === 800 || Game.time % 900 === 752 || Game.time % 900 === 753){
+        //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, 5, 'E98N69', 'E98N68', 0);
+        console.log('Delam LDH pro E98N68 ');
+      }
+      console.log('TODO: Preskakuju druhej spawn ', spawn.name);
+      return;
     }
 
+    if (spawn.name === 'Spawn66'){
+      if (Game.time % 450 >= 0 && Game.time % 450 <= 50){
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E8N32', 'E9N32', 0);
+        //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E7N35', 'E7N35', 0);
+        console.log('Delam LDH pro E6N33 ');
+      }
+      return;
+    }
+
+    if (spawn.name === 'Spawn44'){
+      if (Game.time % 1500 >= 0 && Game.time % 1500 <= 50){
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N36', 'E7N36', 0);
+        console.log('Delam LDH pro E7N36 ');
+      }
+      return;
+    }
         // count the number of creeps alive for each role in this room
         // _.sum will count the number of properties in Game.creeps filtered by the
         //  arrow function, which checks for the creep being a specific role
@@ -109,7 +153,7 @@ module.exports = {
     var numberOfBuilders = _.sum(creepsInRoom, (c) => c.memory.role === 'builder');
     var numberOfRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'repairer');
     var numberOfWallRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'wallRepairer');
-    var numberOfMiners = _.sum(creepsInRoom, (c) => c.memory.role === 'miner');
+    var numberOfMiners = _.sum(creepsInRoom, (c) => c.memory.role === 'miner' && !Game.getObjectById(c.memory.sourceId).mineralType);
     var numberOfLorries = _.sum(creepsInRoom, (c) => c.memory.role === 'lorry');
         // count the number of long distance harvesters globally
     var numberOfLongDistanceHarvestersE97N66 = _.sum(Game.creeps, (c) =>
@@ -133,6 +177,7 @@ module.exports = {
       if (numberOfMiners > 0 ||
                 (spawn.room.storage && spawn.room.storage.store[RESOURCE_ENERGY] >= 150 + 550)) {
                 // create a lorry
+        console.log('Creating small lorry. Number of miner:', numberOfMiners, ' in room ', spawn.room);
         name = spawn.createLorry(150);
       }
             // if there is no miner left
@@ -193,7 +238,7 @@ module.exports = {
 
       /* LOOP MIONERAL MINERS */
       // check if all sources have miners
-      
+
       let minerals = spawn.room.find(FIND_MINERALS);
             // iterate over all sources
       for (let source of minerals) {
@@ -244,7 +289,7 @@ module.exports = {
           }
         }
       } // end loop mineral sources
-    
+
     }
         // if none of the above caused a spawn command check for other roles
     if (!name) {
@@ -283,6 +328,7 @@ module.exports = {
       // if not enough builders
       else if (numberOfBuilders < spawn.memory.minBuilders) {
         name = spawn.createCustomCreep(energy, 'builder');
+        console.log('Builder spawning: ', name, spawn.room);
       }
       // if not enough wallRepairers
       else if (numberOfWallRepairers < spawn.memory.minWallRepairers) {
@@ -316,7 +362,7 @@ module.exports = {
     if (!(name < 0)) {
       console.log(spawn.name + ' spawned new creep in ', spawn.room, ': ' + name + ' (' + Game.creeps[name].memory.role + ')');
       if (!spawn.memory._spawned){
-          spawn.memory._spawned = {};
+        spawn.memory._spawned = {};
       }
       if (spawn.memory._spawned[Game.creeps[name].memory.role]){
         spawn.memory._spawned[Game.creeps[name].memory.role]++;

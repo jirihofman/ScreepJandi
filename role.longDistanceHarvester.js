@@ -92,7 +92,7 @@ module.exports = {
           let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY);
           if (l_result === ERR_NOT_IN_RANGE) {
             // move towards it. reusePath=0 helps unwanted jumping to and fro between rooms
-            creep.moveTo(energy_dropped, {reusePath:0, visualizePathStyle: {stroke: '#0000ff'}});
+            creep.moveTo(energy_dropped, {reusePath:10, visualizePathStyle: {stroke: '#0000ff'}});
             creep.memory.miving_to_source++;
             if (creep.pos.y === 0){
               // could get stuck when next move was to the left/right and was thrown back to exit
@@ -121,7 +121,7 @@ module.exports = {
           let h = creep.harvest(source);
           if (h === ERR_NOT_IN_RANGE || h === ERR_NOT_ENOUGH_RESOURCES) {
             // move towards source. reusePath=0 helps unwanted jumping to and fro between rooms
-            creep.moveTo(source, {reusePath:2, visualizePathStyle: {stroke: '#ff0000'}});
+            creep.moveTo(source, {reusePath:8, visualizePathStyle: {stroke: '#ff0000'}});
             if (creep.pos.y === 0){
               // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(BOTTOM);
@@ -141,7 +141,7 @@ module.exports = {
         // find exit to target room
         var exit = creep.room.findExitTo(creep.memory.target);
         // move to exit
-        creep.moveTo(creep.pos.findClosestByPath(exit), {reusePath:2, visualizePathStyle: {dashed: '#ff0000'}});
+        creep.moveTo(creep.pos.findClosestByPath(exit), {reusePath:8, visualizePathStyle: {dashed: '#ff0000'}});
       }
     }
 
@@ -150,7 +150,8 @@ module.exports = {
       /* Reserve rooms with LDH, https://github.com/jirihofman/ScreepJandi/issues/3 */
       let l_owner = creep.room.controller.owner;
       /* not mine, need to reserve it OR will diminish soon */
-      if (l_owner !== creep.owner || creep.room.controller.reservation.ticksToEnd < 1500){
+      console.log(creep.room, JSON.stringify(l_owner), l_owner, creep.owner.username)
+      if ((l_owner && l_owner.username !== creep.owner.username) || (creep.room.controller.reservation && creep.room.controller.reservation.ticksToEnd < 1500) || !l_owner){
         // spawn a claimer in home room
         // set mode reserve   only
         // check wether there is not a claimer with the same task
@@ -162,12 +163,14 @@ module.exports = {
           if ((creep.room.controller.reservation && creep.room.controller.reservation.ticksToEnd < 1500) || !creep.room.controller.reservation){
             let l_ticksToEnd = creep.room.controller.reservation ? creep.room.controller.reservation.ticksToEnd : 'NOT RESERVED';
             let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
-            let s = l_spawn.createCreep([CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
-            console.log('Room ', creep.memory.home, ' No claimer-reservator creeps in ', creep.room, '. Progress:', l_ticksToEnd, ' Result: ', s);
-            if (s === -6){
-              l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
-              new RoomVisual(creep.memory.home).text("Spawning Reserver", l_spawn, {color: 'green', font: 0.8});
-              console.log(' -- creating slighlty smaller claimer');
+            if (l_spawn){
+                let s = l_spawn.createCreep([CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+                console.log('Room ', creep.memory.home, ' No claimer-reservator creeps in ', creep.room, '. Progress:', l_ticksToEnd, ' Result: ', s);
+                if (s === -6){
+                  l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+                  new RoomVisual(creep.memory.home).text("Spawning Reserver", l_spawn, {color: 'green', font: 0.8});
+                  console.log(' -- creating slighlty smaller claimer');
+                }
             }
           }
         }

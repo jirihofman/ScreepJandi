@@ -9,11 +9,13 @@ module.exports = {
         creep.heal(creep);
         if (_.filter(creep.body, (p)=>p.type===TOUGH && p.hits > 0).length < 5){
           console.log('Jsem tezce raneny, zustavam v teto mistnosti a healuju se', creep, creep.room);
-          creep.moveTo(20,20)
+          creep.moveTo(20,20, {ignoreRoads: true})
           if (creep.pos.x === 0)
               creep.move(RIGHT);
           if (creep.pos.y === 49)
               creep.move(TOP);
+          if (creep.pos.y === 0)
+              creep.move(BOTTOM);
           creep.say('navnada chill');
           return;
         }
@@ -62,6 +64,8 @@ module.exports = {
         } else {
           creep.say('⚔️⚔️');
         }
+      } else {
+          creep.moveTo(20,20)
       }
     }
   }
