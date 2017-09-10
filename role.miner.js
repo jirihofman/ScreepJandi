@@ -14,6 +14,7 @@ module.exports = {
       // harvest source
       let h = creep.harvest(source);
       if (h === -11){
+        /* MINERAL */
         if (source.mineralType){
           // cooldown on extractor maybe
           if (creep.carry[source.mineralType] < creep.carryCapacity){
@@ -29,7 +30,7 @@ module.exports = {
         console.log('error while harvesting source ', source, ' in room ', creep.room, '. Details: ', h);
       } else {
         // ENERGY miner
-        if (container.store[RESOURCE_ENERGY] >= 0 && Game.time % 5 === 0){
+        if (Game.time % 5 === 0){
           // move the mineral to anything viable
           let l_transfer_to = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_TOWER && s.energy < 1000) || (s.structureType===STRUCTURE_SPAWN && s.energy < 300)})[0];
           if (!l_transfer_to){
@@ -38,14 +39,21 @@ module.exports = {
 
           creep.transfer(l_transfer_to, RESOURCE_ENERGY);
         }
+        if (container.store[RESOURCE_ENERGY] >= 0 && Game.time % 4 === 0){
+          creep.withdraw(container, RESOURCE_ENERGY);
+          let l_transfer_to = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_TOWER && s.energy < 1000) || (s.structureType===STRUCTURE_SPAWN && s.energy < 300)})[0];
+          if (!l_transfer_to){
+            l_transfer_to = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy < s.energyCapacity) || (s.structureType===STRUCTURE_TOWER && s.energy < 1000)})[0];
+          }
+          creep.transfer(l_transfer_to, RESOURCE_ENERGY);
+        }
       }
       if (source.energy === 0){
         creep.say(source.ticksToRegeneration);
       }
     }
-        // if creep is not on top of the container
+    // if creep is not on top of the container
     else {
-            // move towards it
       creep.moveTo(container);
     }
   }
