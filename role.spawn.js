@@ -21,9 +21,11 @@ module.exports = {
       if (spawn.name === 'Spawn2')
           {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N36', 'E7N36', 0);}
     }
-    if (Game.time % 520 >= 0 && Game.time % 520 <= 100){
-      if (spawn.name === 'Spawn4')
-        {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E7N33', 'E8N33', 0);}
+    if (Game.time % 720 >= 0 && Game.time % 720 <= 100){
+      if (spawn.name === 'Spawn4'){
+        /* they get renewed a lot */
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E7N33', 'E8N33', 0);
+      }
     }
     if (Game.time % 1500 >= 0 && Game.time % 1500 <= 10){
       //if (spawn.name === 'Spawn4'){name = spawn.createCreep([MOVE, MOVE, ATTACK, ATTACK], null, {role: 'attacker', target: 'E9N32'});}
@@ -40,9 +42,9 @@ module.exports = {
         name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E7N33', 'E7N32', 0);
       }
     }
-    if (Game.time % 500 >= 0 && Game.time % 500 <= 50){
+    if (Game.time % 450 >= 0 && Game.time % 450 <= 50){
       if (spawn.name === 'Spawn7')
-          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N32', 'E8N31', 0);}
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E8N32', 'E8N31', 0);}
     }
 
     /* Things to do every 10 ticks
@@ -313,8 +315,12 @@ module.exports = {
 
       // if not enough lorries
       else if (numberOfLorries < spawn.memory.minLorries) {
-        if (energy > 899)
-          {energy = 900;}
+        if (energy > 899){
+          energy = 900;
+          if (spawn.room.controller.level > 6){
+            energy = 1300;
+          }
+        }
         name = spawn.createLorry(energy);
       }
       // if there is a claim order defined
