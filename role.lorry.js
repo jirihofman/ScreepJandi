@@ -46,7 +46,7 @@ module.exports = {
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => (s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-          filter: (s) => (s.structureType === STRUCTURE_TERMINAL && s.store[RESOURCE_ENERGY] < 75000)
+          filter: (s) => (s.structureType === STRUCTURE_TERMINAL && s.store[RESOURCE_ENERGY] < 10000)
         });
 
         if (!structure) {
@@ -85,11 +85,12 @@ module.exports = {
           filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 1600)
             //|| _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
         });
-        
+
         // find closest container or LINK
         if (!container) {
           container = creep.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] > 999)
+            || (s.structureType === STRUCTURE_TERMINAL && s.store[RESOURCE_ENERGY] > 11000) /* taking energy from storage if there is plenty */
             //|| _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity)
           });
         }
