@@ -1,13 +1,14 @@
+/* global RoomVisual */
 var roleBuilder = require('role.builder'); // builds things when there are constructionSites
 
 module.exports = {
   // a function to run the logic for this role
   run: function(creep) {
     if (creep.memory.home === creep.memory.target)  {
-        roleBuilder.run(creep)
-        return;
+      roleBuilder.run(creep);
+      return;
     }
-      
+
     // if creep is bringing energy to a structure but has no energy left
     if (creep.memory.working === true && creep.carry.energy === 0) {
             // switch state
@@ -150,7 +151,7 @@ module.exports = {
       /* Reserve rooms with LDH, https://github.com/jirihofman/ScreepJandi/issues/3 */
       let l_owner = creep.room.controller.owner;
       /* not mine, need to reserve it OR will diminish soon */
-      console.log(creep.room, JSON.stringify(l_owner), l_owner, creep.owner.username)
+      //console.log(creep.room, JSON.stringify(l_owner), l_owner, creep.owner.username)
       if ((l_owner && l_owner.username !== creep.owner.username) || (creep.room.controller.reservation && creep.room.controller.reservation.ticksToEnd < 1500) || !l_owner){
         // spawn a claimer in home room
         // set mode reserve   only
@@ -164,31 +165,31 @@ module.exports = {
             let l_ticksToEnd = creep.room.controller.reservation ? creep.room.controller.reservation.ticksToEnd : 'NOT RESERVED';
             let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
             if (l_spawn){
-                let s = l_spawn.createCreep([CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
-                console.log('Room ', creep.memory.home, ' No claimer-reservator creeps in ', creep.room, '. Progress:', l_ticksToEnd, ' Result: ', s);
-                if (s === -6){
-                  l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
-                  new RoomVisual(creep.memory.home).text("Spawning Reserver", l_spawn, {color: 'green', font: 0.8});
-                  console.log(' -- creating slighlty smaller claimer');
-                }
+              let s = l_spawn.createCreep([CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+              console.log('Room ', creep.memory.home, ' No claimer-reservator creeps in ', creep.room, '. Progress:', l_ticksToEnd, ' Result: ', s);
+              if (s === -6){
+                l_spawn.createCreep([CLAIM, CLAIM, MOVE, MOVE], null, { role: 'claimer', target: creep.memory.target, home: creep.memory.home, mode: 'c' });
+                new RoomVisual(creep.memory.home).text('Spawning Reserver', l_spawn, {color: 'green', font: 0.8});
+                console.log(' -- creating slighlty smaller claimer');
+              }
             }
           }
         }
       }
     }
-    
+
     if (creep.room.name === creep.memory.target) {
-        let l_count_hostiles = _.size(creep.room.find(FIND_HOSTILE_CREEPS));
+      let l_count_hostiles = _.size(creep.room.find(FIND_HOSTILE_CREEPS));
         //console.log('hhhhh ', l_count_hostiles, _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length)
-        if (l_count_hostiles > 0 && _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length === 0){
-            console.log('spawning attacker creep for ', creep.room, ' in ', creep.memory.home)
-            let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
-            let s = l_spawn.createCreep([TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, ATTACK], null, {role: 'attacker', target: creep.memory.target})
-            creep.memory.maxed = true; // go home
-        }
-        if (l_count_hostiles > 0){
-            console.log("Hostile creep in room, todo: check if the hostile creep has attack ranged attack parts. If not, stay")
-        }
+      if (l_count_hostiles > 0 && _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length === 0){
+        console.log('spawning attacker creep for ', creep.room, ' in ', creep.memory.home);
+        let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
+        l_spawn.createCreep([TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, ATTACK], null, {role: 'attacker', target: creep.memory.target});
+        creep.memory.maxed = true; // go home
+      }
+      if (l_count_hostiles > 0){
+        console.log('Hostile creep in room, todo: check if the hostile creep has attack ranged attack parts. If not, stay');
+      }
     }
 
     /* if creep lost the working parts, put it down */
