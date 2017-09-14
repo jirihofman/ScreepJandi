@@ -5,6 +5,7 @@ Game.spawns.Spawn1.createLongDistanceHarvester(800, 3, 'E99N66', 'E98N66', 0); -
 Game.spawns.Spawn1.createLongDistanceHarvester(Game.spawns.Spawn1.room.energyAvailable, 4, 'W35N2', 'W35N2', 0);
 Game.rooms.E99N66.ic();Game.rooms.E98N66.ic();Game.rooms.E97N67.ic();
 Game.spawns.Spawn1.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
+Game.spawns.Spawn7.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, ATTACK], null ,{role: 'attacker', target: 'E9N32'}); Game.spawns.Spawn77.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, ATTACK], null ,{role: 'attacker', target: 'E9N32'})
 Game.spawns.Spawn1.createCreep([MOVE, MOVE,MOVE,MOVE,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],null,{role: 'lorry', working: false})
   Game.spawns.Spawn3.createCreep([ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E97N68'})
   Game.spawns.Spawn3.createCreep([CLAIM, MOVE,CLAIM, MOVE,CLAIM, MOVE,CLAIM, MOVE],'ccc',{role: 'claimer', target: 'E98N69'})
