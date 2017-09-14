@@ -41,14 +41,14 @@ module.exports.loop = function () {
     //let b = Game.spawns.Spawn6.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, HEAL, MOVE, MOVE, HEAL], null ,{role: 'attacker', target: 'E8N32', home: 'E7N32', b: true})
     //new RoomVisual("E7N32").text('Buzeruju: ' + b, 10, 10, {align: 'left'});
   }
-  
+
   if (Game.time % 1200 === 0){
       /*
       //Game.spawns.Spawn22.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL], null, {role: 'attacker', target: 'E98N64', home: 'E98N65', b: true})
       //Game.spawns.Spawn11.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL], null, {role: 'attacker', target: 'E98N64', home: 'E98N65', b: true})
       */
   }
-  
+
 
   /* LINKS. TODO: every 11 ticks maybe enough */
   if (Game.time % 6 === 0){
@@ -132,11 +132,11 @@ module.exports.loop = function () {
         creep.say('Error ' + r);
       }
     }
-    
+
     if (creep.memory._alive){
-        creep.memory._alive++
+      creep.memory._alive++;
     } else {
-        creep.memory._alive = 1;
+      creep.memory._alive = 1;
     }
 
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
@@ -157,23 +157,23 @@ module.exports.loop = function () {
       tower.attack(target); // ...FIRE!
       if (tower.energy < 500){
           // safe mode only when it is serious
-        tower.room.controller.activateSafeMode();    
+        tower.room.controller.activateSafeMode();
       }
-      
+
     } else {
-        var target_heal = tower.pos.findClosestByRange(FIND_MY_CREEPS, {filter: (c)=>c.hitsMax > c.hits});
-        if (target_heal && Game.time % 7 === 0){
-            tower.heal(target_heal);
-        } else {
+      var target_heal = tower.pos.findClosestByRange(FIND_MY_CREEPS, {filter: (c)=>c.hitsMax > c.hits});
+      if (target_heal && Game.time % 7 === 0){
+        tower.heal(target_heal);
+      } else {
           // containers and ramparts. ramparts up to 220k
-          var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 500000 && s !== Game.getObjectById('599e838b77b4d7762ccdff1d')) || (s.structureType === STRUCTURE_WALL && s.hits < 500000)} )[0];
-          var road_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
-          let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
-          if (r !== 0 && r !== -6 && r !== -7){
-            console.log('Error tower repairing : ', r);
-          }
+        var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 500000 && s !== Game.getObjectById('599e838b77b4d7762ccdff1d')) || (s.structureType === STRUCTURE_WALL && s.hits < 500000)} )[0];
+        var road_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
+        let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
+        if (r !== 0 && r !== -6 && r !== -7){
+          console.log('Error tower repairing : ', r);
         }
-        
+      }
+
     }
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
     l_cpu.spawns+= l_cpu_used;
@@ -198,66 +198,68 @@ module.exports.loop = function () {
     l_cpu.flags+= l_cpu_used;
     //console.log('Spawn: ', spawnName, l_cpu_used);
   }
-  
-    for (let ro in Game.rooms) {
-        let r = Game.rooms[ro];
-        
+
+  for (let ro in Game.rooms) {
+    let r = Game.rooms[ro];
+
         /* minerals */
         //console.log(r, r.controller.progressTotal - r.controller.progress, r.controller.level)
-        if (Game.time % 500 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
-            
-            let l_mineral = r.find(FIND_MINERALS)[0].mineralType;
-            //_.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(l_mineral);});
-            if (_.size(r.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000})) > 0){
-              let budovy = r.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 1000)});
-              let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
-              _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: r.terminal.id, mineral_type: l_mineral}; l.memory.working=false;});
-            } else {
-              _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
-            }
-            
-        }
+    if (Game.time % 500 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
 
-        if (r.controller && r.controller.level > 4 && r.controller.owner.username === 'Jenjandi'){
-            let e = r.storage.store[RESOURCE_ENERGY];
-            if (e > 100000){
-                // enough energy, make two builders
-                r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_SPAWN})[0].memory.minBuilders = 3
-            }
-            if (e < 80000){
-                // enough energy, make two builders
-                r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_SPAWN})[0].memory.minBuilders = 1
-            }
-        }
-        
-        if (r.controller && r.controller.level === 8){
-            console.log("TODO: upgrader na 15max")
-        }
-        
-        /* TERMINALS */
-        if (r.terminal && Game.time % 2000 === 0){
-for(const id in Game.market.orders) {
-    Game.market.cancelOrder(id);
-}
-            for (var prop in r.terminal.store) {
-                if (r.terminal.store[prop] > 250000){
-                    console.log(`r.terminal.store.${prop} = ${r.terminal.store[prop]}`);
-                    // TODO find the right prise for the mineral
-                    let o = Game.market.createOrder(ORDER_SELL, prop, 0.5, 2000, r.name)
-                    console.log("prodavam: ", prop, o)
-                }
-            }
-        }
+      let l_mineral = r.find(FIND_MINERALS)[0].mineralType;
+            //_.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(l_mineral);});
+      if (_.size(r.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000})) > 0){
+        let budovy = r.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 1000)});
+        let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
+        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: r.terminal.id, mineral_type: l_mineral}; l.memory.working=false;});
+      } else {
+        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
+      }
+
     }
 
+    if (r.controller && r.controller.level > 4 && r.controller.owner.username === 'Jenjandi'){
+      let e = r.storage.store[RESOURCE_ENERGY];
+      if (e > 100000){
+                // enough energy, make two builders
+        r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_SPAWN})[0].memory.minBuilders = 3;
+      }
+      if (e < 80000){
+                // enough energy, make two builders
+        r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_SPAWN})[0].memory.minBuilders = 1;
+      }
+    }
+
+    if (r.controller && r.controller.level === 8){
+      console.log('TODO: upgrader na 15max');
+    }
+
+        /* TERMINALS */
+    if (Game.time % 2000 === 0){
+      for(const id in Game.market.orders) {
+        Game.market.cancelOrder(id);
+      }
+    }
+    if (r.terminal && Game.time % 201 === 0){
+      for (var prop in r.terminal.store) {
+        if (r.terminal.store[prop] > 250000){
+          console.log(`r.terminal.store.${prop} = ${r.terminal.store[prop]}`);
+                    // TODO find the right prise for the mineral
+          let o = Game.market.createOrder(ORDER_SELL, prop, 0.5, 2000, r.name);
+          console.log('prodavam: ', prop, o);
+        }
+      }
+    }
+  }
+
   /* CPU used per tick */
-   console.log('====================');
-   console.log('CPU stats: ', Game.cpu.limit, Game.cpu.tickLimit, Game.cpu.bucket);
-   console.log('CPU used per tick: ');
-   console.log(' CREEPS: ', l_cpu.creeps);
-   console.log(' SPAWNS: ', l_cpu.spawns);
-   console.log(' TOWERS: ', l_cpu.towers);
-   console.log(' FLAGS : ', l_cpu.flags);
-   console.log('====================');
-   
+  console.log('====================');
+  console.log('CPU stats: ', Game.cpu.limit, Game.cpu.tickLimit, Game.cpu.bucket);
+  console.log('CPU used per tick: ');
+  console.log(' CREEPS: ', l_cpu.creeps);
+  console.log(' SPAWNS: ', l_cpu.spawns);
+  console.log(' TOWERS: ', l_cpu.towers);
+  console.log(' FLAGS : ', l_cpu.flags);
+  console.log('====================');
+
 };
