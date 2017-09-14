@@ -15,20 +15,17 @@ module.exports = {
     }
     if (Game.time % 750 >= 0 && Game.time % 750 <= 50){
       if (spawn.name === 'Spawn3')
-          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N39', 'E8N38', 0);}
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 8, 'E8N39', 'E8N38', 0);}
     }
     if (Game.time % 1400 >= 0 && Game.time % 1400 <= 50){
       if (spawn.name === 'Spawn2')
-          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E8N36', 'E7N36', 0);}
+          {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 8, 'E8N36', 'E7N36', 0);}
     }
     if (Game.time % 720 >= 0 && Game.time % 720 <= 100){
       if (spawn.name === 'Spawn4'){
         /* they get renewed a lot */
-        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 5, 'E7N33', 'E8N33', 0);
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 10, 'E7N33', 'E8N33', 0);
       }
-    }
-    if (Game.time % 1500 >= 0 && Game.time % 1500 <= 10){
-      //if (spawn.name === 'Spawn4'){name = spawn.createCreep([MOVE, MOVE, ATTACK, ATTACK], null, {role: 'attacker', target: 'E9N32'});}
     }
     if (Game.time % 500 >= 0 && Game.time % 500 <= 50){
       if (spawn.name === 'Spawn5')
@@ -42,7 +39,7 @@ module.exports = {
         name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E7N33', 'E7N32', 0);
       }
     }
-    if (Game.time % 450 >= 0 && Game.time % 450 <= 50){
+    if (Game.time % 420 >= 0 && Game.time % 420 <= 50){
       if (spawn.name === 'Spawn7')
           {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E8N32', 'E8N31', 0);}
     }
@@ -139,13 +136,16 @@ module.exports = {
       return;
     }
 
-    if (spawn.name === 'Spawn66'){
-      if (Game.time % 450 >= 0 && Game.time % 450 <= 50){
-        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E8N32', 'E9N32', 0);
+    if (spawn.name === 'Spawn77'){
+      if (Game.time % 400 >= 0 && Game.time % 400 <= 50){
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 10, 'E8N32', 'E9N32', 0);
         //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E7N35', 'E7N35', 0);
         console.log('Delam LDH pro E6N33 ');
       }
-      if (Game.time % 600 >= 0 && Game.time % 600 <= 50){
+      return;
+    }
+    if (spawn.name === 'Spawn66'){
+      if (Game.time % 400 >= 0 && Game.time % 400 <= 50){
         name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 10, 'E8N32', 'E7N31', 0);
         //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E7N35', 'E7N35', 0);
         console.log('Delam LDH pro E7N31 ');
