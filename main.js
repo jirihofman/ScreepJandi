@@ -235,7 +235,10 @@ module.exports.loop = function () {
         }
         
         /* TERMINALS */
-        if (r.terminal && Game.time % 200 === 0){
+        if (r.terminal && Game.time % 2000 === 0){
+for(const id in Game.market.orders) {
+    Game.market.cancelOrder(id);
+}
             for (var prop in r.terminal.store) {
                 if (r.terminal.store[prop] > 250000){
                     console.log(`r.terminal.store.${prop} = ${r.terminal.store[prop]}`);
