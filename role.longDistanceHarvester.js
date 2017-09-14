@@ -75,7 +75,16 @@ module.exports = {
         // find exit to home room
         let exit = creep.room.findExitTo(creep.memory.home);
         // and move to exit
-        creep.moveTo(creep.pos.findClosestByPath(exit), {visualizePathStyle: {stroke: '#ff0000'}});
+        creep.moveTo(creep.pos.findClosestByRange(exit), {reusePath:5, visualizePathStyle: {stroke: '#ff0000'}});
+            if (creep.pos.y === 0){
+              creep.move(BOTTOM);
+            }
+            if (creep.pos.y === 49){
+              creep.move(TOP);
+            }
+            if (creep.pos.x === 49){
+              creep.move(LEFT);
+            }
         creep.memory.miving_to_unload++;
       }
     }
@@ -96,12 +105,13 @@ module.exports = {
             creep.moveTo(energy_dropped, {reusePath:10, visualizePathStyle: {stroke: '#0000ff'}});
             creep.memory.miving_to_source++;
             if (creep.pos.y === 0){
-              // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(BOTTOM);
             }
             if (creep.pos.y === 49){
-              // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(TOP);
+            }
+            if (creep.pos.x === 49){
+              creep.move(LEFT);
             }
             creep.say('EE');
           } else if (l_result !== 0){
@@ -141,8 +151,12 @@ module.exports = {
       else {
         // find exit to target room
         var exit = creep.room.findExitTo(creep.memory.target);
+        if (creep.pos.x === 0){
+          // could get stuck when next move was to the left/right and was thrown back to exit
+          creep.move(RIGHT);
+        }
         // move to exit
-        creep.moveTo(creep.pos.findClosestByPath(exit), {reusePath:8, visualizePathStyle: {dashed: '#ff0000'}});
+        creep.moveTo(creep.pos.findClosestByPath(exit), {reusePath:0, visualizePathStyle: {dashed: '#ff0000'}});
       }
     }
 
