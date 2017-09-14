@@ -49,7 +49,7 @@ module.exports = {
           filter: (s) => (s.structureType === STRUCTURE_TERMINAL && s.store[RESOURCE_ENERGY] < 10000)
         });
 
-        if (!structure) {
+        if (!structure && creep.room.storage && creep.room.storage.isActive()) {
           creep.say('to_storage');
           structure = creep.room.storage;
         }
@@ -57,7 +57,7 @@ module.exports = {
         //find builders working
         if (!structure) {
           structure = creep.pos.findClosestByPath(FIND_MY_CREEPS, {
-            filter: (s) => (s.memory.role === 'builder' || s.memory.role === 'upgrader') && s.memory.working
+            filter: (s) => (s.memory.role === 'builder' || s.memory.role === 'upgrader') && (s.carry.energy < s.carryCapacity)
           });
         }
         if (!structure) {
