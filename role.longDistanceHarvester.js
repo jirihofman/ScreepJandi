@@ -161,7 +161,7 @@ module.exports = {
     }
 
     /* TODO: move to Spawn */
-    if (creep.room.name === creep.memory.target) {
+    if (creep.room.controller && creep.room.name === creep.memory.target) {
       /* Reserve rooms with LDH, https://github.com/jirihofman/ScreepJandi/issues/3 */
       let l_owner = creep.room.controller.owner;
       /* not mine, need to reserve it OR will diminish soon */

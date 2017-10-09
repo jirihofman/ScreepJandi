@@ -46,7 +46,10 @@ module.exports = {
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => (s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
-          filter: (s) => (s.structureType === STRUCTURE_TERMINAL && s.store[RESOURCE_ENERGY] < 10000)
+          filter: (s) => (
+              s.structureType === STRUCTURE_TERMINAL && s.store[RESOURCE_ENERGY] < 10000 ||
+              s.structureType === STRUCTURE_NUKER && s.energy < s.energyCapacity && creep.room.storage.store[RESOURCE_ENERGY] > 50000
+              )
         });
 
         if (!structure && creep.room.storage && creep.room.storage.isActive()) {

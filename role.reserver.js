@@ -3,7 +3,7 @@ module.exports = {
   run: function(creep) {
     if (creep.room.name !== creep.memory.target) {
       var exit = creep.room.findExitTo(creep.memory.target);
-      creep.moveTo(creep.pos.findClosestByRange(exit));
+      creep.moveTo(creep.pos.findClosestByPath(exit));
     }
     else {
       // try to reserve controller

@@ -71,7 +71,8 @@ module.exports = function() {
             target: target,
             sourceIndex: sourceIndex,
             working: false,
-            cycles: 0
+            cycles: 0,
+            no_renew: true
           });
         };
 

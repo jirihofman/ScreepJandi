@@ -37,17 +37,21 @@ module.exports = {
     else {
       // find closest container
       let container = Game.getObjectById(creep.memory._task.id_from);
+      let l_amount = creep.carryCapacity;
+      if (creep.memory._task && creep.memory._task.amount){
+          l_amount = creep.memory._task.amount;
+      }
 
       if (container) {
         // try to withdraw energy, if the container is not in range
-        let w = creep.withdraw(container, creep.memory._task.mineral_type);
+        let w = creep.withdraw(container, creep.memory._task.mineral_type, l_amount);
         if (w === ERR_NOT_IN_RANGE) {
           // move towards it
           creep.moveTo(container);
         } else if (w === 0) {
           creep.say('👍');
         } else {
-          console.log('Error mineral lorry: ', w);
+          console.log('Error mineral lorry: ', w, l_amount, creep.memory._task.mineral_type);
         }
       }
     }

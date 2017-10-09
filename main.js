@@ -42,13 +42,6 @@ module.exports.loop = function () {
     //new RoomVisual("E7N32").text('Buzeruju: ' + b, 10, 10, {align: 'left'});
   }
 
-  if (Game.time % 1200 === 0){
-      /*
-      //Game.spawns.Spawn22.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL], null, {role: 'attacker', target: 'E98N64', home: 'E98N65', b: true})
-      //Game.spawns.Spawn11.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL], null, {role: 'attacker', target: 'E98N64', home: 'E98N65', b: true})
-      */
-  }
-
 
   /* LINKS. TODO: every 11 ticks maybe enough */
   if (Game.time % 6 === 0){
@@ -162,7 +155,7 @@ module.exports.loop = function () {
 
     } else {
       var target_heal = tower.pos.findClosestByRange(FIND_MY_CREEPS, {filter: (c)=>c.hitsMax > c.hits});
-      if (target_heal && Game.time % 7 === 0){
+      if (target_heal && Game.time % 2 === 0){
         tower.heal(target_heal);
       } else {
           // containers and ramparts. ramparts up to 220k
@@ -204,21 +197,71 @@ module.exports.loop = function () {
 
         /* minerals */
         //console.log(r, r.controller.progressTotal - r.controller.progress, r.controller.level)
-    if (Game.time % 500 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
+    if (Game.time % 200 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
+        if (r.name === 'E7N33'){
+            r.terminal.send(RESOURCE_ENERGY, 1000, 'E6N39')
+        }
+        if (r.name === 'E8N32'){
+            r.terminal.send(RESOURCE_ENERGY, 1000, 'E7N35')
+        }
+        if (r.name === 'E8N39'){
+            r.terminal.send(RESOURCE_ENERGY, 5000, 'E6N39')
+        }
+        if (r.name === 'E7N33'){
+            r.terminal.send(RESOURCE_ENERGY, 5000, 'E7N39')
+        }
+    }
+    
+    if (Game.time % 400 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
 
       let l_mineral = r.find(FIND_MINERALS)[0].mineralType;
             //_.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(l_mineral);});
       if (_.size(r.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000})) > 0){
         let budovy = r.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 1000)});
         let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
-        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: r.terminal.id, mineral_type: l_mineral}; l.memory.working=false;});
+        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
+            l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: r.terminal.id, mineral_type: l_mineral}; l.memory.working=false;
+        });
       } else {
-        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
+          /* muzu davat neco do laboratori? */
+          if (r.terminal.store[RESOURCE_LEMERGIUM] > 99 && _.size(r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_LEMERGIUM || s.id==='59c279de62e14971c6c026e9') && s.mineralAmount < 750*3}))){
+              /* TODO - zrusit each, cyklus pres mineraly, pole laboratori do promenne */
+            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
+                l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: r.terminal.id, id_to: r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_LEMERGIUM || s.id==='59c279de62e14971c6c026e9') && s.mineralAmount < 750*3})[0].id, mineral_type: RESOURCE_LEMERGIUM, amount: 100}; l.memory.working=false;
+            });
+          } else if (r.terminal.store[RESOURCE_KEANIUM] > 99 && _.size(r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_KEANIUM || s.id==='59c2856595498a470110e5f8') && s.mineralAmount < 750*3}))){
+              /* TODO - zrusit each, cyklus pres mineraly, pole laboratori do promenne */
+            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
+                l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: r.terminal.id, id_to: r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_KEANIUM || s.id==='59c2856595498a470110e5f8') && s.mineralAmount < 750*3})[0].id, mineral_type: RESOURCE_KEANIUM, amount: 100}; l.memory.working=false;
+            });
+          } else if (r.terminal.store[RESOURCE_UTRIUM] > 99 && _.size(r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_UTRIUM || s.id==='59c2727ab7398c58a1376c18') && s.mineralAmount < 750*3}))){
+              /* TODO - zrusit each, cyklus pres mineraly, pole laboratori do promenne */
+            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
+                l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: r.terminal.id, id_to: r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_UTRIUM || s.id==='59c2727ab7398c58a1376c18') && s.mineralAmount < 750*3})[0].id, mineral_type: RESOURCE_UTRIUM, amount: 100}; l.memory.working=false;
+            });
+          } else if (r.terminal.store[RESOURCE_ZYNTHIUM] > 99 && _.size(r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_ZYNTHIUM || s.id === '59c2a0180adae21571733a48') && s.mineralAmount < 750*3}))){
+              /* TODO - zrusit each, cyklus pres mineraly, pole laboratori do promenne */
+            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
+                l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: r.terminal.id, id_to: r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_ZYNTHIUM || s.id === '59c2a0180adae21571733a48') && s.mineralAmount < 750*3})[0].id, mineral_type: RESOURCE_ZYNTHIUM, amount: 100}; l.memory.working=false;
+            });
+          } else if (_.size(r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && s.mineralType === RESOURCE_GHODIUM && s.mineralAmount >= 100}))){
+              /* GHODIUM BACK TO NUKER/TERMINAL */
+              /* TODO - zrusit each, cyklus pres mineraly, pole laboratori do promenne */
+            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
+                let l_id = r.storage.id; // todo nuker
+                if (r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_NUKER && s.ghodium <= 4800 })){
+                    l_id = r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_NUKER && s.ghodium <= 4800 })[0].id
+                }
+                l.drop(RESOURCE_ENERGY); l.memory._task = {id_to: l_id, id_from: r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && s.mineralType === RESOURCE_GHODIUM && s.mineralAmount >= 100})[0].id, mineral_type: RESOURCE_GHODIUM, amount: 100}; l.memory.working=false;
+            });
+          } else {
+            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});              
+          }
       }
 
     }
 
-    if (r.controller && r.controller.level > 4 && r.controller.owner.username === 'Jenjandi'){
+    if (r.controller && r.controller.level > 4 && r.controller.owner.username === 'Jenjandi' && Game.time % 300 === 0 && r.controller.level < 8){
       let e = r.storage.store[RESOURCE_ENERGY];
       if (e > 100000){
                 // enough energy, make two builders
@@ -233,24 +276,42 @@ module.exports.loop = function () {
     if (r.controller && r.controller.level === 8){
       console.log('TODO: upgrader na 15max');
     }
+    
 
-        /* TERMINALS */
-    if (Game.time % 2000 === 0){
+    /* TERMINALS */
+    if (Game.time % 4000 === 0){
       for(const id in Game.market.orders) {
         Game.market.cancelOrder(id);
       }
     }
     if (r.terminal && Game.time % 201 === 0){
       for (var prop in r.terminal.store) {
-        if (r.terminal.store[prop] > 250000){
+        if (r.terminal.store[prop] > 230000){
           console.log(`r.terminal.store.${prop} = ${r.terminal.store[prop]}`);
-                    // TODO find the right prise for the mineral
-          let o = Game.market.createOrder(ORDER_SELL, prop, 0.5, 2000, r.name);
-          console.log('prodavam: ', prop, o);
+            // TODO find the right prise for the mineral
+          if (prop === RESOURCE_LEMERGIUM){
+            let o = Game.market.createOrder(ORDER_SELL, prop, 0.45, 6000, r.name);  
+          } else if (prop === RESOURCE_UTRIUM){
+            let o = Game.market.createOrder(ORDER_SELL, prop, 0.48, 4000, r.name);  
+          } else {
+            let o = Game.market.createOrder(ORDER_SELL, prop, 0.51, 4000, r.name);  
+          }
+            
+          console.log('selling: ', prop, o);
         }
       }
     }
   }
+  
+    /* LABS hardcoded */
+    if (Game.time % 10 === 0){
+        Game.getObjectById("59c2aedc88d88930943de023").runReaction(Game.getObjectById("59c279de62e14971c6c026e9"), Game.getObjectById("59c2727ab7398c58a1376c18"))
+        Game.getObjectById("59c292c4af5b7634b9250e60").runReaction(Game.getObjectById("59c2856595498a470110e5f8"), Game.getObjectById("59c2a0180adae21571733a48"))
+        let ghodium = Game.getObjectById("59c2bc8b866af4107a4dfe4a").runReaction(Game.getObjectById("59c292c4af5b7634b9250e60"), Game.getObjectById("59c2aedc88d88930943de023"))
+        console.log("Ghodium try: ", ghodium)
+    }
+    if (Game.time % 10 === 0){
+    }
 
   /* CPU used per tick */
   console.log('====================');

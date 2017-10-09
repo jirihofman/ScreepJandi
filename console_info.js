@@ -13,6 +13,8 @@ Game.spawns.Spawn1.createCreep([MOVE, MOVE,MOVE,MOVE,CARRY,CARRY,CARRY,CARRY,CAR
 Game.spawns.Spawn1.createCreep([WORK,WORK,WORK,, MOVE,ATTACK, MOVE,ATTACK, MOVE,ATTACK, MOVE],'a1',{role: 'attacker', target: 'E98N66'})
 Game.creeps.Natalie.signController(Game.getObjectById('58dbc64b8283ff5308a41d65'), "ScreepJandi on GitHub ♥ https://github.com/jirihofman/ScreepJandi")
 _.each(Game.rooms.E99N66.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59604b22fea9e157d3dc187c', id_to:'59600eef4d5e9417dd93dc35', mineral_type:'U'}; l.memory.working=false;})
+// prevoz Ghodia
+_.each(Game.rooms.E7N33.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry' && c.name==='Peyton'}), l=>{l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: '59a39090f5788644194bd407', id_to:'59beb1d8faa50b15bf49bd7b', mineral_type:'G', amount:500}; l.memory.working=false;})
 Game.creeps.Bella.transfer(Game.getObjectById('59668a2706e2ae3bb796faa5'), RESOURCE_CATALYST); delete Game.creeps.Bella.memory._task;
 Game.getObjectById('595d44d43d3c7b2a254e0ce6').transferEnergy(Game.getObjectById('595e3495025803287c09413d'))
 Game.market.calcTransactionCost(2000, 'E8N39', 'E99N66'); //Game.market.deal('595f21ca23327405bfd8b048', 100, 'E99N66')//595f21ca23327405bfd8b048	0.135	10,000	10,000	W55N98
@@ -23,6 +25,18 @@ Game.spawns.Spawn4.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
 for(const i in Game.creeps) {if (Game.creeps[i].memory.home === 'E7N33'){console.log(i, Game.creeps[i].memory.role)}}
 
 TODO: https://stackoverflow.com/questions/30324353/screeps-memory-adding-how?rq=1
+-------- GHODIUM ------
+Game.rooms['E6N39'].terminal.send(RESOURCE_LEMERGIUM, 5000, 'E7N33');
+Game.rooms['E8N36'].terminal.send(RESOURCE_ZYNTHIUM, 5000, 'E7N33');
+Game.market.deal('59c2be1894f04074405f1056', 10000, "E7N33"); // K
+--lories
+Game.creeps.Makayla.drop(RESOURCE_ENERGY); Game.creeps.Makayla.memory._task = {mineral_type: RESOURCE_LEMERGIUM, id_to:'59c279de62e14971c6c026e9', id_from: '59a6629bcf422c21866aa35e', amount: 750}
+Game.creeps.Makayla.drop(RESOURCE_LEMERGIUM); Game.creeps.Makayla.memory._task = {mineral_type: RESOURCE_KEANIUM, id_to:'59c2727ab7398c58a1376c18', id_from: '59a6629bcf422c21866aa35e', amount: 750}
+Game.creeps.Makayla.drop(RESOURCE_KEANIUM); Game.creeps.Makayla.memory._task = {mineral_type: RESOURCE_UTRIUM, id_to:'59c292c4af5b7634b9250e60', id_from: '59a6629bcf422c21866aa35e', amount: 750}
+Game.creeps.Makayla.drop(RESOURCE_UTRIUM); Game.creeps.Makayla.memory._task = {mineral_type: RESOURCE_ZYNTHIUM, id_to:'59c2a0180adae21571733a48', id_from: '59a6629bcf422c21866aa35e', amount: 750}
+-- UL
+Game.getObjectById("59c2856595498a470110e5f8").runReaction(Game.getObjectById("59c279de62e14971c6c026e9"), Game.getObjectById("59c292c4af5b7634b9250e60"))
+
 */
 
   Room.prototype.ic =
