@@ -15,14 +15,41 @@ module.exports = {
 
         // if creep is supposed to transfer energy to the controller
     if (creep.memory.working || creep.memory.maxed) {
-            // instead of upgraderController we could also use:
-            // if (creep.transfer(creep.room.controller, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+      /* when lvl8 */
+      if (Memory.rooms && Memory.rooms[creep.room.name] && Memory.rooms[creep.room.name].upgradeSpot){
+        if (creep.pos.x !== Memory.rooms[creep.room.name].upgradeSpot.x || creep.pos.y !== Memory.rooms[creep.room.name].upgradeSpot.y){
+          let a = creep.moveTo(Memory.rooms[creep.room.name].upgradeSpot.x, Memory.rooms[creep.room.name].upgradeSpot.y);
+          creep.upgradeController(creep.room.controller) // try upgrading on the move
+          return;
+        } else {
+          creep.upgradeController(creep.room.controller) // try upgrading on the move
+          if (creep.carry.energy < 60){
+            // if next to link or storage, withdraw energy
+            l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0)})[0];
+            if (!l_vedle)
+              l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_STORAGE && s.store[RESOURCE_ENERGY] > creep.carryCapacity)})[0];
+            if (l_vedle)
+              creep.withdraw(l_vedle, RESOURCE_ENERGY)
+          }
+
+          if (creep.carry.energy > 100){
+            // move the mineral to anything viable
+            let l_transfer_to = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_TOWER && s.energy < 1000) || (s.structureType===STRUCTURE_SPAWN && s.energy < 300)})[0];
+            creep.transfer(l_transfer_to, RESOURCE_ENERGY);
+          }
+          return;
+        }
+
+        /* when below lvl8 */
+        if (creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
+          creep.moveTo(creep.room.controller);
+        }
+      }
 
       if (creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
-                    // if not in range, move towards the controller
         creep.moveTo(creep.room.controller);
       }
-          // move the mineral to anything viable
+      // move the mineral to anything viable
       let l_transfer_to = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_TOWER && s.energy < 1000) || (s.structureType===STRUCTURE_SPAWN && s.energy < 300)})[0];
       creep.transfer(l_transfer_to, RESOURCE_ENERGY);
     }
@@ -31,7 +58,7 @@ module.exports = {
             // find closest container
       let container = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0)})[0]
        || creep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_STORAGE) &&
+        filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
                              s.store[RESOURCE_ENERGY] > 0
       });
             // if one was found

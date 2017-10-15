@@ -382,6 +382,9 @@ module.exports = {
           if (spawn.room.controller.level > 6){
             energy = 1300;
           }
+          if (spawn.room.controller.level === 8){
+            energy = 1600; //floor 1600/150=10
+          }
         }
         name = spawn.createLorry(energy);
       }
@@ -396,18 +399,20 @@ module.exports = {
         }
       }
       // if not enough upgraders
-      else if (numberOfUpgraders < spawn.memory.minUpgraders) {
+      else if ( Memory.rooms[spawn.room.name] && Memory.rooms[spawn.room.name].creep_limit && Memory.rooms[spawn.room.name].creep_limit.minUpgraders && numberOfUpgraders < Memory.rooms[spawn.room.name].creep_limit.minUpgraders) {
         name = spawn.createCustomCreep(energy, 'upgrader');
       }
       // if not enough repairers
       else if (numberOfRepairers < spawn.memory.minRepairers) {
+        if (energy > 899)
+          energy = 900; // we dont need huge repairers
         name = spawn.createCustomCreep(energy, 'repairer');
         if (_.isString(name)){ // only if it spawned
           Game.creeps[name].memory._rep_treshold_max = 0.8;
         }
       }
       // if not enough builders
-      else if (numberOfBuilders < spawn.memory.minBuilders) {
+      else if (numberOfBuilders < spawn.memory.minBuilders || (Memory.rooms[spawn.room.name] && Memory.rooms[spawn.room.name].creep_limit && Memory.rooms[spawn.room.name].creep_limit.minBuilders && numberOfBuilders < Memory.rooms[spawn.room.name].creep_limit.minBuilders)) {
         name = spawn.createCustomCreep(energy, 'builder');
         console.log('Builder spawning: ', name, spawn.room);
       }
@@ -482,8 +487,9 @@ module.exports = {
     } else if (spawn.room.controller.level === 7 && spawn.memory._pt_lvl !== 7) {
       // reduce the number of builders. Thez get much much bigger
       spawn.memory.minBuilders = 1;
-    }  else if (spawn.room.controller.level === 8) {
-      spawn.memory.minBuilders = 1;  
+    }  else if (spawn.room.controller.level === 8 && spawn.memory._pt_lvl === 7) {
+      Memory.rooms[spawn.room.name].creep_limit.minBuilders = 0;
+      Memory.rooms[spawn.room.name].creep_limit.minUpgraders = 1;
     } else if (spawn.room.controller.level !== spawn.memory._pt_lvl) {
       console.log('upgraded from ', spawn.memory._pt_lvl, ' to ', spawn.room.controller.level);
     }
