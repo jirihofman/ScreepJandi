@@ -37,6 +37,7 @@ Game.creeps.Makayla.drop(RESOURCE_UTRIUM); Game.creeps.Makayla.memory._task = {m
 -- UL
 Game.getObjectById("59c2856595498a470110e5f8").runReaction(Game.getObjectById("59c279de62e14971c6c026e9"), Game.getObjectById("59c292c4af5b7634b9250e60"))
 
+for (var prop = 1; prop < 999; prop++) { if (Game.spawns['Spawn' + prop]) delete Game.spawns['Spawn' + prop].memory.minHarvester }
 */
 
   Room.prototype.ic =

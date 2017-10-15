@@ -14,6 +14,7 @@ var roleMiner = require('role.miner');
 var roleLorry = require('role.lorry');
 var roleAttacker = require('role.attacker');
 var roleThief = require('role.thief');
+var roomPlanner = require('room.planner');
 
 /* used CPU */
 let l_cpu = {
@@ -195,6 +196,10 @@ module.exports.loop = function () {
   for (let ro in Game.rooms) {
     let r = Game.rooms[ro];
 
+    if (Game.time % 20 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
+      roomPlanner.plan(r)
+    }
+
         /* minerals */
         //console.log(r, r.controller.progressTotal - r.controller.progress, r.controller.level)
     if (Game.time % 200 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
@@ -202,16 +207,16 @@ module.exports.loop = function () {
             r.terminal.send(RESOURCE_ENERGY, 1000, 'E6N39')
         }
         if (r.name === 'E8N32'){
-            r.terminal.send(RESOURCE_ENERGY, 1000, 'E7N35')
+            r.terminal.send(RESOURCE_ENERGY, 3000, 'E7N35')
         }
         if (r.name === 'E8N39'){
-            r.terminal.send(RESOURCE_ENERGY, 5000, 'E6N39')
+            r.terminal.send(RESOURCE_ENERGY, 2000, 'E6N39')
         }
         if (r.name === 'E7N33'){
-            r.terminal.send(RESOURCE_ENERGY, 5000, 'E7N39')
+            r.terminal.send(RESOURCE_ENERGY, 3000, 'E7N35')
         }
     }
-    
+
     if (Game.time % 400 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
 
       let l_mineral = r.find(FIND_MINERALS)[0].mineralType;
@@ -250,12 +255,13 @@ module.exports.loop = function () {
             _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
                 let l_id = r.storage.id; // todo nuker
                 if (r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_NUKER && s.ghodium <= 4800 })){
+                  // tady to hazi chybu Cannot read property 'id' of undefined
                     l_id = r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_NUKER && s.ghodium <= 4800 })[0].id
                 }
                 l.drop(RESOURCE_ENERGY); l.memory._task = {id_to: l_id, id_from: r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && s.mineralType === RESOURCE_GHODIUM && s.mineralAmount >= 100})[0].id, mineral_type: RESOURCE_GHODIUM, amount: 100}; l.memory.working=false;
             });
           } else {
-            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});              
+            _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{delete l.memory._task;});
           }
       }
 
@@ -264,19 +270,14 @@ module.exports.loop = function () {
     if (r.controller && r.controller.level > 4 && r.controller.owner.username === 'Jenjandi' && Game.time % 300 === 0 && r.controller.level < 8){
       let e = r.storage.store[RESOURCE_ENERGY];
       if (e > 100000){
-                // enough energy, make two builders
-        r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_SPAWN})[0].memory.minBuilders = 3;
+        // enough energy, make three builders
+        Memory.rooms[r.name].creep_limit.minBuilders = 3;
       }
       if (e < 80000){
-                // enough energy, make two builders
-        r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_SPAWN})[0].memory.minBuilders = 1;
+        Memory.rooms[r.name].creep_limit.minBuilders = 1;
       }
     }
 
-    if (r.controller && r.controller.level === 8){
-      console.log('TODO: upgrader na 15max');
-    }
-    
 
     /* TERMINALS */
     if (Game.time % 4000 === 0){
@@ -290,19 +291,19 @@ module.exports.loop = function () {
           console.log(`r.terminal.store.${prop} = ${r.terminal.store[prop]}`);
             // TODO find the right prise for the mineral
           if (prop === RESOURCE_LEMERGIUM){
-            let o = Game.market.createOrder(ORDER_SELL, prop, 0.45, 6000, r.name);  
+            let o = Game.market.createOrder(ORDER_SELL, prop, 0.25, 3000, r.name);
           } else if (prop === RESOURCE_UTRIUM){
-            let o = Game.market.createOrder(ORDER_SELL, prop, 0.48, 4000, r.name);  
+            let o = Game.market.createOrder(ORDER_SELL, prop, 0.25, 3000, r.name);
           } else {
-            let o = Game.market.createOrder(ORDER_SELL, prop, 0.51, 4000, r.name);  
+            let o = Game.market.createOrder(ORDER_SELL, prop, 0.25, 3000, r.name);
           }
-            
+
           console.log('selling: ', prop, o);
         }
       }
     }
   }
-  
+
     /* LABS hardcoded */
     if (Game.time % 10 === 0){
         Game.getObjectById("59c2aedc88d88930943de023").runReaction(Game.getObjectById("59c279de62e14971c6c026e9"), Game.getObjectById("59c2727ab7398c58a1376c18"))

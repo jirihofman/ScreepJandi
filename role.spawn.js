@@ -42,10 +42,10 @@ module.exports = {
           {name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 8, 'E8N32', 'E8N31', 0);}
     }
 
-    /* Things to do every 10 ticks
+    /* Things to do every 20 ticks
        - search for old roads. If enough, make a repairer (switch upgrader or create new one)
     */
-    if (Game.time % 10 === 0){
+    if (Game.time % 20 === 0){
       /* find structures having ie below 50% of life */
       let l_structures_needing_repair = _.size(room.find(FIND_STRUCTURES, {filter: (s) => s.structureType !== STRUCTURE_RAMPART && s.structureType !== STRUCTURE_WALL && s.hits < (s.hitsMax * (spawn.memory._rep_treshold_min || 0.5))}));
       if (l_structures_needing_repair > 0){
@@ -107,8 +107,8 @@ module.exports = {
       });
     }
     if (spawn.name === 'Spawn11'){
-      if (Game.time % 500 >= 0 && Game.time % 500 <= 50){
-        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable, 10, 'E7N42', 'E6N42', 0);
+      if (Game.time % 350 >= 0 && Game.time % 350 <= 50){
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable, 12, 'E7N44', 'E7N44', 0);
         console.log('Delam LDH pro E7N38 z E7N39');
       }
       console.log('TODO: Preskakuju druhej spawn ', spawn.name);
@@ -116,7 +116,7 @@ module.exports = {
     }
     if (spawn.name === 'Spawn22'){
       if (Game.time % 350 >= 0 && Game.time % 350 <= 50){
-        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-300, 10, 'E7N42', 'E7N43', 0);
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable, 12, 'E7N44', 'E6N42', 0);
         console.log('Delam LDH pro E99N67 ');
       }
       console.log('TODO: Preskakuju druhej spawn ', spawn.name);
@@ -159,10 +159,15 @@ module.exports = {
     }
 
     if (spawn.name === 'Spawn222'){
-      if (Game.time % 500 >= 0 && Game.time % 500 <= 50){
+      if (Game.time % 1500 >= 0 && Game.time % 1500 <= 50){
         //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 10, 'E8N32', 'E7N31', 0);
         //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E7N35', 'E7N35', 0);
-        ////spawn.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK],null,{role: 'attacker', target: 'E8N35', b: true});        
+        ////spawn.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK],null,{role: 'attacker', target: 'E8N35', b: true});
+        //spawn.createCreep([ATTACK,ATTACK,TOUGH,ATTACK,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK],null,{role: 'attacker', target: 'E6N37'});
+      }
+      if (Game.time % 550 >= 0 && Game.time % 550 <= 50){
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-300, 15, 'E7N39', 'E7N38', 0);
+        console.log('Delam LDH pro E99N67 ');
       }
       return;
     }
@@ -170,7 +175,7 @@ module.exports = {
       if (Game.time % 500 >= 0 && Game.time % 500 <= 50){
         //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 10, 'E8N32', 'E7N31', 0);
         //name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 7, 'E7N35', 'E7N35', 0);
-        ////spawn.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK],null,{role: 'attacker', target: 'E8N35', b: true});        
+        ////spawn.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK],null,{role: 'attacker', target: 'E8N35', b: true});
       }
       return;
     }
@@ -209,6 +214,11 @@ module.exports = {
       if (Game.time % 1500 >= 0 && Game.time % 1500 <= 50){
         name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-100, 10, 'E8N36', 'E7N36', 0);
         console.log('Delam LDH pro E7N36 ');
+      }
+      return;
+    }
+    if (spawn.name === 'Spawn99'){
+      if (Game.time % 1500 >= 0 && Game.time % 1500 <= 50){
       }
       return;
     }
