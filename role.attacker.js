@@ -70,6 +70,7 @@ module.exports = {
       if(target) {
         console.log(JSON.stringify(target));
         let l_attack = creep.attack(target);
+        creep.rangedAttack(target)
         if(l_attack === ERR_NOT_IN_RANGE) {
           creep.moveTo(target, {visualizePathStyle: {stroke: '#0000ff'}});
           creep.heal(creep);
@@ -78,6 +79,7 @@ module.exports = {
           creep.heal(creep);
         } else {
           creep.say(l_attack + '- ⚔️⚔️') ;
+          
           return;
         }
       } else {

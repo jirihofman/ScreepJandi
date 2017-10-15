@@ -52,8 +52,8 @@ module.exports = {
       }
             // if no constructionSite is found
       else {
-                // go upgrading the controller
-        roleUpgrader.run(creep);
+          // go upgrading the controller
+          roleUpgrader.run(creep);
           // if next to link or storage, withdraw energy
           l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0)})[0];
           if (!l_vedle)
@@ -73,7 +73,7 @@ module.exports = {
               || (
                   (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 100 /* Nesockuju u minera, ktery to tam sype po 10 */
                 )
-              
+
       });
 
       if (!container) {
