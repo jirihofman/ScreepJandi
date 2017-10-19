@@ -232,8 +232,8 @@ module.exports = {
       return;
     }
     if (spawn.name === 'Spawn101'){
-      if (Game.time % 350 >= 0 && Game.time % 350 <= 50){
-        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable, 10, 'E7N44', 'E6N42', 0);
+      if (Game.time % 550 >= 0 && Game.time % 550 <= 50){
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable, 10, 'E7N42', 'E6N42', 0);
       }
       console.log('TODO: Preskakuju druhej spawn ', spawn.name);
       return;
