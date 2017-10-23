@@ -196,7 +196,7 @@ module.exports.loop = function () {
   for (let ro in Game.rooms) {
     let r = Game.rooms[ro];
 
-    if (Game.time % 20 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
+    if (Game.time % 10 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
       roomPlanner.plan(r);
     }
 
@@ -207,13 +207,16 @@ module.exports.loop = function () {
         r.terminal.send(RESOURCE_ENERGY, 1000, 'E6N39');
       }
       if (r.name === 'E8N32'){
-        r.terminal.send(RESOURCE_ENERGY, 3000, 'E7N35');
+        r.terminal.send(RESOURCE_ENERGY, 4500, 'E7N42');
+      }
+      if (r.name === 'E9N36'){
+        r.terminal.send(RESOURCE_ENERGY, 2000, 'E7N42');
       }
       if (r.name === 'E8N39'){
         r.terminal.send(RESOURCE_ENERGY, 2000, 'E6N39');
       }
       if (r.name === 'E7N33'){
-        r.terminal.send(RESOURCE_ENERGY, 3000, 'E7N35');
+        r.terminal.send(RESOURCE_ENERGY, 4000, 'E7N31');
       }
     }
 
