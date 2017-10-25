@@ -13,10 +13,10 @@ module.exports = {
       if (!l_ldh){
         l_ldh = { spawning: 0, n: 0, max: 0, work_parts: 10 };
       }
-      console.log('-----', spawn.name, 'spawning: ', l_ldh.spawning, 'n: ', l_ldh.n, 'max:', l_ldh.max);
+      //console.log('-----', spawn.name, 'spawning: ', l_ldh.spawning, 'n: ', l_ldh.n, 'max:', l_ldh.max);
       if ( l_ldh.max > (l_ldh.spawning+l_ldh.n) ){
         // want to create harvester
-        console.log(' ++++ need ', l_ldh.max - (l_ldh.spawning+l_ldh.n), ' harvesters');
+        //console.log(' ++++ need ', l_ldh.max - (l_ldh.spawning+l_ldh.n), ' harvesters');
         name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, l_ldh.work_parts || 10, spawn.room.name, l_room, 0);
 
         // raise the counter of spawning creeps if creeps is started
@@ -102,25 +102,26 @@ module.exports = {
     if (spawn.name === 'Spawn11'){
       return;
     }
+    if (spawn.name === 'Spawn111'){
+      return;
+    }
     if (spawn.name === 'Spawn22'){
       return;
     }
-
-    if (spawn.name === 'Spawn77'){
-      return;
-    }
-    if (spawn.name === 'Spawn88'){
-      return;
-    }
-    if (spawn.name === 'Spawn888'){
-      return;
-    }
-
     if (spawn.name === 'Spawn222'){
       if (Game.time % 1500 >= 0 && Game.time % 1500 <= 50){
         ////spawn.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK],null,{role: 'attacker', target: 'E8N35', b: true});
         //spawn.createCreep([ATTACK,ATTACK,TOUGH,ATTACK,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK],null,{role: 'attacker', target: 'E6N37'});
       }
+      return;
+    }
+    if (spawn.name === 'Spawn33'){
+      return;
+    }
+    if (spawn.name === 'Spawn333'){
+      return;
+    }
+    if (spawn.name === 'Spawn44'){
       return;
     }
     if (spawn.name === 'Spawn444'){
@@ -130,6 +131,15 @@ module.exports = {
       }
       return;
     }
+    if (spawn.name === 'Spawn55'){
+      return;
+    }
+    if (spawn.name === 'Spawn555'){
+      return;
+    }
+    if (spawn.name === 'Spawn66'){
+      return;
+    }
     if (spawn.name === 'Spawn666'){
       if (Game.time % 300 >= 0 && Game.time % 300 <= 50){
         //Game.spawns.Spawn666.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,HEAL,ATTACK,HEAL,HEAL,HEAL],null,{role: 'attacker', target: 'E8N35', b: true});
@@ -137,11 +147,22 @@ module.exports = {
       }
       return;
     }
-
-    if (spawn.name === 'Spawn44'){
+    if (spawn.name === 'Spawn77'){
       return;
     }
-    if (spawn.name === 'Spawn55'){
+    if (spawn.name === 'Spawn777'){
+      return;
+    }
+    if (spawn.name === 'Spawn88'){
+      return;
+    }
+    if (spawn.name === 'Spawn888'){
+      return;
+    }
+    if (spawn.name === 'Spawn99'){
+      return;
+    }
+    if (spawn.name === 'Spawn999'){
       return;
     }
     if (spawn.name === 'Spawn101'){
