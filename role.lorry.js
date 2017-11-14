@@ -111,15 +111,20 @@ module.exports = {
         }
 
         // hledame spadlou energii na zemi - male kusy
-        let energy_dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
-          filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 40
-        });
+        // ptame se jen jednou za 6 ticku TODO predelat na room planner
+        let energy_dropped = null;
+        let energy_dropped_huge = null;
+        if (Game.time % 600 === 0){
+          energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+            filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 40
+          });
 
-        let energy_dropped_huge = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
-          filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 600
-        });
-        if (energy_dropped_huge)
+          energy_dropped_huge = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+            filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 600
+          });
+          if (energy_dropped_huge)
           {energy_dropped = energy_dropped_huge;} // nasli jsme vetsi kus energie na zemi, jedeme tam. Jinak se furt vracime k minerovi
+        }
 
         if (energy_dropped) {
           let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY);
