@@ -95,7 +95,7 @@ module.exports = {
         // find source
         // hledame spadlou energii na zemi
         let energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-          filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 40
+          filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 240
         });
 
         if (energy_dropped) {
