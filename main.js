@@ -207,16 +207,19 @@ module.exports.loop = function () {
         r.terminal.send(RESOURCE_ENERGY, 1000, 'E6N39');
       }
       if (r.name === 'E8N32'){
-        r.terminal.send(RESOURCE_ENERGY, 4500, 'E7N42');
+        r.terminal.send(RESOURCE_ENERGY, 4500, 'E7N44');
       }
       if (r.name === 'E9N36'){
-        r.terminal.send(RESOURCE_ENERGY, 2000, 'E7N42');
+        r.terminal.send(RESOURCE_ENERGY, 2000, 'E3N42');
       }
       if (r.name === 'E8N39'){
         r.terminal.send(RESOURCE_ENERGY, 2000, 'E6N39');
       }
       if (r.name === 'E7N33'){
-        r.terminal.send(RESOURCE_ENERGY, 4000, 'E7N31');
+        r.terminal.send(RESOURCE_ENERGY, 2000, 'E3N42');
+      }
+      if (r.name === 'E6N39'){
+        r.terminal.send(RESOURCE_ENERGY, 2000, 'E7N44');
       }
     }
 

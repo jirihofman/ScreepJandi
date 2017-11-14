@@ -17,7 +17,7 @@ module.exports = {
       if ( l_ldh.max > (l_ldh.spawning+l_ldh.n) ){
         // want to create harvester
         //console.log(' ++++ need ', l_ldh.max - (l_ldh.spawning+l_ldh.n), ' harvesters');
-        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, l_ldh.work_parts || 10, spawn.room.name, l_room, 0);
+        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, l_ldh.work_parts || 10, l_ldh.home || spawn.room.name, l_room, 0);
 
         // raise the counter of spawning creeps if creeps is started
         // it is set properly later in room.planner.ldh.set_ldhs
@@ -167,6 +167,15 @@ module.exports = {
     }
     if (spawn.name === 'Spawn101'){
       return;
+    }
+    if (spawn.name === 'Spawn131'){
+      return;
+    }
+    if (spawn.name === 'Spawn1011'){
+      return;
+    }
+    if (spawn.name === 'Spawn112'){
+      return; // 11-2
     }
 
 
