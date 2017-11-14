@@ -7,7 +7,7 @@ module.exports = {
     let l_ldhs = _.filter(Game.creeps, a=>a.memory && a.memory.role === 'longDistanceHarvester' && a.memory.home === l_name);
     let l_ldhs_pocet = _.size(l_ldhs);
     console.log('room.planner.ldhs.js start', r, l_ldhs_pocet, l_name);
-    if (Memory.rooms[r.name].ldh){
+    if (Memory.rooms[r.name] && Memory.rooms[r.name].ldh){
       // set all numbers to zero
       _.forEach(Memory.rooms[r.name].ldh, (v, k) => {
         Memory.rooms[r.name].ldh[k].n = 0;
