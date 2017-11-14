@@ -11,7 +11,7 @@ module.exports = {
 
     // if creep is bringing energy to a structure but has no energy left
     if (creep.memory.working === true && creep.carry.energy === 0) {
-            // switch state
+      // switch state
       creep.memory.working = false;
       creep.memory.maxed = false;
       creep.memory.cycles++;
@@ -25,15 +25,15 @@ module.exports = {
       creep.memory.maxed = false;
     }
 
-        // if creep is supposed to transfer energy to a structure
+    // if creep is supposed to transfer energy to a structure
     if (creep.memory.working === true) {
-            // if in home room
+      // if in home room
       if (creep.room.name === creep.memory.home) {
         // find closest spawn, extension or tower which is not full
         var structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                    // the second argument for findClosestByPath is an object which takes
-                    // a property called filter which can be a function
-                    // we use the arrow operator to define it
+          // the second argument for findClosestByPath is an object which takes
+          // a property called filter which can be a function
+          // we use the arrow operator to define it
           filter: (s) => ((s.structureType === STRUCTURE_SPAWN
                                  || s.structureType === STRUCTURE_EXTENSION
                                  || s.structureType === STRUCTURE_TOWER
@@ -76,15 +76,15 @@ module.exports = {
         let exit = creep.room.findExitTo(creep.memory.home);
         // and move to exit
         creep.moveTo(creep.pos.findClosestByRange(exit), {reusePath:5, visualizePathStyle: {stroke: '#ff0000'}});
-            if (creep.pos.y === 0){
-              creep.move(BOTTOM);
-            }
-            if (creep.pos.y === 49){
-              creep.move(TOP);
-            }
-            if (creep.pos.x === 49){
-              creep.move(LEFT);
-            }
+        if (creep.pos.y === 0){
+          creep.move(BOTTOM);
+        }
+        if (creep.pos.y === 49){
+          creep.move(TOP);
+        }
+        if (creep.pos.x === 49){
+          creep.move(LEFT);
+        }
         creep.memory.miving_to_unload++;
       }
     }
@@ -194,7 +194,7 @@ module.exports = {
 
     if (creep.room.name === creep.memory.target) {
       let l_count_hostiles = _.size(creep.room.find(FIND_HOSTILE_CREEPS));
-        //console.log('hhhhh ', l_count_hostiles, _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length)
+      //console.log('hhhhh ', l_count_hostiles, _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length)
       if (l_count_hostiles > 0 && _.filter(Game.creeps, a=>a.memory && a.memory.role === 'attacker' && a.memory.target === creep.memory.target).length === 0){
         console.log('spawning attacker creep for ', creep.room, ' in ', creep.memory.home);
         let l_spawn = Game.rooms[creep.memory.home].find(FIND_MY_SPAWNS)[0];
