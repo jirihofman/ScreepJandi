@@ -88,9 +88,55 @@ module.exports = {
     }
 
     /* Renew or Recycle */
-    spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
+    // initialize memory for spawn stats
+    if (!Memory.spawns) Memory.spawns = {};
+    if (!Memory.spawns[spawn.id]) Memory.spawns[spawn.id] = { renew_count: 0, events_history: {} };
+
+    const recordSpawnEvent = function (sid, type) {
+      const bucket = Math.floor(Game.time / 60);
+      if (!Memory.spawns[sid].events_history) Memory.spawns[sid].events_history = {};
+      const key = bucket.toString();
+      if (!Memory.spawns[sid].events_history[key]) Memory.spawns[sid].events_history[key] = { renew: 0 };
+      Memory.spawns[sid].events_history[key][type] += 1;
+      // prune older buckets beyond 24h
+      const minKey = (bucket - 1440).toString();
+      for (const k in Memory.spawns[sid].events_history) {
+        if (k < minKey) delete Memory.spawns[sid].events_history[k];
+      }
+    };
+
+    const aggregateSpawnEvents = function (sid, minutes) {
+      const currentBucket = Math.floor(Game.time / 60);
+      const minBucket = currentBucket - minutes + 1;
+      const out = { renew: 0 };
+      if (!Memory.spawns[sid].events_history) return out;
+      for (const k in Memory.spawns[sid].events_history) {
+        const kb = parseInt(k);
+        if (kb >= minBucket && kb <= currentBucket) {
+          const v = Memory.spawns[sid].events_history[k];
+          out.renew += v.renew || 0;
+        }
+      }
+      return out;
+    };
+
+    let _renewTarget = spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
       filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder' || s.memory.role === 'miner' || s.memory.role === 'harvester' || s.memory.role === 'upgrader') && s.ticksToLive > 300 && s.ticksToLive < 1400 && !s.memory.no_renew
-    }));
+    });
+    if (_renewTarget) {
+      let _r = spawn.renewCreep(_renewTarget);
+      if (_r === 0) {
+        Memory.spawns[spawn.id].renew_count += 1;
+        recordSpawnEvent(spawn.id, 'renew');
+      }
+    }
+    // compute aggregates every 20 ticks
+    if (Game.time % 20 === 0) {
+      Memory.spawns[spawn.id].events_summary = {
+        lastHour: aggregateSpawnEvents(spawn.id, 60),
+        lastDay: aggregateSpawnEvents(spawn.id, 60 * 24)
+      };
+    }
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
     if (l_adjecent_creeps.length > 0) {
