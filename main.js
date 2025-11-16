@@ -190,7 +190,50 @@ if (Game.time % 5 === 0) {
   // for each tower
   for (let tower of towers) {
     // ensure this tower has memory
-    if (!Memory.towers[tower.id]) Memory.towers[tower.id] = {energy_spent: {heal: 0, attack: 0, repair: 0}};
+    if (!Memory.towers[tower.id]) Memory.towers[tower.id] = {energy_spent: {heal: 0, attack: 0, repair: 0}, events_history: {}};
+
+    /* helper: record event into minute-bucketed history
+       - we bucket by minute (Game.time / 60) to limit history size
+       - bucketKey is stringified to be a valid Memory key
+       - prune older buckets beyond 24h (1440 minutes)
+    */
+    const recordTowerEvent = function(tid, type){
+      const bucket = Math.floor(Game.time / 60);
+      if (!Memory.towers[tid].events_history) Memory.towers[tid].events_history = {};
+      const key = bucket.toString();
+      if (!Memory.towers[tid].events_history[key]) Memory.towers[tid].events_history[key] = {attack:0, heal:0, repair:0};
+      Memory.towers[tid].events_history[key][type] += 1;
+      // prune older buckets to keep only last 24h (1440 minutes)
+      const minKey = (bucket - 1440).toString();
+      for (const k in Memory.towers[tid].events_history) {
+        if (k < minKey) delete Memory.towers[tid].events_history[k];
+      }
+    };
+
+    const aggregateTowerEvents = function(tid, minutes){
+      const currentBucket = Math.floor(Game.time / 60);
+      const minBucket = currentBucket - minutes + 1;
+      const out = {attack:0, heal:0, repair:0};
+      if (!Memory.towers[tid].events_history) return out;
+      for (const k in Memory.towers[tid].events_history) {
+        const kb = parseInt(k);
+        if (kb >= minBucket && kb <= currentBucket){
+          const v = Memory.towers[tid].events_history[k];
+          out.attack += v.attack || 0;
+          out.heal += v.heal || 0;
+          out.repair += v.repair || 0;
+        }
+      }
+      return out;
+    };
+
+    // optionally compute and store 1h / 24h aggregates every 20 ticks (cheap)
+    if (Game.time % 20 === 0) {
+      Memory.towers[tower.id].events_summary = {
+        lastHour: aggregateTowerEvents(tower.id, 60),
+        lastDay: aggregateTowerEvents(tower.id, 60*24)
+      };
+    }
 
     // find closest hostile creep
     let l_cpu_used = Game.cpu.getUsed();
@@ -208,6 +251,7 @@ if (Game.time % 5 === 0) {
       let _r = tower.attack(target); // ...FIRE!
       if (_r === 0) {
         Memory.towers[tower.id].energy_spent.attack += 1;
+        recordTowerEvent(tower.id, 'attack');
       }
       if (tower.energy < 100){
         // safe mode only when it is serious
@@ -220,6 +264,7 @@ if (Game.time % 5 === 0) {
         let _r = tower.heal(target_heal);
         if (_r === 0) {
           Memory.towers[tower.id].energy_spent.heal += 1;
+          recordTowerEvent(tower.id, 'heal');
         }
       } else {
         // containers and ramparts. ramparts up to 220k
@@ -229,6 +274,7 @@ if (Game.time % 5 === 0) {
         let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
         if (r === 0) {
           Memory.towers[tower.id].energy_spent.repair += 1;
+          recordTowerEvent(tower.id, 'repair');
         }
         if (r !== 0 && r !== -6 && r !== -7){
           console.log('Error tower repairing : ', r);
