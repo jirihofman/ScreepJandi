@@ -47,6 +47,13 @@ Used for LINKs. Transfering from **yellow-red** to **yellow-yellow**.
 ### Brown
 Used for role **repairer** to recycle constructions. When a repairer sees this flag, it dismantles it.
 
+### Scout
+
+Spawn with memory: { role: 'scout', target: 'W13N55', pos: { x: 25, y: 25 } }
+
+- If `pos` is provided, the scout will move to the exact position and stay there (useful for observation).
+- If `target` (room name) is provided, the scout will travel there first and then go to `pos` (if given).
+- If `pos` is omitted but `target` is provided, the scout will go to the room center (25,25) and idle there.
 # Lairs (TODO)
 ## Patrol
 25 move, 6 heal, rest attack

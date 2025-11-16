@@ -15,6 +15,7 @@ var roleLorry = require('role.lorry');
 var roleLorryEnergy = require('role.lorry_energy');
 var roleAttacker = require('role.attacker');
 var roleThief = require('role.thief');
+var roleScout = require('role.scout');
 var roomPlanner = require('room.planner');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
@@ -148,6 +149,9 @@ if (Game.time % 5 === 0) {
     else if (creep.memory.role === 'thief') {
       roleThief.run(creep);
     }
+    else if (creep.memory.role === 'scout') {
+      roleScout.run(creep);
+    }
 
     // self recycle
     if (creep.memory.to_recycle === 1){
@@ -179,30 +183,53 @@ if (Game.time % 5 === 0) {
   // find all my towers
   /* Priorities: ATTACK, REPAIR, ... */
   var towers = _.filter(Game.structures, s => s.structureType === STRUCTURE_TOWER);
+  // initialize memory for towers
+  if (!Memory.towers) Memory.towers = {};
   // TODO: UNFAKE
   // var towers = [];
   // for each tower
   for (let tower of towers) {
+    // ensure this tower has memory
+    if (!Memory.towers[tower.id]) Memory.towers[tower.id] = {energy_spent: {heal: 0, attack: 0, repair: 0}};
+
     // find closest hostile creep
     let l_cpu_used = Game.cpu.getUsed();
     var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    // console.log('Tower checking for hostiles: ', JSON.stringify(target), JSON.stringify(tower));
+
+    // var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+    //   filter: (c) => c.getActiveBodyparts(ATTACK) > 0 || c.getActiveBodyparts(RANGED_ATTACK) > 0
+    // });
+
     // if one is found...
     if (target) {
-      tower.attack(target); // ...FIRE!
+      console.log('Tower ', tower, ' attacking ', target);
+      // attack counts as one event on success; energy cost is constant (10) so we only count events
+      let _r = tower.attack(target); // ...FIRE!
+      if (_r === 0) {
+        Memory.towers[tower.id].energy_spent.attack += 1;
+      }
       if (tower.energy < 100){
         // safe mode only when it is serious
         tower.room.controller.activateSafeMode();
       }
-
     } else {
       var target_heal = tower.pos.findClosestByRange(FIND_MY_CREEPS, {filter: (c)=>c.hitsMax > c.hits});
       if (target_heal && Game.time % 2 === 0){
-        tower.heal(target_heal);
+        // heal counts as an event; the energy cost per heal is constant so just increment the counter
+        let _r = tower.heal(target_heal);
+        if (_r === 0) {
+          Memory.towers[tower.id].energy_spent.heal += 1;
+        }
       } else {
         // containers and ramparts. ramparts up to 220k
         var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 150000 && s !== Game.getObjectById('599e838b77b4d7762ccdff1d')) || (s.structureType === STRUCTURE_WALL && s.hits < 150000)} )[0];
         var road_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
+        // repair counts as an event; the energy cost per repair is constant so just increment the counter
         let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
+        if (r === 0) {
+          Memory.towers[tower.id].energy_spent.repair += 1;
+        }
         if (r !== 0 && r !== -6 && r !== -7){
           console.log('Error tower repairing : ', r);
         }
