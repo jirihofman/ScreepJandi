@@ -52,7 +52,7 @@ module.exports = {
           // try to transfer energy, if it is not in range
           if (creep.transfer(structure, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
             // move towards it
-            let m = creep.moveTo(structure, {reusePath:5, visualizePathStyle: {stroke: '#00ffaa'}});
+            let m = creep.moveTo(structure, {reusePath:0, visualizePathStyle: {stroke: '#00ffaa'}});
             if (m === 0){
               creep.memory.steps_from_source++; // TODO: can get full from dropped energy too
             }
@@ -102,7 +102,7 @@ module.exports = {
           let l_result = creep.pickup(energy_dropped, RESOURCE_ENERGY);
           if (l_result === ERR_NOT_IN_RANGE) {
             // move towards it. reusePath=0 helps unwanted jumping to and fro between rooms
-            creep.moveTo(energy_dropped, {reusePath:10, visualizePathStyle: {stroke: '#0000ff'}});
+            creep.moveTo(energy_dropped, {reusePath:0, visualizePathStyle: {stroke: '#0000ff'}});
             creep.memory.miving_to_source++;
             if (creep.pos.y === 0){
               creep.move(BOTTOM);
@@ -132,7 +132,7 @@ module.exports = {
           let h = creep.harvest(source);
           if (h === ERR_NOT_IN_RANGE || h === ERR_NOT_ENOUGH_RESOURCES) {
             // move towards source. reusePath=0 helps unwanted jumping to and fro between rooms
-            creep.moveTo(source, {reusePath:8, visualizePathStyle: {stroke: '#ff0000'}});
+            creep.moveTo(source, {reusePath:0, visualizePathStyle: {stroke: '#ff0000'}});
             if (creep.pos.y === 0){
               // could get stuck when next move was to the left/right and was thrown back to exit
               creep.move(BOTTOM);

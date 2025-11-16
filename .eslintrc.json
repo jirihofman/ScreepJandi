@@ -235,7 +235,7 @@
 		    "WALL_HITS_MAX": true,
 		    "EXTENSION_HITS": true,
 		    "EXTENSION_ENERGY_CAPACITY": true,
-  	    "ROAD_HITS": true,
+  	    	"ROAD_HITS": true,
 		    "ROAD_WEAROUT": true,
 		    "ROAD_DECAY_AMOUNT": true,
 		    "ROAD_DECAY_TIME": true,

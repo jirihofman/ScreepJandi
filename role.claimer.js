@@ -21,11 +21,7 @@ module.exports = {
       } else if (r === ERR_GCL_NOT_ENOUGH){
         creep.say('NO GCL->reserving');
         roleReserver.run(creep);
-        return;
-        if (re !== 0) {
-          console.log('Claimer reservation error: ' + re);
-          creep.moveTo(creep.room.controller);
-        }
+        //return;
       } else if (r !== 0) {
         console.log('Claimer error: ' + r);
       }

@@ -1,5 +1,12 @@
 # ScreepJandi
 
+## Development
+1. open repo in VSCode
+1. run nodemon to copy from repo to Screeps
+```sh
+nodemon --watch . --ext js --exec "cp -r ./*.js /Users/jirihofman/Library/Application\ Support/Screeps/scripts/screeps.com/ScreepJandi"
+```
+
 ## Memory play (WiP)
 
 ### Spawn

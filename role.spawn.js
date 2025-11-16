@@ -1,32 +1,37 @@
 module.exports = {
   // a function to run the logic for this role
   run: function(spawn) {
+    // Ensure Memory.rooms and Memory.rooms[room.name] are initialized
+    if (!Memory.rooms) Memory.rooms = {};
+    if (!Memory.rooms[spawn.room.name]) Memory.rooms[spawn.room.name] = {};
+  if (!Memory.rooms[spawn.room.name].creep_limit) Memory.rooms[spawn.room.name].creep_limit = {};
     //spawn.createCustomCreep(energy+energy+20000, 'builderr');
     let creepsInRoom = spawn.room.find(FIND_MY_CREEPS);
     let room = spawn.room;
 
     /* LDH. Data from Memory.rooms.ROOM.ldh */
-    _.forEach(Memory.rooms[room.name].ldh, (v, k) => {
-      //console.log('/////',room.name,  k);
-      let l_room = k;
-      let l_ldh = Memory.rooms[spawn.room.name].ldh[l_room];
-      if (!l_ldh){
-        l_ldh = { spawning: 0, n: 0, max: 0, work_parts: 10 };
-      }
-      //console.log('-----', spawn.name, 'spawning: ', l_ldh.spawning, 'n: ', l_ldh.n, 'max:', l_ldh.max);
-      if ( l_ldh.max > (l_ldh.spawning+l_ldh.n) ){
-        // want to create harvester
-        //console.log(' ++++ need ', l_ldh.max - (l_ldh.spawning+l_ldh.n), ' harvesters');
-        name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, l_ldh.work_parts || 10, l_ldh.home || spawn.room.name, l_room, 0);
-
-        // raise the counter of spawning creeps if creeps is started
-        // it is set properly later in room.planner.ldh.set_ldhs
-        if (_.isString(name)){ // only if it spawned
-          Memory.rooms[spawn.room.name].ldh[l_room].spawning++;
-          return;
+    if (Memory && Memory.rooms && Memory.rooms[room.name] && Memory.rooms[room.name].ldh) {
+      _.forEach(Memory.rooms[room.name].ldh, (v, k) => {
+        //console.log('/////',room.name,  k);
+        let l_room = k;
+        let l_ldh = Memory.rooms[spawn.room.name].ldh[l_room];
+        if (!l_ldh){
+          l_ldh = { spawning: 0, n: 0, max: 0, work_parts: 10 };
         }
-      }
-    });
+        //console.log('-----', spawn.name, 'spawning: ', l_ldh.spawning, 'n: ', l_ldh.n, 'max:', l_ldh.max);
+        if ( l_ldh.max > (l_ldh.spawning+l_ldh.n) ){
+          // want to create harvester
+          //console.log(' ++++ need ', l_ldh.max - (l_ldh.spawning+l_ldh.n), ' harvesters');
+          name = spawn.createLongDistanceHarvester(spawn.room.energyCapacityAvailable-200, l_ldh.work_parts || 10, l_ldh.home || spawn.room.name, l_room, 0);
+          // raise the counter of spawning creeps if creeps is started
+          // it is set properly later in room.planner.ldh.set_ldhs
+          if (_.isString(name)){ // only if it spawned
+            Memory.rooms[spawn.room.name].ldh[l_room].spawning++;
+            return;
+          }
+        }
+      });
+    }
 
     if (room.energyAvailable === room.energyCapacityAvailable) {
       spawn.memory.maxedEnergy++;
@@ -84,7 +89,7 @@ module.exports = {
 
     /* Renew or Recycle */
     spawn.renewCreep(spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
-      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder' || s.memory.role === 'miner' || s.memory.role === 'upgrader') && s.ticksToLive > 300 && s.ticksToLive < 1400 && !s.memory.no_renew
+      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder' || s.memory.role === 'miner' || s.memory.role === 'harvester' || s.memory.role === 'upgrader') && s.ticksToLive > 300 && s.ticksToLive < 1400 && !s.memory.no_renew
     }));
 
     const l_adjecent_creeps = spawn.pos.findInRange(FIND_MY_CREEPS, 1);
@@ -160,9 +165,17 @@ module.exports = {
       return;
     }
     if (spawn.name === 'Spawn99'){
+      if (Game.time % 2600 >= 0 && Game.time % 2600 <= 50){
+        //spawn.createLongDistanceHarvester(5000, 10, 'E2N29', 'E2N29', 0);
+        //spawn.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,ATTACK,ATTACK,ATTACK,ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK],null,{role: 'attacker', target: 'E2N29', b: false});
+      }
       return;
     }
     if (spawn.name === 'Spawn999'){
+      if (Game.time % 2600 >= 0 && Game.time % 2600 <= 50){
+        //spawn.createLongDistanceHarvester(5000, 10, 'E2N29', 'E2N29', 0);
+        //spawn.createCreep([TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,ATTACK,ATTACK,ATTACK,ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK],null,{role: 'attacker', target: 'E2N29', b: false});
+      }
       return;
     }
     if (spawn.name === 'Spawn101'){
@@ -187,7 +200,7 @@ module.exports = {
     var numberOfBuilders = _.sum(creepsInRoom, (c) => c.memory.role === 'builder');
     var numberOfRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'repairer');
     var numberOfWallRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'wallRepairer');
-    var numberOfMiners = _.sum(creepsInRoom, (c) => c.memory.role === 'miner' && !Game.getObjectById(c.memory.sourceId).mineralType);
+    var numberOfMiners = 1;//_.sum(creepsInRoom, (c) => c.memory.role === 'miner' && !Game.getObjectById(c.memory.sourceId).mineralType);
     var numberOfLorries = _.sum(creepsInRoom, (c) => c.memory.role === 'lorry');
 
     var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
@@ -224,8 +237,10 @@ module.exports = {
           // if there is a container next to the source
           if (containers.length > 0) {
             // spawn a miner
-            name = spawn.createMiner(source.id);
-            console.log('Creating miner the OLD way');
+            // TODO: revisit. Causes problems in W13N45 - builds miner even though there is a harvester there
+                 // name = spawn.createMiner(source.id);
+                 console.log('NOT Creating miner the OLD way');
+                 break;
             if (name === -6){
               name = null; // nejsou mineraly na minera, udelame harvestera
             } else {
@@ -321,11 +336,11 @@ module.exports = {
         name = spawn.createCustomCreep(energy, 'harvester');
       }
 
-      // if not enough lorries
-      else if (numberOfLorries < Memory.rooms[spawn.room.name].creep_limit.minLorries) {
+  // if not enough lorries
+  else if (numberOfLorries < (Memory.rooms[spawn.room.name].creep_limit.minLorries || 0)) {
         if (energy > 899){
           energy = 900;
-          if (spawn.room.controller.level > 6){
+          if (spawn.room.controller.level > 5){
             energy = 1300;
           }
           if (spawn.room.controller.level === 8){

@@ -70,21 +70,22 @@ module.exports = {
       if(target) {
         console.log(JSON.stringify(target));
         let l_attack = creep.attack(target);
-        creep.rangedAttack(target)
+        //creep.rangedAttack(target)
         if(l_attack === ERR_NOT_IN_RANGE) {
           creep.moveTo(target, {visualizePathStyle: {stroke: '#0000ff'}});
           creep.heal(creep);
-        } else if (l_attack !== 0) {
-          console.log('Attacker problem: ' + l_attack);
-          creep.heal(creep);
+//        } else if (l_attack !== 0) {
+//          console.log('Attacker problem: ' + l_attack);
+//          creep.heal(creep);
         } else {
           creep.say(l_attack + '- ⚔️⚔️') ;
-          
+          creep.rangedAttack(target);
           return;
         }
       } else {
           creep.moveTo(20,20)
           creep.heal(creep);
+          creep.rangedAttack(target);
       }
     }
   }

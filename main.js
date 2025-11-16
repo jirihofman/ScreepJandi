@@ -12,19 +12,53 @@ var roleLongDistanceHarvester = require('role.longDistanceHarvester');
 var roleClaimer = require('role.claimer');
 var roleMiner = require('role.miner');
 var roleLorry = require('role.lorry');
+var roleLorryEnergy = require('role.lorry_energy');
 var roleAttacker = require('role.attacker');
 var roleThief = require('role.thief');
 var roomPlanner = require('room.planner');
 
-/* used CPU */
-let l_cpu = {
-  creeps: 0,
-  spawns: 0,
-  towers: 0,
-  flags:  0
-};
+console.log('-------- Loaded main.js! Happy Screeping!');
+
 
 module.exports.loop = function () {
+  // console.log('loop start - tick ', Game.time);
+
+  // REMOVE me
+  if (Game.time % 1500 === 0 || Game.time % 1500 === 750) {
+      // Game.spawns['Spawn1'].createCreep([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], null, { role: 'lorry', working: true })
+  }
+  if (Game.time % 13 === 0) {
+    var d = Game.creeps['SlowUp2'].pos.lookFor(LOOK_RESOURCES)[0]; d && Game.creeps['SlowUp2'].pickup(d);
+}
+  if (Game.time % 13 === 1) {
+    Game.creeps['SlowUp2'].transfer(Game.getObjectById('690e0919f9273257a6fa10ff'), RESOURCE_ENERGY);
+}
+  if (Game.time % 10 === 0) {
+      Game.creeps['SlowUp2'].transfer(Game.getObjectById('69111c74d47054001236181a'), RESOURCE_ENERGY);
+      try {
+          Game.creeps['SlowUp1'].transfer(Game.getObjectById('690ddda490f3c4295b91db76'), RESOURCE_ENERGY);
+      } catch {
+          console.log("failed slowup1")
+      }
+  }
+
+
+// - every 5th tick - transfer energy to Kaelyn
+if (Game.time % 5 === 0) {
+//    Game.creeps['SlowUp2'].transfer(Game.creeps['Anna'], RESOURCE_ENERGY);
+}
+// - always build
+//Game.creeps['Anna'].build(Game.getObjectById('690de8e5d470540012351325'));
+  
+  
+  
+  /* used CPU */
+  let l_cpu = {
+    creeps: 0,
+    spawns: 0,
+    towers: 0,
+    flags:  0
+  };
   // check for memory entries of died creeps by iterating over Memory.creeps
   for (let name in Memory.creeps) {
     // and checking if the creep is still alive
@@ -103,6 +137,10 @@ module.exports.loop = function () {
     else if (creep.memory.role === 'lorry') {
       roleLorry.run(creep);
     }
+    // if creep is lorry_energy, call energy transfer lorry
+    else if (creep.memory.role === 'lorry_energy') {
+      roleLorryEnergy.run(creep);
+    }
     // if creep is attacker, call attacker script
     else if (creep.memory.role === 'attacker') {
       roleAttacker.run(creep);
@@ -141,15 +179,17 @@ module.exports.loop = function () {
   // find all my towers
   /* Priorities: ATTACK, REPAIR, ... */
   var towers = _.filter(Game.structures, s => s.structureType === STRUCTURE_TOWER);
+  // TODO: UNFAKE
+  // var towers = [];
   // for each tower
   for (let tower of towers) {
-    // find closes hostile creep
+    // find closest hostile creep
     let l_cpu_used = Game.cpu.getUsed();
     var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     // if one is found...
     if (target) {
       tower.attack(target); // ...FIRE!
-      if (tower.energy < 500){
+      if (tower.energy < 100){
         // safe mode only when it is serious
         tower.room.controller.activateSafeMode();
       }
@@ -160,7 +200,7 @@ module.exports.loop = function () {
         tower.heal(target_heal);
       } else {
         // containers and ramparts. ramparts up to 220k
-        var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 500000 && s !== Game.getObjectById('599e838b77b4d7762ccdff1d')) || (s.structureType === STRUCTURE_WALL && s.hits < 500000)} )[0];
+        var stru_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.hits < s.hitsMax*0.7) || (s.structureType === STRUCTURE_RAMPART && s.hits < 150000 && s !== Game.getObjectById('599e838b77b4d7762ccdff1d')) || (s.structureType === STRUCTURE_WALL && s.hits < 150000)} )[0];
         var road_to_repair = tower.pos.findInRange(FIND_STRUCTURES, 8, {filter: (s) => s.structureType === STRUCTURE_ROAD && s.hits < 3640} )[0];
         let r = tower.repair(stru_to_repair || road_to_repair); // should be two ticks of repair (680)
         if (r !== 0 && r !== -6 && r !== -7){
@@ -221,6 +261,9 @@ module.exports.loop = function () {
       if (r.name === 'E6N39'){
         r.terminal.send(RESOURCE_ENERGY, 2000, 'E7N44');
       }
+      if (r.name === 'E7N31'){
+        r.terminal.send(RESOURCE_ENERGY, 5000, 'E3N42');
+      }
     }
 
     if (Game.time % 400 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
@@ -233,7 +276,7 @@ module.exports.loop = function () {
         _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
           l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: r.terminal.id, mineral_type: l_mineral}; l.memory.working=false;
         });
-      } else {
+      } else if (false) { // TODO: unfake
         /* muzu davat neco do laboratori? */
         if (r.terminal.store[RESOURCE_LEMERGIUM] > 99 && _.size(r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_LEMERGIUM || s.id==='59c279de62e14971c6c026e9') && s.mineralAmount < 750*3}))){
           /* TODO - zrusit each, cyklus pres mineraly, pole laboratori do promenne */
@@ -299,14 +342,14 @@ module.exports.loop = function () {
       for (var prop in r.terminal.store) {
         if (r.terminal.store[prop] > 200000){
           console.log(`r.terminal.store.${prop} = ${r.terminal.store[prop]}`);
-          // TODO find the right prise for the mineral
+          // TODO find the right price for the mineral
           let o = 0;
           if (prop === RESOURCE_LEMERGIUM){
-            o = Game.market.createOrder(ORDER_SELL, prop, 0.25, 3000, r.name);
+            o = Game.market.createOrder(ORDER_SELL, prop, 0.22, 3000, r.name);
           } else if (prop === RESOURCE_UTRIUM){
-            o = Game.market.createOrder(ORDER_SELL, prop, 0.25, 3000, r.name);
+            o = Game.market.createOrder(ORDER_SELL, prop, 0.22, 3000, r.name);
           } else {
-            o = Game.market.createOrder(ORDER_SELL, prop, 0.25, 3000, r.name);
+            o = Game.market.createOrder(ORDER_SELL, prop, 0.22, 3000, r.name);
           }
 
           console.log('selling: ', prop, o);
@@ -317,23 +360,36 @@ module.exports.loop = function () {
 
   /* LABS hardcoded */
   if (Game.time % 10 === 0){
-    Game.getObjectById('59c2aedc88d88930943de023').runReaction(Game.getObjectById('59c279de62e14971c6c026e9'), Game.getObjectById('59c2727ab7398c58a1376c18'));
-    Game.getObjectById('59c292c4af5b7634b9250e60').runReaction(Game.getObjectById('59c2856595498a470110e5f8'), Game.getObjectById('59c2a0180adae21571733a48'));
-    let ghodium = Game.getObjectById('59c2bc8b866af4107a4dfe4a').runReaction(Game.getObjectById('59c292c4af5b7634b9250e60'), Game.getObjectById('59c2aedc88d88930943de023'));
-    console.log('Ghodium try: ', ghodium);
+    const lab1 = Game.getObjectById('59c2aedc88d88930943de023');
+    const lab2 = Game.getObjectById('59c279de62e14971c6c026e9');
+    const lab3 = Game.getObjectById('59c2727ab7398c58a1376c18');
+    if (lab1 && lab2 && lab3) {
+      lab1.runReaction(lab2, lab3);
+    }
+    const lab4 = Game.getObjectById('59c292c4af5b7634b9250e60');
+    const lab5 = Game.getObjectById('59c2856595498a470110e5f8');
+    const lab6 = Game.getObjectById('59c2a0180adae21571733a48');
+    if (lab4 && lab5 && lab6) {
+      lab4.runReaction(lab5, lab6);
+    }
+    const lab7 = Game.getObjectById('59c2bc8b866af4107a4dfe4a');
+    if (lab7 && lab4 && lab1) {
+      let ghodium = lab7.runReaction(lab4, lab1);
+      console.log('Ghodium try: ', ghodium);
+    }
   }
   if (Game.time % 10 === 0){
     //
   }
 
   /* CPU used per tick */
-  console.log('====================');
-  console.log('CPU stats: ', Game.cpu.limit, Game.cpu.tickLimit, Game.cpu.bucket);
-  console.log('CPU used per tick: ');
+  //console.log('====================');
+  //console.log('CPU stats: ', Game.cpu.limit, Game.cpu.tickLimit, Game.cpu.bucket);
+/*  console.log('CPU used per tick: ');
   console.log(' CREEPS: ', l_cpu.creeps);
   console.log(' SPAWNS: ', l_cpu.spawns);
   console.log(' TOWERS: ', l_cpu.towers);
   console.log(' FLAGS : ', l_cpu.flags);
   console.log('====================');
-
+*/
 };

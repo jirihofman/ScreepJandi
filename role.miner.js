@@ -3,12 +3,23 @@ module.exports = {
   run: function (creep) {
         // get source
     let source = Game.getObjectById(creep.memory.sourceId);
+    if (creep.name === 'Miner2') creep.harvest(source);
         // find container next to source
     if (!source) {return;}
     let container = source.pos.findInRange(FIND_STRUCTURES, 1, {
       filter: s => s.structureType === STRUCTURE_CONTAINER
     })[0];
-    if (!container) {return;}
+    if (!container) {
+      // Try harvesting
+      let h = creep.harvest(source);
+      // if not close enough, move to source
+      if (h === ERR_NOT_IN_RANGE) {
+        creep.moveTo(source);
+      } else if (h !== OK && h !== ERR_BUSY) {
+        console.log('error while harvesting source ', source, ' in room ', creep.room, '. Details: ', h);
+      }
+      return;
+    }
     // if creep is on top of the container
     if (creep.pos.isEqualTo(container.pos)) {
       // harvest source
