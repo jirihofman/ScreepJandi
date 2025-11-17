@@ -47,6 +47,10 @@ Used for LINKs. Transfering from **yellow-red** to **yellow-yellow**.
 ### Brown
 Used for role **repairer** to recycle constructions. When a repairer sees this flag, it dismantles it.
 
+### Tower big-only (COLOR_BLUE + COLOR_BLUE)
+Place a flag with both primary and secondary colors set to `COLOR_BLUE` in a room to enable tower "big-only" mode.
+When present, towers will only target hostile creeps with more than 3 body parts. This prevents multiple towers from focusing fire on tiny 1-3 body-part creeps.
+
 ### Scout
 
 Spawn with memory: { role: 'scout', target: 'W13N55', pos: { x: 25, y: 25 } }

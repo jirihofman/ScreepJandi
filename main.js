@@ -237,7 +237,16 @@ if (Game.time % 5 === 0) {
 
     // find closest hostile creep
     let l_cpu_used = Game.cpu.getUsed();
-    var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    // special flag: if a room flag with COLOR_BLUE+COLOR_BLUE exists then towers should only shoot "big" creeps
+    // Big = more than 3 body parts -> prevent multiple shoots at 1-body or 2-body creeps
+    var l_big_tower_flag = tower.room.find(FIND_FLAGS, { filter: (f) => f.color === COLOR_BLUE && f.secondaryColor === COLOR_BLUE })[0];
+    var target;
+    if (l_big_tower_flag) {
+      // find closest hostile creep with more than 3 body parts
+      target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, { filter: (c) => (c.body && c.body.length > 3) });
+    } else {
+      target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    }
     // console.log('Tower checking for hostiles: ', JSON.stringify(target), JSON.stringify(tower));
 
     // var target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {

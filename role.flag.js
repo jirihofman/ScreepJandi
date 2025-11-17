@@ -3,6 +3,9 @@ module.exports = {
   run: (flag)=> {
     //console.log('flag.run ', flag, flag.color, flag.secondaryColor, flag.room);
     switch (flag.color) {
+    // NOTE: we also use COLOR_BLUE + COLOR_BLUE to mark a "tower big-only" mode for the room.
+    // When present, towers will only attack hostile creeps with more than 3 body parts.
+    // This prevents wasted tower shots on tiny one-part/low-part creeps.
     case COLOR_GREY:
       switch (flag.secondaryColor) {
       case COLOR_YELLOW: {
