@@ -120,8 +120,9 @@ module.exports = {
       return out;
     };
 
+    const rolesToRenew = ['longDistanceHarvester', 'longDistanceWorker', 'builder', 'miner', 'harvester', 'upgrader', 'lorry'];
     let _renewTarget = spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
-      filter: s => s.memory && (s.memory.role === 'longDistanceHarvester' || s.memory.role === 'builder' || s.memory.role === 'miner' || s.memory.role === 'harvester' || s.memory.role === 'upgrader') && s.ticksToLive > 300 && s.ticksToLive < 1400 && !s.memory.no_renew
+      filter: s => s.memory && rolesToRenew.includes(s.memory.role) && s.ticksToLive > 300 && s.ticksToLive < 1400 && !s.memory.no_renew
     });
     if (_renewTarget) {
       let _r = spawn.renewCreep(_renewTarget);
