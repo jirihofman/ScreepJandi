@@ -94,6 +94,14 @@ module.exports = function() {
                                     { role: 'miner', sourceId: sourceId });
         };
 
+        // create a new function for StructureSpawn for longDistanceWorker
+        StructureSpawn.prototype.createLongDistanceWorker =
+          function (energy, home, target) {
+            // This will create a balanced body of WORK+CARRY+MOVE with createCustomCreep
+            const mem = { role: 'longDistanceWorker', home: home, target: target, working: false, maxed: false, no_renew: true };
+            return this.createCustomCreep(energy, 'longDistanceWorker', mem);
+          };
+
     // create a new function for StructureSpawn
   StructureSpawn.prototype.createLorry =
         function (energy) {

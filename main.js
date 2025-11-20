@@ -9,6 +9,7 @@ var roleBuilder = require('role.builder');
 var roleRepairer = require('role.repairer');
 var roleWallRepairer = require('role.wallRepairer');
 var roleLongDistanceHarvester = require('role.longDistanceHarvester');
+var roleLongDistanceWorker = require('role.longDistanceWorker');
 var roleClaimer = require('role.claimer');
 var roleMiner = require('role.miner');
 var roleLorry = require('role.lorry');
@@ -41,6 +42,34 @@ module.exports.loop = function () {
       } catch {
           console.log("failed slowup1")
       }
+  }
+
+  // Always have these two defenders up
+  if (Game.time % 5 === 0) {
+    // Check if Defender1 exists
+    if (!Game.creeps['Defender1']) {
+      Game.spawns['Spawn1'].createCreep([
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK,
+        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+      ], 'Defender1', { role: 'attacker' });
+    } else if (!Game.creeps['Defender2']) {
+      // ~2200 energy cost
+      // tough: 10, move: 50, heal: 250, ranged_attack: 150, attack: 80
+      Game.spawns['Spawn1'].createCreep([
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+        HEAL, HEAL, HEAL, HEAL, HEAL, HEAL,
+        ATTACK, ATTACK
+      ], 'Defender2', { role: 'attacker' });
+    }
   }
 
 
@@ -125,6 +154,9 @@ if (Game.time % 5 === 0) {
     // if creep is longDistanceHarvester, call longDistanceHarvester script
     else if (creep.memory.role === 'longDistanceHarvester') {
       roleLongDistanceHarvester.run(creep);
+    }
+    else if (creep.memory.role === 'longDistanceWorker') {
+      roleLongDistanceWorker.run(creep);
     }
     // if creep is claimer, call claimer script
     else if (creep.memory.role === 'claimer') {
