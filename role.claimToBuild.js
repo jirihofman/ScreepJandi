@@ -208,6 +208,150 @@ module.exports = {
   },
   
   /**
+   * Build container near energy source
+   */
+  buildSourceContainer: function(state) {
+    const targetRoom = Game.rooms[state.targetRoom];
+    if (!targetRoom) return false;
+    
+    let sources = targetRoom.find(FIND_SOURCES);
+    if (sources.length === 0) return false;
+    
+    let source = sources[0];
+    
+    // Check if container already exists
+    let existingContainer = source.pos.findInRange(FIND_STRUCTURES, 1, {
+      filter: s => s.structureType === STRUCTURE_CONTAINER
+    });
+    
+    if (existingContainer.length > 0) return true;
+    
+    // Check if construction site exists
+    let containerSite = source.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 1, {
+      filter: s => s.structureType === STRUCTURE_CONTAINER
+    });
+    
+    if (containerSite.length > 0) return false; // Still building
+    
+    // Find position adjacent to source
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        
+        let x = source.pos.x + dx;
+        let y = source.pos.y + dy;
+        
+        if (x < 1 || x > 48 || y < 1 || y > 48) continue;
+        
+        let pos = targetRoom.getPositionAt(x, y);
+        let terrain = targetRoom.getTerrain();
+        if (terrain.get(x, y) === TERRAIN_MASK_WALL) continue;
+        
+        let result = targetRoom.createConstructionSite(pos, STRUCTURE_CONTAINER);
+        if (result === OK) {
+          console.log('Placed container construction site at', pos, 'near source');
+          return false; // Not yet built
+        }
+      }
+    }
+    
+    return false;
+  },
+  
+  /**
+   * Create permanent miner for source
+   */
+  createPermanentMiner: function(state) {
+    const targetRoom = Game.rooms[state.targetRoom];
+    if (!targetRoom) return false;
+    
+    let sources = targetRoom.find(FIND_SOURCES);
+    if (sources.length === 0) return false;
+    
+    let source = sources[0];
+    
+    // Check if container exists near source
+    let container = source.pos.findInRange(FIND_STRUCTURES, 1, {
+      filter: s => s.structureType === STRUCTURE_CONTAINER
+    })[0];
+    
+    if (!container) return false;
+    
+    // Check if miner already exists
+    let existingMiner = _.find(Game.creeps, c => 
+      c.memory.role === 'miner' && 
+      c.memory.sourceId === source.id
+    );
+    
+    if (existingMiner) return true;
+    
+    // Try to spawn miner from local spawn
+    let spawn = targetRoom.find(FIND_MY_SPAWNS)[0];
+    if (spawn && !spawn.spawning) {
+      let result = spawn.createMiner(source.id);
+      if (_.isString(result)) {
+        console.log('Created permanent miner:', result, 'for', targetRoom.name);
+        return true;
+      }
+    }
+    
+    return false;
+  },
+  
+  /**
+   * Build extensions
+   */
+  buildExtensions: function(state) {
+    const targetRoom = Game.rooms[state.targetRoom];
+    if (!targetRoom) return false;
+    
+    // Check how many extensions we have vs how many we can have
+    let extensions = targetRoom.find(FIND_MY_STRUCTURES, {
+      filter: s => s.structureType === STRUCTURE_EXTENSION
+    });
+    
+    let maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][targetRoom.controller.level];
+    
+    if (extensions.length >= maxExtensions) return true;
+    
+    // Check for construction sites
+    let extensionSites = targetRoom.find(FIND_MY_CONSTRUCTION_SITES, {
+      filter: s => s.structureType === STRUCTURE_EXTENSION
+    });
+    
+    if (extensionSites.length > 0) return false; // Still building
+    
+    // Place new extension near spawn
+    let spawn = targetRoom.find(FIND_MY_SPAWNS)[0];
+    if (!spawn) return false;
+    
+    for (let distance = 1; distance <= 5; distance++) {
+      for (let dx = -distance; dx <= distance; dx++) {
+        for (let dy = -distance; dy <= distance; dy++) {
+          if (Math.abs(dx) !== distance && Math.abs(dy) !== distance) continue;
+          
+          let x = spawn.pos.x + dx;
+          let y = spawn.pos.y + dy;
+          
+          if (x < 2 || x > 47 || y < 2 || y > 47) continue;
+          
+          let pos = targetRoom.getPositionAt(x, y);
+          let terrain = targetRoom.getTerrain();
+          if (terrain.get(x, y) === TERRAIN_MASK_WALL) continue;
+          
+          let result = targetRoom.createConstructionSite(pos, STRUCTURE_EXTENSION);
+          if (result === OK) {
+            console.log('Placed extension construction site at', pos);
+            return false; // Not yet complete
+          }
+        }
+      }
+    }
+    
+    return extensions.length >= maxExtensions;
+  },
+  
+  /**
    * Run the claim-to-build logic for a specific operation
    */
   run: function(state) {
@@ -230,7 +374,16 @@ module.exports = {
     if (targetRoom && targetRoom.controller.level < 2) {
       state.stage = 'upgradeToRCL2';
       this.createInitialMiner(state);
+      this.createBuilder(state); // Also create a builder to help
       return;
+    }
+    
+    // Stage 2.5: Build container for source
+    if (targetRoom && !state.containerBuilt) {
+      state.stage = 'buildContainer';
+      this.createBuilder(state);
+      state.containerBuilt = this.buildSourceContainer(state);
+      if (!state.containerBuilt) return;
     }
     
     // Stage 3: Build spawn
@@ -242,6 +395,12 @@ module.exports = {
       if (spawns.length > 0) {
         state.spawnBuilt = true;
         console.log('Spawn built in', targetRoomName);
+        
+        // Build extensions once spawn is ready
+        this.buildExtensions(state);
+        
+        // Create permanent miner
+        this.createPermanentMiner(state);
       } else {
         // Create builders
         this.createBuilder(state);
