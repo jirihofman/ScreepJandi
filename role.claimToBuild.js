@@ -112,8 +112,8 @@ module.exports = {
     if (!existingCreep) {
       let spawn = Game.rooms[sourceRoom] && Game.rooms[sourceRoom].find(FIND_MY_SPAWNS)[0];
       if (spawn && !spawn.spawning) {
-        // Create a creep with 5 WORK and 2 MOVE (cost: 600 energy)
-        let body = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE];
+        // Create a creep with 5 WORK, 1 CARRY, and 2 MOVE (cost: 650 energy)
+        let body = [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE];
         let result = spawn.createCreep(body, null, {
           role: 'claimToBuildUpgrader',
           claimToBuildTarget: targetRoom,
@@ -358,8 +358,18 @@ module.exports = {
     const targetRoomName = state.targetRoom;
     const targetRoom = Game.rooms[targetRoomName];
     
+    // If we can't see the target room yet, we need vision first
+    if (!targetRoom) {
+      // Can't do anything without vision, claimer will provide it
+      if (!state.claimed) {
+        state.stage = 'claiming';
+        this.ensureClaimer(state);
+      }
+      return;
+    }
+    
     // Update claimed status
-    if (targetRoom && targetRoom.controller && targetRoom.controller.my) {
+    if (targetRoom.controller && targetRoom.controller.my) {
       state.claimed = true;
     }
     
@@ -540,6 +550,7 @@ module.exports = {
     if (creep.room.name !== targetRoom) {
       let exit = creep.room.findExitTo(targetRoom);
       creep.moveTo(creep.pos.findClosestByRange(exit));
+      creep.say('→target');
       return;
     }
     
@@ -555,15 +566,31 @@ module.exports = {
       // Upgrade controller
       let result = creep.upgradeController(creep.room.controller);
       if (result === ERR_NOT_IN_RANGE) {
-        creep.moveTo(creep.room.controller);
+        creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
       }
+      creep.say('⚡upgrade');
     } else {
-      // Harvest energy
-      let sources = creep.room.find(FIND_SOURCES);
-      if (sources.length > 0) {
-        let result = creep.harvest(sources[0]);
+      // Try to get energy from container first, then harvest
+      let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+        filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
+                     s.store[RESOURCE_ENERGY] > 0
+      });
+      
+      if (container) {
+        let result = creep.withdraw(container, RESOURCE_ENERGY);
         if (result === ERR_NOT_IN_RANGE) {
-          creep.moveTo(sources[0]);
+          creep.moveTo(container, {visualizePathStyle: {stroke: '#ffaa00'}});
+        }
+        creep.say('📦withdraw');
+      } else {
+        // Harvest energy from source
+        let sources = creep.room.find(FIND_SOURCES_ACTIVE);
+        if (sources.length > 0) {
+          let result = creep.harvest(sources[0]);
+          if (result === ERR_NOT_IN_RANGE) {
+            creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#ffaa00'}});
+          }
+          creep.say('⛏harvest');
         }
       }
     }
@@ -579,6 +606,7 @@ module.exports = {
     if (creep.room.name !== targetRoom) {
       let exit = creep.room.findExitTo(targetRoom);
       creep.moveTo(creep.pos.findClosestByRange(exit));
+      creep.say('→target');
       return;
     }
     
@@ -591,27 +619,47 @@ module.exports = {
     }
     
     if (creep.memory.working) {
-      // Build construction sites
-      let targets = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
-      if (targets.length > 0) {
-        let result = creep.build(targets[0]);
+      // Build construction sites - prioritize non-roads
+      let target = creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES, {
+        filter: s => s.structureType !== STRUCTURE_ROAD
+      }) || creep.pos.findClosestByPath(FIND_MY_CONSTRUCTION_SITES);
+      
+      if (target) {
+        let result = creep.build(target);
         if (result === ERR_NOT_IN_RANGE) {
-          creep.moveTo(targets[0]);
+          creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
         }
+        creep.say('🔨build');
       } else {
         // No construction sites, upgrade controller instead
         let result = creep.upgradeController(creep.room.controller);
         if (result === ERR_NOT_IN_RANGE) {
-          creep.moveTo(creep.room.controller);
+          creep.moveTo(creep.room.controller, {visualizePathStyle: {stroke: '#ffffff'}});
         }
+        creep.say('⚡upgrade');
       }
     } else {
-      // Harvest energy
-      let sources = creep.room.find(FIND_SOURCES);
-      if (sources.length > 0) {
-        let result = creep.harvest(sources[0]);
+      // Try to get energy from container first, then harvest
+      let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+        filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
+                     s.store[RESOURCE_ENERGY] > 0
+      });
+      
+      if (container) {
+        let result = creep.withdraw(container, RESOURCE_ENERGY);
         if (result === ERR_NOT_IN_RANGE) {
-          creep.moveTo(sources[0]);
+          creep.moveTo(container, {visualizePathStyle: {stroke: '#ffaa00'}});
+        }
+        creep.say('📦withdraw');
+      } else {
+        // Harvest energy from source
+        let sources = creep.room.find(FIND_SOURCES_ACTIVE);
+        if (sources.length > 0) {
+          let result = creep.harvest(sources[0]);
+          if (result === ERR_NOT_IN_RANGE) {
+            creep.moveTo(sources[0], {visualizePathStyle: {stroke: '#ffaa00'}});
+          }
+          creep.say('⛏harvest');
         }
       }
     }
