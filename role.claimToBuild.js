@@ -305,26 +305,37 @@ module.exports = {
     const targetRoom = Game.rooms[state.targetRoom];
     if (!targetRoom) return false;
     
-    // Check how many extensions we have vs how many we can have
+    // Get max extensions allowed at current RCL
+    let maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][targetRoom.controller.level];
+    
+    // Count existing extensions
     let extensions = targetRoom.find(FIND_MY_STRUCTURES, {
       filter: s => s.structureType === STRUCTURE_EXTENSION
     });
     
-    let maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][targetRoom.controller.level];
-    
-    if (extensions.length >= maxExtensions) return true;
-    
-    // Check for construction sites
+    // Count extension construction sites
     let extensionSites = targetRoom.find(FIND_MY_CONSTRUCTION_SITES, {
       filter: s => s.structureType === STRUCTURE_EXTENSION
     });
     
-    if (extensionSites.length > 0) return false; // Still building
+    // Total extensions (built + being built)
+    let totalExtensions = extensions.length + extensionSites.length;
+    
+    // Check if we've reached the limit for this RCL
+    if (totalExtensions >= maxExtensions) {
+      return true; // All extensions for this RCL are built or being built
+    }
+    
+    // Don't place more than 3 construction sites at once to avoid overwhelming builders
+    if (extensionSites.length >= 3) {
+      return false; // Wait for current sites to be built
+    }
     
     // Place new extension near spawn
     let spawn = targetRoom.find(FIND_MY_SPAWNS)[0];
     if (!spawn) return false;
     
+    // Try to place extensions in a circular pattern around spawn
     for (let distance = 1; distance <= 5; distance++) {
       for (let dx = -distance; dx <= distance; dx++) {
         for (let dy = -distance; dy <= distance; dy++) {
@@ -341,14 +352,16 @@ module.exports = {
           
           let result = targetRoom.createConstructionSite(pos, STRUCTURE_EXTENSION);
           if (result === OK) {
-            console.log('Placed extension construction site at', pos);
-            return false; // Not yet complete
+            console.log('Placed extension construction site at', pos, '(', totalExtensions + 1, '/', maxExtensions, 'for RCL', targetRoom.controller.level, ')');
+            return false; // Not yet complete, continue next tick
           }
         }
       }
     }
     
-    return extensions.length >= maxExtensions;
+    // If we couldn't place any more extensions but haven't reached the limit,
+    // it might be due to terrain or space constraints
+    return totalExtensions >= maxExtensions;
   },
   
   /**
@@ -434,17 +447,30 @@ module.exports = {
     }
     
     // Stage 4: Place tower when RCL 3
-    if (targetRoom && targetRoom.controller.level >= 3 && state.towersPlaced < 1) {
+    if (targetRoom && targetRoom.controller.level >= 3) {
       state.stage = 'placeTower';
+      
+      // Get max towers allowed at current RCL
+      let maxTowers = CONTROLLER_STRUCTURES[STRUCTURE_TOWER][targetRoom.controller.level];
       
       let towers = targetRoom.find(FIND_MY_STRUCTURES, {
         filter: s => s.structureType === STRUCTURE_TOWER
       });
       
-      if (towers.length >= 1) {
-        state.towersPlaced = towers.length;
+      let towerSites = targetRoom.find(FIND_MY_CONSTRUCTION_SITES, {
+        filter: s => s.structureType === STRUCTURE_TOWER
+      });
+      
+      let totalTowers = towers.length + towerSites.length;
+      
+      // Update state tracking
+      state.towersPlaced = towers.length;
+      
+      // Check if we've reached the limit for this RCL
+      if (totalTowers >= maxTowers) {
+        // All towers for this RCL are built or being built
       } else {
-        // Find a good position for tower (near spawn)
+        // Place a tower near spawn
         let spawn = targetRoom.find(FIND_MY_SPAWNS)[0];
         if (spawn) {
           // Try to place tower near spawn
@@ -461,7 +487,7 @@ module.exports = {
               let result = targetRoom.createConstructionSite(pos, STRUCTURE_TOWER);
               
               if (result === OK) {
-                console.log('Placed tower construction site at', pos);
+                console.log('Placed tower construction site at', pos, '(', totalTowers + 1, '/', maxTowers, 'for RCL', targetRoom.controller.level, ')');
                 return;
               }
             }
@@ -471,17 +497,32 @@ module.exports = {
     }
     
     // Stage 5: Place storage when RCL 4
-    if (targetRoom && targetRoom.controller.level >= 4 && !state.storageBuilt) {
+    if (targetRoom && targetRoom.controller.level >= 4) {
       state.stage = 'placeStorage';
+      
+      // Get max storages allowed at current RCL (always 1)
+      let maxStorages = CONTROLLER_STRUCTURES[STRUCTURE_STORAGE][targetRoom.controller.level];
       
       let storages = targetRoom.find(FIND_MY_STRUCTURES, {
         filter: s => s.structureType === STRUCTURE_STORAGE
       });
       
+      let storageSites = targetRoom.find(FIND_MY_CONSTRUCTION_SITES, {
+        filter: s => s.structureType === STRUCTURE_STORAGE
+      });
+      
+      let totalStorages = storages.length + storageSites.length;
+      
+      // Update state tracking
       if (storages.length > 0) {
         state.storageBuilt = true;
+      }
+      
+      // Check if we've reached the limit
+      if (totalStorages >= maxStorages) {
+        // Storage is built or being built
       } else {
-        // Find a good position for storage (near spawn)
+        // Place storage near spawn
         let spawn = targetRoom.find(FIND_MY_SPAWNS)[0];
         if (spawn) {
           for (let dx = -2; dx <= 2; dx++) {
@@ -497,7 +538,7 @@ module.exports = {
               let result = targetRoom.createConstructionSite(pos, STRUCTURE_STORAGE);
               
               if (result === OK) {
-                console.log('Placed storage construction site at', pos);
+                console.log('Placed storage construction site at', pos, '(', totalStorages + 1, '/', maxStorages, 'for RCL', targetRoom.controller.level, ')');
                 return;
               }
             }
