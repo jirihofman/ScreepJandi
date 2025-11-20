@@ -3,7 +3,7 @@ module.exports = {
   run: function (creep) {
         // get source
     let source = Game.getObjectById(creep.memory.sourceId);
-    if (creep.name === 'Miner2') creep.harvest(source);
+    if (creep.name === 'Miner2' || creep.name.startsWith('mmm')) creep.harvest(source);
         // find container next to source
     if (!source) {return;}
     let container = source.pos.findInRange(FIND_STRUCTURES, 1, {

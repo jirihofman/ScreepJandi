@@ -58,7 +58,8 @@ module.exports = {
           });
         }
         if (!structure) {
-          structure = creep.room.storage || creep.room.spawn;
+          // Only my rooms!
+          structure = (creep.room.storage || creep.room.spawn) && creep.room.controller.my
         }
         if (structure) {
           creep.memory.kam_to_vezu = JSON.stringify(structure.pos);

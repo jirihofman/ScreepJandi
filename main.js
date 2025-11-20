@@ -271,11 +271,25 @@ if (Game.time % 5 === 0) {
     let l_cpu_used = Game.cpu.getUsed();
     // special flag: if a room flag with COLOR_BLUE+COLOR_BLUE exists then towers should only shoot "big" creeps
     // Big = more than 3 body parts -> prevent multiple shoots at 1-body or 2-body creeps
-    var l_big_tower_flag = tower.room.find(FIND_FLAGS, { filter: (f) => f.color === COLOR_BLUE && f.secondaryColor === COLOR_BLUE })[0];
-    var target;
-    if (l_big_tower_flag) {
+    // The flag is directly on the tower pos
+    var l_big_tower_flag = tower.room.find(FIND_FLAGS, {
+      filter: (f) => f.color === COLOR_BLUE && f.secondaryColor === COLOR_BLUE && f.pos.isEqualTo(tower.pos)
+    })[0];
+    var target; 
+    if (l_big_tower_flag) { 
       // find closest hostile creep with more than 3 body parts
       target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, { filter: (c) => (c.body && c.body.length > 3) });
+      Game.spawns['Spawn1'].createCreep([
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK,
+        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+      ], 'Defender3', { role: 'attacker' });
     } else {
       target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     }
