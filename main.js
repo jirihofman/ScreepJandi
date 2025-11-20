@@ -16,6 +16,7 @@ var roleLorryEnergy = require('role.lorry_energy');
 var roleAttacker = require('role.attacker');
 var roleThief = require('role.thief');
 var roleScout = require('role.scout');
+var roleClaimToBuild = require('role.claimToBuild');
 var roomPlanner = require('room.planner');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
@@ -151,6 +152,13 @@ if (Game.time % 5 === 0) {
     }
     else if (creep.memory.role === 'scout') {
       roleScout.run(creep);
+    }
+    // claim-to-build roles
+    else if (creep.memory.role === 'claimToBuildUpgrader') {
+      roleClaimToBuild.runClaimToBuildUpgrader(creep);
+    }
+    else if (creep.memory.role === 'claimToBuildBuilder') {
+      roleClaimToBuild.runClaimToBuildBuilder(creep);
     }
 
     // self recycle
@@ -305,11 +313,29 @@ if (Game.time % 5 === 0) {
     l_cpu.spawns+= l_cpu_used;
   }
 
+  // run claim-to-build orchestrator
+  if (Game.time % 5 === 0) {
+    roleClaimToBuild.runAll();
+  }
+
   // iterate over all the flags
   for (let flagName in Game.flags) {
     let flag = Game.flags[flagName];
     let l_cpu_used = Game.cpu.getUsed();
-    roleFlag.run(flag);
+    
+    // Check for claim-to-build flag (COLOR_PURPLE + COLOR_PURPLE)
+    if (flag.color === COLOR_PURPLE && flag.secondaryColor === COLOR_PURPLE) {
+      // Initialize claim-to-build operation
+      let sourceRoom = roleClaimToBuild.findSourceRoom(flag.pos.roomName);
+      if (sourceRoom) {
+        roleClaimToBuild.initializeClaimToBuild(flag, sourceRoom);
+        console.log('Initialized claim-to-build for', flag.pos.roomName, 'from', sourceRoom);
+        flag.remove(); // Remove flag after initialization
+      }
+    } else {
+      roleFlag.run(flag);
+    }
+    
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
     l_cpu.flags+= l_cpu_used;
     //console.log('Spawn: ', spawnName, l_cpu_used);
