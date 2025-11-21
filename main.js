@@ -30,13 +30,13 @@ module.exports.loop = function () {
       // Game.spawns['Spawn1'].createCreep([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], null, { role: 'lorry', working: true })
   }
   if (Game.time % 13 === 0) {
-    var d = Game.creeps['SlowUp2'].pos.lookFor(LOOK_RESOURCES)[0]; d && Game.creeps['SlowUp2'].pickup(d);
+    // var d = Game.creeps['SlowUp2'].pos.lookFor(LOOK_RESOURCES)[0]; d && Game.creeps['SlowUp2'].pickup(d);
 }
   if (Game.time % 13 === 1) {
-    Game.creeps['SlowUp2'].transfer(Game.getObjectById('690e0919f9273257a6fa10ff'), RESOURCE_ENERGY);
+    // Game.creeps['SlowUp2'].transfer(Game.getObjectById('690e0919f9273257a6fa10ff'), RESOURCE_ENERGY);
 }
   if (Game.time % 10 === 0) {
-      Game.creeps['SlowUp2'].transfer(Game.getObjectById('69111c74d47054001236181a'), RESOURCE_ENERGY);
+      // Game.creeps['SlowUp2'].transfer(Game.getObjectById('69111c74d47054001236181a'), RESOURCE_ENERGY);
       try {
           Game.creeps['SlowUp1'].transfer(Game.getObjectById('690ddda490f3c4295b91db76'), RESOURCE_ENERGY);
       } catch {
