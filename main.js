@@ -393,7 +393,7 @@ if (Game.time % 5 === 0) {
           const spawn = spawnsInRoom[0];
           
           // Don't spawn if already spawning something
-          if (!spawn.spawning && spawn.room.energyAvailable >= 1300) {
+          if (!spawn.spawning && spawn.room.energyAvailable >= 1350) {
             console.log('Strong hostile detected in', r.name, '- spawning emergency defender');
             // Spawn a defensive attacker
             // Cost: 6×10 + 6×50 + 3×250 + 3×80 = 60 + 300 + 750 + 240 = 1350 energy
