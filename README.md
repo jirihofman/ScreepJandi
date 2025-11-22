@@ -58,6 +58,25 @@ Spawn with memory: { role: 'scout', target: 'W13N55', pos: { x: 25, y: 25 } }
 - If `pos` is provided, the scout will move to the exact position and stay there (useful for observation).
 - If `target` (room name) is provided, the scout will travel there first and then go to `pos` (if given).
 - If `pos` is omitted but `target` is provided, the scout will go to the room center (25,25) and idle there.
+
+### Claim-to-Build (COLOR_PURPLE + COLOR_PURPLE)
+
+Place a flag with both primary and secondary colors set to `COLOR_PURPLE` in a room to initiate comprehensive claim-to-build logic.
+
+The system will automatically:
+1. Select a source room/spawn to produce necessary creeps
+2. Claim the room (if not yet claimed)
+3. Create initial miner (5x WORK, 1-2 MOVE) to bootstrap the room
+4. Upgrade controller to level 2
+5. Build container next to energy source
+6. Build extensions (as RCL allows)
+7. Build spawn 2 squares from energy source
+8. Create permanent miner (5x WORK, positioned between source and spawn for renewal)
+9. When RCL reaches 3: place tower
+10. When RCL reaches 4: place storage
+
+The flag is removed once the operation is initialized and tracked in Memory.claimToBuild.
+
 # Lairs (TODO)
 ## Patrol
 25 move, 6 heal, rest attack

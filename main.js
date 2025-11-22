@@ -18,6 +18,7 @@ var roleAttacker = require('role.attacker');
 var roleThief = require('role.thief');
 var roleScout = require('role.scout');
 var roleTower = require('role.tower');
+var roleClaimToBuild = require('role.claimToBuild');
 var roomPlanner = require('room.planner');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
@@ -31,13 +32,13 @@ module.exports.loop = function () {
       // Game.spawns['Spawn1'].createCreep([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], null, { role: 'lorry', working: true })
   }
   if (Game.time % 13 === 0) {
-    var d = Game.creeps['SlowUp2'].pos.lookFor(LOOK_RESOURCES)[0]; d && Game.creeps['SlowUp2'].pickup(d);
+    // var d = Game.creeps['SlowUp2'].pos.lookFor(LOOK_RESOURCES)[0]; d && Game.creeps['SlowUp2'].pickup(d);
 }
   if (Game.time % 13 === 1) {
-    Game.creeps['SlowUp2'].transfer(Game.getObjectById('690e0919f9273257a6fa10ff'), RESOURCE_ENERGY);
+    // Game.creeps['SlowUp2'].transfer(Game.getObjectById('690e0919f9273257a6fa10ff'), RESOURCE_ENERGY);
 }
   if (Game.time % 10 === 0) {
-      Game.creeps['SlowUp2'].transfer(Game.getObjectById('69111c74d47054001236181a'), RESOURCE_ENERGY);
+      // Game.creeps['SlowUp2'].transfer(Game.getObjectById('69111c74d47054001236181a'), RESOURCE_ENERGY);
       try {
           Game.creeps['SlowUp1'].transfer(Game.getObjectById('690ddda490f3c4295b91db76'), RESOURCE_ENERGY);
       } catch {
@@ -185,6 +186,13 @@ if (Game.time % 5 === 0) {
     else if (creep.memory.role === 'scout') {
       roleScout.run(creep);
     }
+    // claim-to-build roles
+    else if (creep.memory.role === 'claimToBuildUpgrader') {
+      roleClaimToBuild.runClaimToBuildUpgrader(creep);
+    }
+    else if (creep.memory.role === 'claimToBuildBuilder') {
+      roleClaimToBuild.runClaimToBuildBuilder(creep);
+    }
 
     // self recycle
     if (creep.memory.to_recycle === 1){
@@ -233,11 +241,29 @@ if (Game.time % 5 === 0) {
     l_cpu.spawns+= l_cpu_used;
   }
 
+  // run claim-to-build orchestrator
+  if (Game.time % 5 === 0) {
+    roleClaimToBuild.runAll();
+  }
+
   // iterate over all the flags
   for (let flagName in Game.flags) {
     let flag = Game.flags[flagName];
     let l_cpu_used = Game.cpu.getUsed();
-    roleFlag.run(flag);
+    
+    // Check for claim-to-build flag (COLOR_PURPLE + COLOR_PURPLE)
+    if (flag.color === COLOR_PURPLE && flag.secondaryColor === COLOR_PURPLE) {
+      // Initialize claim-to-build operation
+      let sourceRoom = roleClaimToBuild.findSourceRoom(flag.pos.roomName);
+      if (sourceRoom) {
+        roleClaimToBuild.initializeClaimToBuild(flag, sourceRoom);
+        console.log('Initialized claim-to-build for', flag.pos.roomName, 'from', sourceRoom);
+        flag.remove(); // Remove flag after initialization
+      }
+    } else {
+      roleFlag.run(flag);
+    }
+    
     l_cpu_used = Game.cpu.getUsed() - l_cpu_used;
     l_cpu.flags+= l_cpu_used;
     //console.log('Spawn: ', spawnName, l_cpu_used);
