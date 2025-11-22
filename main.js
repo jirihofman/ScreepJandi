@@ -364,6 +364,50 @@ if (Game.time % 5 === 0) {
   for (let ro in Game.rooms) {
     let r = Game.rooms[ro];
 
+    // Check for strong hostile creeps and spawn defenders if needed
+    if (Game.time % 5 === 0 && r.controller && r.controller.my) {
+      // Find hostile creeps with more than 20 attack, ranged attack, or heal parts
+      const strongHostiles = r.find(FIND_HOSTILE_CREEPS, {
+        filter: (creep) => {
+          const attackParts = creep.getActiveBodyparts(ATTACK);
+          const rangedParts = creep.getActiveBodyparts(RANGED_ATTACK);
+          const healParts = creep.getActiveBodyparts(HEAL);
+          return attackParts > 20 || rangedParts > 20 || healParts > 20;
+        }
+      });
+
+      // If strong hostiles detected, spawn defenders if we don't already have enough
+      if (strongHostiles.length > 0) {
+        const defenders = r.find(FIND_MY_CREEPS, {
+          filter: (c) => c.memory.role === 'attacker'
+        });
+        
+        // Count how many defenders are already in the room or being spawned
+        const defendersInRoom = defenders.length;
+        const spawnsInRoom = r.find(FIND_MY_SPAWNS);
+        
+        // Spawn additional defenders if we have fewer than 3 per strong hostile (max 6 total)
+        const desiredDefenders = Math.min(strongHostiles.length * 3, 6);
+        
+        if (defendersInRoom < desiredDefenders && spawnsInRoom.length > 0) {
+          const spawn = spawnsInRoom[0];
+          
+          // Don't spawn if already spawning something
+          if (!spawn.spawning && spawn.room.energyAvailable >= 1300) {
+            console.log('Strong hostile detected in', r.name, '- spawning emergency defender');
+            // Spawn a defensive attacker
+            // Cost: 6×10 + 6×50 + 3×250 + 3×80 = 60 + 300 + 750 + 240 = 1350 energy
+            spawn.createCreep([
+              TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
+              MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
+              HEAL, HEAL, HEAL,
+              ATTACK, ATTACK, ATTACK
+            ], undefined, { role: 'attacker' });
+          }
+        }
+      }
+    }
+
     if (Game.time % 10 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
       roomPlanner.plan(r);
     }
