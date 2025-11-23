@@ -32,6 +32,7 @@ const RETREAT_POWER_THRESHOLD = 1.5; // Retreat if hostile power > squad power *
 const POWER_ATTACK = 30; // Combat power per ATTACK part
 const POWER_RANGED_ATTACK = 10; // Combat power per RANGED_ATTACK part
 const POWER_HEAL = 12; // Combat power per HEAL part
+const MOVE_PARTS_RATIO = 2; // Target 1 MOVE part per this many other parts
 
 module.exports = {
   /**
@@ -78,7 +79,7 @@ module.exports = {
    * @returns {Array} - Body parts array
    */
   calculateBodyComposition: function(targetParts, maxEnergy) {
-    // Body part costs: TOUGH=10, MOVE=50, ATTACK=80, RANGED_ATTACK=150, HEAL=250
+    // Body part costs are retrieved from game BODYPART_COST constants
     // Strategy: Front-loaded TOUGH, balanced damage/heal, sufficient MOVE
     
     const body = [];
@@ -136,7 +137,7 @@ module.exports = {
     // Ensure at least some MOVE parts for mobility (add more if needed and energy allows)
     const currentMoveParts = body.filter((p) => p === MOVE).length;
     const nonMoveParts = body.length - currentMoveParts;
-    const neededMoveParts = Math.ceil(nonMoveParts / 2) - currentMoveParts; // Target 1 MOVE per 2 parts
+    const neededMoveParts = Math.ceil(nonMoveParts / MOVE_PARTS_RATIO) - currentMoveParts;
     
     for (let i = 0; i < neededMoveParts && partsUsed < targetParts && energyUsed + BODYPART_COST[MOVE] <= maxEnergy; i++) {
       body.push(MOVE);
