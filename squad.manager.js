@@ -6,11 +6,32 @@
  * - Wait for all members to spawn before deploying
  * - Move together to a target room/creep
  * - Return and recycle when target is clear or squad is outmatched
+ * 
+ * Usage Examples:
+ * 
+ * 1. Create a squad to clear a room:
+ *    const squadId = Game.spawns.Spawn1.createHitSquad('W1N1', null, 150);
+ * 
+ * 2. Create a squad to eliminate a specific creep:
+ *    const squadId = Game.spawns.Spawn1.createHitSquad('W1N1', 'EnemyCreep', 120);
+ * 
+ * 3. Check squad status:
+ *    console.log(Memory.squads[squadId].status); // spawning|ready|deployed|retreating
+ * 
+ * 4. List all active squads:
+ *    for (const id in Memory.squads) {
+ *      console.log(id, Memory.squads[id].status, Memory.squads[id].members);
+ *    }
  */
 
 const SQUAD_ROLE = 'hitSquad';
 const MAX_SQUAD_SIZE = 4;
 const MIN_BODY_PARTS_PER_CREEP = 10; // Minimum viable combat creep
+const MAX_BODY_PARTS_PER_CREEP = 50; // Screeps max per creep
+const RETREAT_POWER_THRESHOLD = 1.5; // Retreat if hostile power > squad power * this
+const POWER_ATTACK = 30; // Combat power per ATTACK part
+const POWER_RANGED_ATTACK = 10; // Combat power per RANGED_ATTACK part
+const POWER_HEAL = 12; // Combat power per HEAL part
 
 module.exports = {
   /**
@@ -21,7 +42,7 @@ module.exports = {
    */
   calculateSquadComposition: function(totalBodyParts, energyPerCreep) {
     // Determine number of creeps (1-4) based on total body parts
-    let squadSize = Math.min(MAX_SQUAD_SIZE, Math.ceil(totalBodyParts / 50)); // Max 50 parts per creep
+    let squadSize = Math.min(MAX_SQUAD_SIZE, Math.ceil(totalBodyParts / MAX_BODY_PARTS_PER_CREEP));
     squadSize = Math.max(1, squadSize);
     
     // Distribute body parts evenly across creeps
@@ -64,8 +85,8 @@ module.exports = {
     let partsUsed = 0;
     let energyUsed = 0;
     
-    // Cap at 50 parts max per creep
-    targetParts = Math.min(50, targetParts);
+    // Cap at max parts per creep
+    targetParts = Math.min(MAX_BODY_PARTS_PER_CREEP, targetParts);
     
     // Allocate 15% to TOUGH for damage absorption (front-loaded)
     const toughParts = Math.min(10, Math.floor(targetParts * 0.15));
@@ -130,22 +151,25 @@ module.exports = {
    * Generate a random squad name
    * @returns {string} - Random name (5-8 characters)
    */
-  generateSquadName: function() {
+  generateSquadName: (function() {
     const vowels = 'aeiou';
     const consonants = 'bcdfghjklmnpqrstvwxyz';
-    const length = Math.floor(Math.random() * 4) + 5; // 5-8 characters
-    let name = '';
     
-    for (let i = 0; i < length; i++) {
-      if (i % 2 === 0) {
-        name += consonants[Math.floor(Math.random() * consonants.length)];
-      } else {
-        name += vowels[Math.floor(Math.random() * vowels.length)];
+    return function() {
+      const length = Math.floor(Math.random() * 4) + 5; // 5-8 characters
+      let name = '';
+      
+      for (let i = 0; i < length; i++) {
+        if (i % 2 === 0) {
+          name += consonants[Math.floor(Math.random() * consonants.length)];
+        } else {
+          name += vowels[Math.floor(Math.random() * vowels.length)];
+        }
       }
-    }
-    
-    return name;
-  },
+      
+      return name;
+    };
+  })(),
   
   /**
    * Initialize a new hit squad
@@ -366,7 +390,7 @@ module.exports = {
       const squadPower = this.calculateSquadPower(members);
       const hostilePower = this.calculateHostilePower(memberInTargetRoom.room);
       
-      if (hostilePower > squadPower * 1.5) {
+      if (hostilePower > squadPower * RETREAT_POWER_THRESHOLD) {
         console.log('Squad', squadId, 'is outgunned (', squadPower, 'vs', hostilePower, ')');
         return true;
       }
@@ -383,9 +407,9 @@ module.exports = {
   calculateSquadPower: function(creeps) {
     let power = 0;
     for (const creep of creeps) {
-      power += creep.getActiveBodyparts(ATTACK) * 30;
-      power += creep.getActiveBodyparts(RANGED_ATTACK) * 10;
-      power += creep.getActiveBodyparts(HEAL) * 12;
+      power += creep.getActiveBodyparts(ATTACK) * POWER_ATTACK;
+      power += creep.getActiveBodyparts(RANGED_ATTACK) * POWER_RANGED_ATTACK;
+      power += creep.getActiveBodyparts(HEAL) * POWER_HEAL;
     }
     return power;
   },
@@ -400,9 +424,9 @@ module.exports = {
     let power = 0;
     
     for (const hostile of hostiles) {
-      power += hostile.getActiveBodyparts(ATTACK) * 30;
-      power += hostile.getActiveBodyparts(RANGED_ATTACK) * 10;
-      power += hostile.getActiveBodyparts(HEAL) * 12;
+      power += hostile.getActiveBodyparts(ATTACK) * POWER_ATTACK;
+      power += hostile.getActiveBodyparts(RANGED_ATTACK) * POWER_RANGED_ATTACK;
+      power += hostile.getActiveBodyparts(HEAL) * POWER_HEAL;
     }
     
     return power;

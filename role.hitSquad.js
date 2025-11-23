@@ -68,8 +68,9 @@ module.exports = {
       // Heal self or nearby squad members while moving
       this.healNearbySquadMembers(creep, squad);
     } else {
-      // Arrived at target room, transition to combat
-      squad.status = 'deployed';
+      // Arrived at target room - squad manager will update status
+      // Just perform combat actions
+      this.combat(creep, squad);
     }
   },
   
