@@ -20,6 +20,8 @@ var roleScout = require('role.scout');
 var roleTower = require('role.tower');
 var roleClaimToBuild = require('role.claimToBuild');
 var roomPlanner = require('room.planner');
+var roleHitSquad = require('role.hitSquad');
+var squadManager = require('squad.manager');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
 
@@ -41,8 +43,8 @@ module.exports.loop = function () {
       // Game.creeps['SlowUp2'].transfer(Game.getObjectById('69111c74d47054001236181a'), RESOURCE_ENERGY);
       try {
           Game.creeps['SlowUp1'].transfer(Game.getObjectById('690ddda490f3c4295b91db76'), RESOURCE_ENERGY);
-      } catch {
-          console.log("failed slowup1")
+      } catch (e) {
+          console.log('failed slowup1', e);
       }
   }
 
@@ -193,6 +195,10 @@ if (Game.time % 5 === 0) {
     else if (creep.memory.role === 'claimToBuildBuilder') {
       roleClaimToBuild.runClaimToBuildBuilder(creep);
     }
+    // if creep is hitSquad, call hit squad script
+    else if (creep.memory.role === 'hitSquad') {
+      roleHitSquad.run(creep);
+    }
 
     // self recycle
     if (creep.memory.to_recycle === 1){
@@ -245,6 +251,9 @@ if (Game.time % 5 === 0) {
   if (Game.time % 5 === 0) {
     roleClaimToBuild.runAll();
   }
+
+  // run squad manager to handle hit squads
+  squadManager.runAll();
 
   // iterate over all the flags
   for (let flagName in Game.flags) {
