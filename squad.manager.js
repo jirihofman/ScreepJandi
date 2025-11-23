@@ -90,10 +90,10 @@ module.exports = {
     
     // Allocate 15% to TOUGH for damage absorption (front-loaded)
     const toughParts = Math.min(10, Math.floor(targetParts * 0.15));
-    for (let i = 0; i < toughParts && partsUsed < targetParts && energyUsed + 10 <= maxEnergy; i++) {
+    for (let i = 0; i < toughParts && partsUsed < targetParts && energyUsed + BODYPART_COST[TOUGH] <= maxEnergy; i++) {
       body.push(TOUGH);
       partsUsed++;
-      energyUsed += 10;
+      energyUsed += BODYPART_COST[TOUGH];
     }
     
     // Calculate remaining parts
@@ -106,31 +106,31 @@ module.exports = {
     const moveParts = Math.floor(remainingParts * 0.25);
     
     // Add ATTACK parts
-    for (let i = 0; i < attackParts && partsUsed < targetParts && energyUsed + 80 <= maxEnergy; i++) {
+    for (let i = 0; i < attackParts && partsUsed < targetParts && energyUsed + BODYPART_COST[ATTACK] <= maxEnergy; i++) {
       body.push(ATTACK);
       partsUsed++;
-      energyUsed += 80;
+      energyUsed += BODYPART_COST[ATTACK];
     }
     
     // Add RANGED_ATTACK parts
-    for (let i = 0; i < rangedParts && partsUsed < targetParts && energyUsed + 150 <= maxEnergy; i++) {
+    for (let i = 0; i < rangedParts && partsUsed < targetParts && energyUsed + BODYPART_COST[RANGED_ATTACK] <= maxEnergy; i++) {
       body.push(RANGED_ATTACK);
       partsUsed++;
-      energyUsed += 150;
+      energyUsed += BODYPART_COST[RANGED_ATTACK];
     }
     
     // Add HEAL parts
-    for (let i = 0; i < healParts && partsUsed < targetParts && energyUsed + 250 <= maxEnergy; i++) {
+    for (let i = 0; i < healParts && partsUsed < targetParts && energyUsed + BODYPART_COST[HEAL] <= maxEnergy; i++) {
       body.push(HEAL);
       partsUsed++;
-      energyUsed += 250;
+      energyUsed += BODYPART_COST[HEAL];
     }
     
     // Add MOVE parts (at the end for speed)
-    for (let i = 0; i < moveParts && partsUsed < targetParts && energyUsed + 50 <= maxEnergy; i++) {
+    for (let i = 0; i < moveParts && partsUsed < targetParts && energyUsed + BODYPART_COST[MOVE] <= maxEnergy; i++) {
       body.push(MOVE);
       partsUsed++;
-      energyUsed += 50;
+      energyUsed += BODYPART_COST[MOVE];
     }
     
     // Ensure at least some MOVE parts for mobility (add more if needed and energy allows)
@@ -138,10 +138,10 @@ module.exports = {
     const nonMoveParts = body.length - currentMoveParts;
     const neededMoveParts = Math.ceil(nonMoveParts / 2) - currentMoveParts; // Target 1 MOVE per 2 parts
     
-    for (let i = 0; i < neededMoveParts && partsUsed < targetParts && energyUsed + 50 <= maxEnergy; i++) {
+    for (let i = 0; i < neededMoveParts && partsUsed < targetParts && energyUsed + BODYPART_COST[MOVE] <= maxEnergy; i++) {
       body.push(MOVE);
       partsUsed++;
-      energyUsed += 50;
+      energyUsed += BODYPART_COST[MOVE];
     }
     
     return body;
@@ -189,10 +189,13 @@ module.exports = {
     if (!Memory.squads) {
       Memory.squads = {};
     }
+    if (!Memory.squadCounter) {
+      Memory.squadCounter = 0;
+    }
     
-    // Generate unique squad name
+    // Generate unique squad name with counter to prevent collisions
     const squadName = this.generateSquadName();
-    const squadId = squadName + '_' + Game.time;
+    const squadId = squadName + '_' + Game.time + '_' + (++Memory.squadCounter);
     
     // Calculate squad composition
     const energyPerCreep = spawn.room.energyCapacityAvailable;

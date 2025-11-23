@@ -120,14 +120,22 @@ module.exports = {
     
     // Attack target
     if (target) {
-      const attackResult = creep.attack(target);
-      const rangedResult = creep.rangedAttack(target);
+      let attackResult = ERR_NO_BODYPART;
+      let rangedResult = ERR_NO_BODYPART;
+      
+      // Only attempt attacks if creep has the required body parts
+      if (creep.getActiveBodyparts(ATTACK) > 0) {
+        attackResult = creep.attack(target);
+      }
+      if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
+        rangedResult = creep.rangedAttack(target);
+      }
       
       if (attackResult === ERR_NOT_IN_RANGE && rangedResult === ERR_NOT_IN_RANGE) {
         // Move toward target
         creep.moveTo(target, {visualizePathStyle: {stroke: '#ff0000'}});
         creep.say('⚔️ chase');
-      } else {
+      } else if (attackResult !== ERR_NO_BODYPART || rangedResult !== ERR_NO_BODYPART) {
         creep.say('⚔️ fight');
       }
     } else {
