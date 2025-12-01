@@ -8,7 +8,7 @@ module.exports = {
     /* helper: record event into minute-bucketed history
        - we bucket by minute (Game.time / 60) to limit history size
        - bucketKey is stringified to be a valid Memory key
-       - prune older buckets beyond 24h (1440 minutes)
+       - prune older buckets beyond 7 days (10080 minutes)
     */
     const recordTowerEvent = function(tid, type){
       const bucket = Math.floor(Game.time / 60);
@@ -16,8 +16,8 @@ module.exports = {
       const key = bucket.toString();
       if (!Memory.towers[tid].events_history[key]) Memory.towers[tid].events_history[key] = {attack:0, heal:0, repair:0};
       Memory.towers[tid].events_history[key][type] += 1;
-      // prune older buckets to keep only last 24h (1440 minutes)
-      const minKey = (bucket - 1440).toString();
+      // prune older buckets to keep only last 7 days (10080 minutes)
+      const minKey = (bucket - 10080).toString();
       for (const k in Memory.towers[tid].events_history) {
         if (k < minKey) delete Memory.towers[tid].events_history[k];
       }
