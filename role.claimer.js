@@ -62,7 +62,7 @@ module.exports = {
       } else if (r === OK && creep.memory.claimFlagMode) {
         console.log(creep.name + ' successfully claimed ' + creep.room.name);
         creep.say('✓ Claimed!');
-      } else if (r !== 0 && r !== OK) {
+      } else if (r !== OK) {
         console.log('Claimer error: ' + r);
       }
 
