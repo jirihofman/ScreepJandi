@@ -350,6 +350,51 @@ module.exports = {
           delete spawn.memory.claimRoom;
         }
       }
+      // if there are claim flags and no claimer for them
+      else if (Memory.claimFlags) {
+        // Check if there are any flags to process
+        let hasFlags = false;
+        for (let flagName in Memory.claimFlags) {
+          if (Game.flags[flagName]) {
+            hasFlags = true;
+            break;
+          }
+        }
+        
+        if (hasFlags) {
+          // check if we already have a claimer with role 'claimer' that's handling flags
+          let existingClaimers = _.filter(Game.creeps, c => 
+            c.memory.role === 'claimer' && c.memory.claimFlagMode === true
+          );
+          
+          // Only spawn a new claimer if we don't have one already
+          if (existingClaimers.length === 0) {
+            // Find the nearest claim flag to this spawn
+            let nearestFlag = null;
+            let nearestDistance = Infinity;
+            
+            for (let flagName in Memory.claimFlags) {
+              let flag = Game.flags[flagName];
+              if (flag) {
+                let distance = Game.map.getRoomLinearDistance(spawn.room.name, flag.pos.roomName);
+                if (distance < nearestDistance) {
+                  nearestDistance = distance;
+                  nearestFlag = flag;
+                }
+              }
+            }
+            
+            if (nearestFlag) {
+              // Create a claimer with [MOVE, CLAIM] body
+              name = spawn.createCreep([MOVE, CLAIM], null, { 
+                role: 'claimer', 
+                target: nearestFlag.pos.roomName,
+                claimFlagMode: true
+              });
+            }
+          }
+        }
+      }
       // if not enough upgraders
       else if (Memory.rooms[spawn.room.name] && Memory.rooms[spawn.room.name].creep_limit && Memory.rooms[spawn.room.name].creep_limit.minUpgraders && numberOfUpgraders < Memory.rooms[spawn.room.name].creep_limit.minUpgraders) {
         name = spawn.createCustomCreep(energy, 'upgrader');

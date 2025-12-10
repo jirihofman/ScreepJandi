@@ -101,6 +101,16 @@ if (Game.time % 5 === 0) {
     }
   }
 
+  // Clean up memory for removed claim flags
+  if (Memory.claimFlags) {
+    for (let flagName in Memory.claimFlags) {
+      if (!Game.flags[flagName]) {
+        delete Memory.claimFlags[flagName];
+        console.log('Clearing non-existing claim flag memory:', flagName);
+      }
+    }
+  }
+
   /* MINERAL lorries every 300 */
   if (Game.time % 1480 === 0 || Game.time % 1400 === 1 || Game.time % 1480 === 2 || Game.time % 1480 === 3 || Game.time % 1480 === 4){
     //Game.spawns.Spawn3.createCreep([ATTACK, MOVE, ATTACK, MOVE, ATTACK, MOVE], 'ccc', {role: 'attacker', target: 'E98N69'});
@@ -260,7 +270,17 @@ if (Game.time % 5 === 0) {
         console.log('Initialized claim-to-build for', flag.pos.roomName, 'from', sourceRoom);
         flag.remove(); // Remove flag after initialization
       }
-    } else {
+    }
+    // Check for simple claim flag (COLOR_ORANGE + COLOR_ORANGE)
+    else if (flag.color === COLOR_ORANGE && flag.secondaryColor === COLOR_ORANGE) {
+      // Track claim flag in Memory - we'll use this for spawning claimers
+      if (!Memory.claimFlags) Memory.claimFlags = {};
+      Memory.claimFlags[flag.name] = {
+        roomName: flag.pos.roomName,
+        name: flag.name
+      };
+    }
+    else {
       roleFlag.run(flag);
     }
     

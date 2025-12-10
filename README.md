@@ -59,6 +59,26 @@ Spawn with memory: { role: 'scout', target: 'W13N55', pos: { x: 25, y: 25 } }
 - If `target` (room name) is provided, the scout will travel there first and then go to `pos` (if given).
 - If `pos` is omitted but `target` is provided, the scout will go to the room center (25,25) and idle there.
 
+### Simple Claim (COLOR_ORANGE + COLOR_ORANGE)
+
+Place a flag with both primary and secondary colors set to `COLOR_ORANGE` in any room to mark it for claiming.
+
+The system will automatically:
+1. Spawn a claimer creep with [MOVE, CLAIM] body if none exists
+2. The claimer will travel to the nearest unclaimed flag
+3. Claim the controller in that room
+4. After claiming, automatically find and move to the next nearest unclaimed flag
+5. Continue until all flags are processed
+
+Features:
+- Only spawns one claimer at a time (efficient resource usage)
+- Multiple flags can be placed in different rooms at any time
+- Claimer always goes to the nearest unclaimed room first
+- No follow-up action needed after placing flags
+- Flags are tracked in Memory.claimFlags
+
+**Use case:** Place several flags during the day to mark rooms for claiming. The system will automatically claim them all without further intervention.
+
 ### Claim-to-Build (COLOR_PURPLE + COLOR_PURPLE)
 
 Place a flag with both primary and secondary colors set to `COLOR_PURPLE` in a room to initiate comprehensive claim-to-build logic.
