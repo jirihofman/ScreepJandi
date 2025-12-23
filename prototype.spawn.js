@@ -1,6 +1,8 @@
+const squadManager = require('squad.manager');
+
 module.exports = function() {
 
-    // create a new function for StructureSpawn
+  // create a new function for StructureSpawn
   StructureSpawn.prototype.createCustomCreep =
         function(energy, roleName, p_memory) {
           // create a balanced body as big as possible with the given energy
@@ -37,7 +39,7 @@ module.exports = function() {
           /* special static builder/upgrader for lvl 8 */
           if (this.room.controller.level === 8 && roleName === 'upgrader'){
             if (Memory.rooms[this.room.name].upgradeSpot){
-              console.log("Special static upgrader in ", this.room, this.room.controller.level, this.room.energyCapacityAvailable, this.room.energyAvailable)
+              console.log('Special static upgrader in ', this.room, this.room.controller.level, this.room.energyCapacityAvailable, this.room.energyAvailable);
               body = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, MOVE];
             }
           }
@@ -45,15 +47,15 @@ module.exports = function() {
           return this.createCreep(body, null, p_memory);
         };
 
-    // create a new function for StructureSpawn
+  // create a new function for StructureSpawn
   StructureSpawn.prototype.createLongDistanceHarvester =
         function (energy, numberOfWorkParts, home, target, sourceIndex) {
-            // create a body with the specified number of WORK parts and one MOVE part per non-MOVE part (when no roads)
+          // create a body with the specified number of WORK parts and one MOVE part per non-MOVE part (when no roads)
           var body = [];
           for (let i = 0; i < numberOfWorkParts; i++) {
             body.push(WORK);body.push(MOVE);body.push(CARRY);
           }
-            // 150 = 100 (cost of WORK) + 50 (cost of MOVE) + 50 (CARRY)
+          // 150 = 100 (cost of WORK) + 50 (cost of MOVE) + 50 (CARRY)
           energy -= 200 * numberOfWorkParts;
 
           var numberOfParts = Math.floor(energy / 150); //(when no roads)
@@ -65,7 +67,7 @@ module.exports = function() {
             body.push(CARRY);body.push(CARRY);body.push(MOVE);
           }
 
-            // create creep with the created body
+          // create creep with the created body
           return this.createCreep(body, null, {
             role: 'longDistanceHarvester',
             home: home,
@@ -77,13 +79,13 @@ module.exports = function() {
           });
         };
 
-    // create a new function for StructureSpawn
+  // create a new function for StructureSpawn
   StructureSpawn.prototype.createClaimer =
         function (target) {
           return this.createCreep([CLAIM, MOVE], null, { role: 'claimer', target: target });
         };
 
-    // create a new function for StructureSpawn
+  // create a new function for StructureSpawn
   StructureSpawn.prototype.createMiner =
         function (sourceId) {
           /* TODO: if the source has also LINK nearby, add one CARRY part and some WORK parts to catch on the transfering part */
@@ -91,21 +93,21 @@ module.exports = function() {
 
           // if there is, add the parts
           return this.createCreep([WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, CARRY], null,
-                                    { role: 'miner', sourceId: sourceId });
+            { role: 'miner', sourceId: sourceId });
         };
 
-        // create a new function for StructureSpawn for longDistanceWorker
-        StructureSpawn.prototype.createLongDistanceWorker =
+  // create a new function for StructureSpawn for longDistanceWorker
+  StructureSpawn.prototype.createLongDistanceWorker =
           function (energy, home, target) {
             // This will create a balanced body of WORK+CARRY+MOVE with createCustomCreep
             const mem = { role: 'longDistanceWorker', home: home, target: target, working: false, maxed: false, no_renew: true };
             return this.createCustomCreep(energy, 'longDistanceWorker', mem);
           };
 
-    // create a new function for StructureSpawn
+  // create a new function for StructureSpawn
   StructureSpawn.prototype.createLorry =
         function (energy) {
-            // create a body with twice as many CARRY as MOVE parts
+          // create a body with twice as many CARRY as MOVE parts
           var numberOfParts = Math.floor(energy / 150);
           var body = [];
           for (let i = 0; i < numberOfParts * 2; i++) {
@@ -114,7 +116,14 @@ module.exports = function() {
           for (let i = 0; i < numberOfParts; i++) {
             body.push(MOVE);
           }
-            // create creep with the created body and the role 'lorry'
+          // create creep with the created body and the role 'lorry'
           return this.createCreep(body, null, { role: 'lorry', working: false });
+        };
+
+  // create a new function for StructureSpawn to create hit squads
+  StructureSpawn.prototype.createHitSquad =
+        function (targetRoom, targetCreep, totalBodyParts) {
+          // Use squad manager to initialize and spawn a hit squad
+          return squadManager.initializeSquad(this.name, targetRoom, targetCreep, totalBodyParts);
         };
 };

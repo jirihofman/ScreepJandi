@@ -100,3 +100,61 @@ The flag is removed once the operation is initialized and tracked in Memory.clai
 # Lairs (TODO)
 ## Patrol
 25 move, 6 heal, rest attack
+
+## Hit Squad
+
+A coordinated combat system that creates and manages squads of 1-4 combat creeps working together.
+
+### Features
+
+- **Variable squad size**: Automatically determines 1-4 creeps based on body parts budget
+- **Balanced composition**: Mix of TOUGH, ATTACK, RANGED_ATTACK, HEAL, and MOVE parts
+- **Coordinated deployment**: Squad waits for all members before moving to target
+- **Smart retreat**: Returns home when target is clear or squad is outmatched
+- **Auto-recycling**: Recycles at spawn when mission complete
+
+### Usage
+
+Create a hit squad using the spawn prototype:
+
+```javascript
+// Create a squad with 150 total body parts targeting room W1N1
+const squadId = Game.spawns.Spawn1.createHitSquad('W1N1', null, 150);
+
+// Create a squad targeting a specific creep
+const squadId = Game.spawns.Spawn1.createHitSquad('W1N1', 'EnemyCreepName', 120);
+```
+
+### Parameters
+
+- `targetRoom` (string): Room name to attack
+- `targetCreep` (string|null): Optional specific creep name to eliminate
+- `totalBodyParts` (number): Total body parts budget (e.g., 150)
+
+### Squad Behavior
+
+1. **Spawning**: Squad manager spawns creeps one by one
+2. **Ready**: All members wait near spawn until squad is complete
+3. **Deployed**: Move together to target room and engage hostiles
+4. **Retreating**: Return home when:
+   - Target creep eliminated
+   - Target room clear of hostiles
+   - Squad outnumbered (hostile power > 1.5x squad power)
+5. **Recycling**: Squad members recycle at spawn
+
+### Memory Structure
+
+Squad data is stored in `Memory.squads[squadId]`:
+
+```javascript
+{
+  name: 'fooooo',           // Random squad name
+  spawnName: 'Spawn1',      // Spawn used
+  targetRoom: 'W1N1',       // Target room
+  targetCreep: null,        // Optional target creep
+  status: 'deployed',       // spawning|ready|deployed|retreating
+  members: ['fooooo-1', 'fooooo-2'],  // Member names
+  composition: {...},       // Body composition data
+  createdTime: 12345       // Game time when created
+}
+```
