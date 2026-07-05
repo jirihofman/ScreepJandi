@@ -1,3 +1,64 @@
+const roomBuilderOverrides = {
+  W13N54: {
+	    spawnName: 'Spawn11',
+	    body: [
+	      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+	      WORK, WORK, WORK, WORK, WORK,
+	      CARRY, CARRY, CARRY, CARRY, CARRY,
+	      MOVE, MOVE, MOVE, MOVE, MOVE
+    ],
+    directions: [LEFT]
+  },
+  W14N53: {
+	    spawnName: 'Spawn55',
+	    body: [
+	      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+	      CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+	      CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+	      MOVE, MOVE, MOVE, MOVE, MOVE
+    ],
+    directions: [BOTTOM]
+  }
+};
+
+const roomUpgraderOverrides = {
+  W13N54: {
+    body: [
+      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+      WORK, WORK, WORK, WORK, WORK,
+      CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+      MOVE, MOVE, MOVE, MOVE, MOVE
+    ],
+    max: 1
+  }
+};
+
+const bodyCounts = function (creep) {
+  return _.countBy(creep.body, part => part.type);
+};
+
+const isDesiredRoomBuilder = function (creep, body) {
+  const counts = bodyCounts(creep);
+  const expected = _.countBy(body);
+  return creep.memory.role === 'builder' &&
+    counts[WORK] === expected[WORK] &&
+    counts[CARRY] === expected[CARRY] &&
+    counts[MOVE] === expected[MOVE];
+};
+
+const isDesiredRoomUpgrader = function (creep, body) {
+  const counts = bodyCounts(creep);
+  const expected = _.countBy(body);
+  return creep.memory.role === 'upgrader' &&
+    counts[WORK] === expected[WORK] &&
+    counts[CARRY] === expected[CARRY] &&
+    counts[MOVE] === expected[MOVE];
+};
+
+const bodyEnergyCost = function (body) {
+  return _.sum(body, part => BODYPART_COST[part]);
+};
+
 module.exports = {
   // a function to run the logic for this role
   run: function (spawn) {
@@ -8,6 +69,77 @@ module.exports = {
     //spawn.createCustomCreep(energy+energy+20000, 'builderr');
     let creepsInRoom = spawn.room.find(FIND_MY_CREEPS);
     let room = spawn.room;
+    const builderOverride = roomBuilderOverrides[room.name];
+    const upgraderOverride = roomUpgraderOverrides[room.name];
+    if (builderOverride) {
+      const storageEnergy = room.storage ? room.storage.store[RESOURCE_ENERGY] : 0;
+      const requiredUpgraders = upgraderOverride && storageEnergy > 500000 ? upgraderOverride.max : 0;
+      const keptUpgraders = upgraderOverride && storageEnergy >= 200000 ? upgraderOverride.max : requiredUpgraders;
+      spawn.memory.minBuilders = 0;
+      spawn.memory.minUpgraders = requiredUpgraders;
+      spawn.memory.maxBuilders = 1;
+      spawn.memory.maxUpgraders = keptUpgraders;
+      Memory.rooms[room.name].creep_limit.minBuilders = 0;
+      Memory.rooms[room.name].creep_limit.minUpgraders = requiredUpgraders;
+      Memory.rooms[room.name].creep_limit.maxBuilders = 1;
+      Memory.rooms[room.name].creep_limit.maxUpgraders = keptUpgraders;
+
+      const desiredBuilders = _.sortBy(
+        _.filter(creepsInRoom, creep => isDesiredRoomBuilder(creep, builderOverride.body) && creep.memory.to_recycle !== 1),
+        creep => -(creep.ticksToLive || 0)
+      );
+      const keptBuilderName = desiredBuilders[0] && desiredBuilders[0].name;
+      const desiredUpgraders = upgraderOverride ? _.sortBy(
+        _.filter(creepsInRoom, creep => isDesiredRoomUpgrader(creep, upgraderOverride.body) && creep.memory.to_recycle !== 1),
+        creep => -(creep.ticksToLive || 0)
+      ) : [];
+      const keptUpgraderNames = _.map(desiredUpgraders.slice(0, keptUpgraders), creep => creep.name);
+      if (keptBuilderName) {
+        const extraWorkers = _.filter(creepsInRoom, creep =>
+          (creep.memory.role === 'upgrader' || creep.memory.role === 'builder') &&
+          creep.name !== keptBuilderName &&
+          !_.includes(keptUpgraderNames, creep.name)
+        );
+        _.forEach(extraWorkers, creep => {
+          creep.memory.to_recycle = 1;
+        });
+      }
+
+      if (!keptBuilderName &&
+          spawn.name === builderOverride.spawnName &&
+          !spawn.spawning &&
+          spawn.room.energyAvailable >= BODYPART_COST[WORK] * _.filter(builderOverride.body, part => part === WORK).length +
+                                      BODYPART_COST[CARRY] * _.filter(builderOverride.body, part => part === CARRY).length +
+                                      BODYPART_COST[MOVE] * _.filter(builderOverride.body, part => part === MOVE).length) {
+        const name = 'StaticBuilder-' + room.name + '-' + Game.time;
+        const result = spawn.spawnCreep(builderOverride.body, name, {
+          memory: { role: 'builder', working: false, maxed: false },
+          directions: builderOverride.directions
+        });
+        if (result === OK) {
+          console.log(spawn.name + ' spawning room-specific builder for ' + room.name + ': ' + name);
+        } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+          console.log('Error spawning room-specific builder in ', room, result);
+        }
+      }
+
+      if (upgraderOverride &&
+          requiredUpgraders > desiredUpgraders.length &&
+          spawn.name === builderOverride.spawnName &&
+          !spawn.spawning &&
+          spawn.room.energyAvailable >= bodyEnergyCost(upgraderOverride.body)) {
+        const upgraderName = 'StaticUpgrader-' + room.name + '-' + Game.time;
+        const upgraderResult = spawn.spawnCreep(upgraderOverride.body, upgraderName, {
+          memory: { role: 'upgrader', working: false, maxed: false },
+          directions: builderOverride.directions
+        });
+        if (upgraderResult === OK) {
+          console.log(spawn.name + ' spawning room-specific upgrader for ' + room.name + ': ' + upgraderName);
+        } else if (upgraderResult !== ERR_BUSY && upgraderResult !== ERR_NOT_ENOUGH_ENERGY) {
+          console.log('Error spawning room-specific upgrader in ', room, upgraderResult);
+        }
+      }
+    }
 
     /* LDH. Data from Memory.rooms.ROOM.ldh */
     if (Memory && Memory.rooms && Memory.rooms[room.name] && Memory.rooms[room.name].ldh) {
@@ -120,9 +252,9 @@ module.exports = {
       return out;
     };
 
-    const rolesToRenew = ['longDistanceHarvester', 'longDistanceWorker', 'builder', 'miner', 'harvester', 'upgrader', 'lorry'];
+    const rolesToRenew = ['longDistanceHarvester', 'longDistanceWorker', 'builder', 'miner', 'harvester', 'upgrader', 'lorry', 'attacker'];
     let _renewTarget = spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
-      filter: s => s.memory && rolesToRenew.includes(s.memory.role) && s.ticksToLive > 300 && s.ticksToLive < 1400 && !s.memory.no_renew
+      filter: s => s.memory && rolesToRenew.includes(s.memory.role) && s.ticksToLive > 100 && s.ticksToLive < 1400 && !s.memory.no_renew && s.pos.isNearTo(spawn.pos)
     });
     if (_renewTarget) {
       let _r = spawn.renewCreep(_renewTarget);
@@ -452,8 +584,12 @@ module.exports = {
       console.log('Default number of creeps set for room to:', spawn.room);
       spawn.memory.minHarvesters = spawn.memory.minHarvesters || 1;
       Memory.rooms[spawn.room.name].creep_limit.minLorries = Memory.rooms[spawn.room.name].creep_limit.minLorries || 0;
-      spawn.memory.minBuilders = spawn.memory.minBuilders || 1;
-      spawn.memory.minUpgraders = spawn.memory.minUpgraders || 1;
+      if (spawn.memory.minBuilders == null) {
+        spawn.memory.minBuilders = 1;
+      }
+      if (spawn.memory.minUpgraders == null) {
+        spawn.memory.minUpgraders = 1;
+      }
     } else if (spawn.room.controller.level === 2 && spawn.memory._pt_lvl !== 2) {
       // upgraded form 1 to 2
       console.log('Room upgraded to lvl 2 ', spawn.room);
@@ -462,8 +598,12 @@ module.exports = {
       // reduce the number of builders. Thez get much much bigger
       spawn.memory.minBuilders = 1;
     } else if (spawn.room.controller.level === 8 && spawn.memory._pt_lvl === 7) {
-      Memory.rooms[spawn.room.name].creep_limit.minBuilders = 0;
-      Memory.rooms[spawn.room.name].creep_limit.minUpgraders = 1;
+      if (Memory.rooms[spawn.room.name].creep_limit.minBuilders == null) {
+        Memory.rooms[spawn.room.name].creep_limit.minBuilders = 0;
+      }
+      if (Memory.rooms[spawn.room.name].creep_limit.minUpgraders == null) {
+        Memory.rooms[spawn.room.name].creep_limit.minUpgraders = 1;
+      }
     } else if (spawn.room.controller.level !== spawn.memory._pt_lvl) {
       console.log('upgraded from ', spawn.memory._pt_lvl, ' to ', spawn.room.controller.level);
     }

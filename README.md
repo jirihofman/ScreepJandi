@@ -1,8 +1,24 @@
 # ScreepJandi
 
 ## Development
-1. open repo in VSCode
-1. run nodemon to copy from repo to Screeps
+1. Open repo in VSCode.
+1. Install local tooling with `npm install`.
+1. Check live console access:
+```sh
+npm run screeps:console -- --expr "Game.time"
+```
+1. Preview a branch upload:
+```sh
+npm run screeps:upload -- --dry-run
+```
+1. Upload the tracked root JavaScript modules to the `ScreepJandi` branch:
+```sh
+npm run screeps:upload
+```
+
+The upload command treats tracked root `*.js` files as the source of truth for the Screeps branch. Ignored scratch files such as `random*`, `.env`, and `node_modules/` are not uploaded.
+
+For local client sync only, run nodemon to copy from repo to Screeps:
 ```sh
 nodemon --watch . --ext js --exec "cp -r ./*.js /Users/jirihofman/Library/Application\ Support/Screeps/scripts/screeps.com/ScreepJandi"
 ```

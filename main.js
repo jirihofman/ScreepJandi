@@ -47,7 +47,7 @@ module.exports.loop = function () {
   }
 
   // Always have these two defenders up
-  if (Game.time % 5 === 0) {
+  if (Game.time % 75 === 0) {
     // Check if Defender1 exists
     if (!Game.creeps['Defender1']) {
       Game.spawns['Spawn1'].createCreep([
@@ -64,13 +64,7 @@ module.exports.loop = function () {
     } else if (!Game.creeps['Defender2']) {
       // ~2200 energy cost
       // tough: 10, move: 50, heal: 250, ranged_attack: 150, attack: 80
-      Game.spawns['Spawn1'].createCreep([
-        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
-        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        HEAL, HEAL, HEAL, HEAL, HEAL, HEAL,
-        ATTACK, ATTACK
-      ], 'Defender2', { role: 'attacker' });
+      Game.spawns['Spawn1'].createCreep([TOUGH, MOVE, ATTACK], 'Defender2', { role: 'attacker' });
     }
   }
 

@@ -55,8 +55,9 @@ module.exports = {
     }
             // if creep is supposed to get energy
     else {
-            // find closest container
+            // prefer nearby high-stock storage over miner containers
       let container = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0)})[0]
+       || (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] > creep.carryCapacity && creep.pos.getRangeTo(creep.room.storage) <= 3 && creep.room.storage)
        || creep.pos.findClosestByPath(FIND_STRUCTURES, {
         filter: s => (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) &&
                              s.store[RESOURCE_ENERGY] > 0

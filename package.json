@@ -1,0 +1,15 @@
+{
+  "name": "screepjandi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Screeps scripts and local tools for ScreepJandi.",
+  "scripts": {
+    "screeps:console": "node tools/screeps-console.js",
+    "screeps:creeps": "node tools/screeps-console.js creeps",
+    "screeps:upload": "node tools/screeps-upload.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "screeps-api": "^1.16.1"
+  }
+}

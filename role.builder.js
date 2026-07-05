@@ -1,9 +1,28 @@
 var roleUpgrader = require('role.upgrader');
 
+const staticBuilderSpawns = {
+  W13N54: 'Spawn11',
+  W14N53: 'Spawn55'
+};
+
+const isStaticRoomBuilder = function (creep) {
+  return creep.memory.role === 'builder' &&
+    staticBuilderSpawns[creep.room.name] &&
+    creep.name.indexOf('StaticBuilder-' + creep.room.name + '-') === 0;
+};
+
 module.exports = {
   // a function to run the logic for this role
   run: function (creep) {
     //return;
+    const staticSpawnName = isStaticRoomBuilder(creep) && staticBuilderSpawns[creep.room.name];
+    const staticSpawn = staticSpawnName && Game.spawns[staticSpawnName];
+    if (staticSpawn && !creep.pos.isNearTo(staticSpawn.pos)) {
+      creep.moveTo(staticSpawn, { reusePath: 3, visualizePathStyle: { stroke: '#ffaa00' } });
+      creep.say('B->renew');
+      return;
+    }
+
     // if target is defined and creep is not in target room
     if (creep.memory.target && creep.room.name !== creep.memory.target) {
       // find exit to target room
@@ -31,6 +50,32 @@ module.exports = {
     if (creep.memory.maxed === true) {
       // sam reknu, ze ma jit makat s tim objemem co ma v sobe
       creep.memory.working = true;
+    }
+
+    if (staticSpawn) {
+      if (creep.memory.working === true) {
+        var nearbyConstructionSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3, {
+          filter: s => (s.structureType !== STRUCTURE_ROAD) && (s.structureType !== STRUCTURE_LAB) && (s.structureType !== STRUCTURE_TERMINAL)
+        })[0] || creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3)[0];
+        if (nearbyConstructionSite) {
+          creep.build(nearbyConstructionSite);
+          creep.say('Building ...');
+        } else {
+          creep.upgradeController(creep.room.controller);
+          creep.say('B->U');
+        }
+      } else {
+        let adjacentEnergy = creep.pos.findInRange(FIND_STRUCTURES, 1, {
+          filter: s => (
+            (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE) && s.store[RESOURCE_ENERGY] > 100
+          ) || (s.structureType === STRUCTURE_LINK && s.energy > 0) ||
+            (s.structureType === STRUCTURE_EXTENSION && creep.memory.ext && s.energy > 0)
+        })[0];
+        if (adjacentEnergy) {
+          creep.withdraw(adjacentEnergy, RESOURCE_ENERGY);
+        }
+      }
+      return;
     }
 
     // if creep is supposed to complete a constructionSite
