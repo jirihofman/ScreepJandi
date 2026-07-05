@@ -20,9 +20,11 @@ module.exports = {
         if (creep.pos.x !== Memory.rooms[creep.room.name].upgradeSpot.x || creep.pos.y !== Memory.rooms[creep.room.name].upgradeSpot.y){
           let a = creep.moveTo(Memory.rooms[creep.room.name].upgradeSpot.x, Memory.rooms[creep.room.name].upgradeSpot.y);
           creep.upgradeController(creep.room.controller) // try upgrading on the move
+          creep.say('⚡ upgrade');
           return;
         } else {
           creep.upgradeController(creep.room.controller) // try upgrading on the move
+          creep.say('⚡ upgrade');
           if (creep.carry.energy < 60){
             // if next to link or storage, withdraw energy
             l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_LINK && s.energy > 0)})[0];
@@ -43,11 +45,14 @@ module.exports = {
         /* when below lvl8 */
         if (creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
           creep.moveTo(creep.room.controller);
+          creep.say('⚡ upgrade');
         }
       }
 
       if (creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
         creep.moveTo(creep.room.controller);
+      } else {
+        creep.say('⚡ upgrade');
       }
       // move the mineral to anything viable
       let l_transfer_to = creep.pos.findInRange(FIND_STRUCTURES, 1, {filter: s=>(s.structureType===STRUCTURE_TOWER && s.energy < 1000) || (s.structureType===STRUCTURE_SPAWN && s.energy < 300)})[0];
@@ -68,6 +73,8 @@ module.exports = {
         if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                     // move towards it
           creep.moveTo(container);
+        } else {
+          creep.say('📥 energy');
         }
       }
       else {
@@ -77,6 +84,8 @@ module.exports = {
         if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
                     // move towards it
           creep.moveTo(source);
+        } else {
+          creep.say('⛏ harvest');
         }
       }
     }

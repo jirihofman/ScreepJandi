@@ -19,7 +19,7 @@ module.exports = {
     const staticSpawn = staticSpawnName && Game.spawns[staticSpawnName];
     if (staticSpawn && !creep.pos.isNearTo(staticSpawn.pos)) {
       creep.moveTo(staticSpawn, { reusePath: 3, visualizePathStyle: { stroke: '#ffaa00' } });
-      creep.say('B->renew');
+      creep.say('🔄 renew');
       return;
     }
 
@@ -29,7 +29,7 @@ module.exports = {
       var exit = creep.room.findExitTo(creep.memory.target);
       // move to exit
       creep.moveTo(creep.pos.findClosestByRange(exit), { reusePath: 8, visualizePathStyle: { stroke: '#ffaa00' } });
-      creep.say('B->exit');
+      creep.say('🚪 exit');
       // return the function to not do anything else
       return;
     }
@@ -59,10 +59,10 @@ module.exports = {
         })[0] || creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3)[0];
         if (nearbyConstructionSite) {
           creep.build(nearbyConstructionSite);
-          creep.say('Building ...');
+          creep.say('🔨 build');
         } else {
           creep.upgradeController(creep.room.controller);
-          creep.say('B->U');
+          creep.say('⚡ upgrade');
         }
       } else {
         let adjacentEnergy = creep.pos.findInRange(FIND_STRUCTURES, 1, {
@@ -92,7 +92,7 @@ module.exports = {
           // move towards the constructionSite
           creep.moveTo(constructionSite, { reusePath: 3, visualizePathStyle: { stroke: '#ffaa00' } });
         } else {
-          creep.say('Building ...');
+          creep.say('🔨 build');
         }
       }
       // if no constructionSite is found
@@ -104,7 +104,7 @@ module.exports = {
         if (!l_vedle)
           l_vedle = creep.pos.findInRange(FIND_STRUCTURES, 1, { filter: s => (s.structureType === STRUCTURE_STORAGE && s.store[RESOURCE_ENERGY] > creep.carryCapacity) })[0];
         if (l_vedle) creep.withdraw(l_vedle, RESOURCE_ENERGY)
-        creep.say('B->U');
+        creep.say('⚡ upgrade');
       }
     }
     // if creep is supposed to get energy
@@ -127,11 +127,13 @@ module.exports = {
 
       // if one was found
       if (container) {
-        if (container.structureType === STRUCTURE_EXTENSION) { creep.say('B<-ext'); }
+        if (container.structureType === STRUCTURE_EXTENSION) { creep.say('📦 ext'); }
         // try to withdraw energy, if the container is not in range
         if (creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
           // move towards it
           creep.moveTo(container, { reusePath: 3, visualizePathStyle: { stroke: '#ff11gg' } });
+        } else {
+          creep.say('📥 energy');
         }
       }
       else {
@@ -142,6 +144,7 @@ module.exports = {
           // move towards it
           creep.moveTo(source, { reusePath: 3, visualizePathStyle: { stroke: '#ff00gg', lineStyle: 'dashed' } });
         } else {
+          creep.say('⛏ harvest');
           console.log('Builder ' + creep.name + ' in room ' + creep.room.name + ' could not find any container to withdraw from. Going to source ');
           // try to withdraw from nearby lorry or extension
           let lorryNearby = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
