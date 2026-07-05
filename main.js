@@ -46,8 +46,8 @@ module.exports.loop = function () {
       }
   }
 
-  // Always have these two defenders up
-  if (Game.time % 75 === 0) {
+  // Defender spawning disabled; recycle attacker-role defenders manually when retiring them.
+  if (false && Game.time % 75 === 0) {
     // Check if Defender1 exists
     if (!Game.creeps['Defender1']) {
       Game.spawns['Spawn1'].createCreep([
@@ -286,8 +286,8 @@ if (Game.time % 5 === 0) {
   for (let ro in Game.rooms) {
     let r = Game.rooms[ro];
 
-    // Check for strong hostile creeps and spawn defenders if needed
-    if (Game.time % 5 === 0 && r.controller && r.controller.my) {
+    // Defender spawning disabled.
+    if (false && Game.time % 5 === 0 && r.controller && r.controller.my) {
       // Find hostile creeps with more than 20 attack, ranged attack, or heal parts
       const strongHostiles = r.find(FIND_HOSTILE_CREEPS, {
         filter: (creep) => {

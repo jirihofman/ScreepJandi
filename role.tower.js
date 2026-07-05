@@ -59,17 +59,7 @@ module.exports = {
     if (l_big_tower_flag) { 
       // find closest hostile creep with more than 3 body parts
       target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, { filter: (c) => (c.body && c.body.length > 3) });
-      Game.spawns['Spawn1'].createCreep([
-        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
-        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
-        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
-        TOUGH, TOUGH, TOUGH, TOUGH, TOUGH,
-        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK,
-        ATTACK, ATTACK, ATTACK, ATTACK, ATTACK,
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
-      ], 'Defender3', { role: 'attacker' });
+      // Defender spawning disabled.
     } else {
       target = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     }
