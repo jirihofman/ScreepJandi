@@ -1,3 +1,49 @@
+const staticUpgraderStations = {
+  W13N54: { x: 35, y: 12 },
+  W14N53: { x: 32, y: 18 }
+};
+
+const getStaticUpgraderStation = function (creep) {
+  const station = staticUpgraderStations[creep.room.name];
+  if (!station || creep.memory.role !== 'upgrader' || creep.name.indexOf('StaticUpgrader-' + creep.room.name + '-') !== 0) {
+    return null;
+  }
+  return new RoomPosition(station.x, station.y, creep.room.name);
+};
+
+const findAdjacentStaticEnergy = function (creep) {
+  return creep.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => (
+      (s.structureType === STRUCTURE_LINK && s.energy > 0) ||
+      ((s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_TERMINAL || s.structureType === STRUCTURE_CONTAINER) &&
+        s.store && s.store[RESOURCE_ENERGY] > 0)
+    )
+  })[0];
+};
+
+const runStaticUpgrader = function (creep, station) {
+  if (creep.pos.getRangeTo(station) > 1 || creep.pos.getRangeTo(creep.room.controller) > 3) {
+    creep.moveTo(station, { reusePath: 3, visualizePathStyle: { stroke: '#ffaa00' } });
+    creep.upgradeController(creep.room.controller);
+    creep.say('⚡ upgrade');
+    return;
+  }
+
+  if (creep.carry.energy > 0) {
+    creep.upgradeController(creep.room.controller);
+    creep.say('⚡ upgrade');
+  }
+
+  if (creep.carry.energy < creep.carryCapacity) {
+    const adjacentEnergy = findAdjacentStaticEnergy(creep);
+    if (adjacentEnergy) {
+      creep.withdraw(adjacentEnergy, RESOURCE_ENERGY);
+    } else if (creep.carry.energy === 0) {
+      creep.say('🕓 energy');
+    }
+  }
+};
+
 module.exports = {
     // a function to run the logic for this role
   run: function(creep) {
@@ -11,6 +57,12 @@ module.exports = {
     else if (creep.memory.working === false && creep.carry.energy === creep.carryCapacity) {
             // switch state
       creep.memory.working = true;
+    }
+
+    const staticStation = getStaticUpgraderStation(creep);
+    if (staticStation) {
+      runStaticUpgrader(creep, staticStation);
+      return;
     }
 
         // if creep is supposed to transfer energy to the controller

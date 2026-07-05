@@ -1,5 +1,5 @@
 const roomBuilderOverrides = {
-  W13N54: {
+  'W13N54': {
 	    spawnName: 'Spawn11',
 	    body: [
 	      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
@@ -9,7 +9,7 @@ const roomBuilderOverrides = {
     ],
     directions: [LEFT]
   },
-  W14N53: {
+  'W14N53': {
 	    spawnName: 'Spawn55',
 	    body: [
 	      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
@@ -22,14 +22,46 @@ const roomBuilderOverrides = {
 };
 
 const roomUpgraderOverrides = {
-  W13N54: {
+  'W13N54': {
     body: [
       WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
       WORK, WORK, WORK, WORK, WORK,
       CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
       MOVE, MOVE, MOVE, MOVE, MOVE
     ],
-    max: 1
+    max: 1,
+    storageThreshold: 300000,
+    keepThreshold: 200000,
+    directions: [BOTTOM_RIGHT]
+  },
+  'W14N53': {
+    body: [
+      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+      WORK, WORK, WORK, WORK, WORK,
+      CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+      MOVE, MOVE, MOVE, MOVE, MOVE
+    ],
+    max: 1,
+    storageThreshold: 300000,
+    keepThreshold: 200000,
+    directions: [BOTTOM_LEFT]
+  }
+};
+
+const roomLogisticsOverrides = {
+  'W13N54': {
+    baseMinLorries: 2,
+    highStorageMinLorries: 2
+  },
+  'W14N53': {
+    baseMinLorries: 1,
+    highStorageMinLorries: 2,
+    lorryEnergy: 750,
+    body: [
+      CARRY, CARRY, CARRY, CARRY, CARRY,
+      CARRY, CARRY, CARRY, CARRY, CARRY,
+      MOVE, MOVE, MOVE, MOVE, MOVE
+    ]
   }
 };
 
@@ -55,6 +87,17 @@ const isDesiredRoomUpgrader = function (creep, body) {
     counts[MOVE] === expected[MOVE];
 };
 
+const isDesiredRoomLorry = function (creep, body) {
+  if (!body) {
+    return creep.memory.role === 'lorry';
+  }
+  const counts = bodyCounts(creep);
+  const expected = _.countBy(body);
+  return creep.memory.role === 'lorry' &&
+    counts[CARRY] === expected[CARRY] &&
+    counts[MOVE] === expected[MOVE];
+};
+
 const bodyEnergyCost = function (body) {
   return _.sum(body, part => BODYPART_COST[part]);
 };
@@ -71,10 +114,33 @@ module.exports = {
     let room = spawn.room;
     const builderOverride = roomBuilderOverrides[room.name];
     const upgraderOverride = roomUpgraderOverrides[room.name];
+    const logisticsOverride = roomLogisticsOverrides[room.name];
     if (builderOverride) {
       const storageEnergy = room.storage ? room.storage.store[RESOURCE_ENERGY] : 0;
-      const requiredUpgraders = upgraderOverride && storageEnergy > 500000 ? upgraderOverride.max : 0;
-      const keptUpgraders = upgraderOverride && storageEnergy >= 200000 ? upgraderOverride.max : requiredUpgraders;
+      const requiredUpgraders = upgraderOverride && storageEnergy >= (upgraderOverride.storageThreshold || 300000) ? upgraderOverride.max : 0;
+      const keptUpgraders = upgraderOverride && storageEnergy >= (upgraderOverride.keepThreshold || 200000) ? upgraderOverride.max : requiredUpgraders;
+      if (logisticsOverride) {
+        const desiredLorries = storageEnergy >= 300000 ?
+          logisticsOverride.highStorageMinLorries :
+          logisticsOverride.baseMinLorries;
+        Memory.rooms[room.name].creep_limit.minLorries = desiredLorries;
+        Memory.rooms[room.name].creep_limit.maxLorries = desiredLorries;
+        const desiredRoomLorries = _.sortBy(
+          _.filter(creepsInRoom, creep =>
+            isDesiredRoomLorry(creep, logisticsOverride.body) &&
+            creep.memory.to_recycle !== 1
+          ),
+          creep => -(creep.ticksToLive || 0)
+        );
+        const keptLorryNames = _.map(desiredRoomLorries.slice(0, desiredLorries), creep => creep.name);
+        _.forEach(_.filter(creepsInRoom, creep =>
+          creep.memory.role === 'lorry' &&
+          creep.memory.to_recycle !== 1 &&
+          !_.includes(keptLorryNames, creep.name)
+        ), creep => {
+          creep.memory.to_recycle = 1;
+        });
+      }
       spawn.memory.minBuilders = 0;
       spawn.memory.minUpgraders = requiredUpgraders;
       spawn.memory.maxBuilders = 1;
@@ -107,37 +173,39 @@ module.exports = {
 
       if (!keptBuilderName &&
           spawn.name === builderOverride.spawnName &&
-          !spawn.spawning &&
-          spawn.room.energyAvailable >= BODYPART_COST[WORK] * _.filter(builderOverride.body, part => part === WORK).length +
-                                      BODYPART_COST[CARRY] * _.filter(builderOverride.body, part => part === CARRY).length +
-                                      BODYPART_COST[MOVE] * _.filter(builderOverride.body, part => part === MOVE).length) {
-        const name = 'StaticBuilder-' + room.name + '-' + Game.time;
-        const result = spawn.spawnCreep(builderOverride.body, name, {
-          memory: { role: 'builder', working: false, maxed: false },
-          directions: builderOverride.directions
-        });
-        if (result === OK) {
-          console.log(spawn.name + ' spawning room-specific builder for ' + room.name + ': ' + name);
-        } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
-          console.log('Error spawning room-specific builder in ', room, result);
+          !spawn.spawning) {
+        if (spawn.room.energyAvailable >= bodyEnergyCost(builderOverride.body)) {
+          const name = 'StaticBuilder-' + room.name + '-' + Game.time;
+          const result = spawn.spawnCreep(builderOverride.body, name, {
+            memory: { role: 'builder', working: false, maxed: false },
+            directions: builderOverride.directions
+          });
+          if (result === OK) {
+            console.log(spawn.name + ' spawning room-specific builder for ' + room.name + ': ' + name);
+          } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+            console.log('Error spawning room-specific builder in ', room, result);
+          }
         }
+        return;
       }
 
       if (upgraderOverride &&
           requiredUpgraders > desiredUpgraders.length &&
           spawn.name === builderOverride.spawnName &&
-          !spawn.spawning &&
-          spawn.room.energyAvailable >= bodyEnergyCost(upgraderOverride.body)) {
-        const upgraderName = 'StaticUpgrader-' + room.name + '-' + Game.time;
-        const upgraderResult = spawn.spawnCreep(upgraderOverride.body, upgraderName, {
-          memory: { role: 'upgrader', working: false, maxed: false },
-          directions: builderOverride.directions
-        });
-        if (upgraderResult === OK) {
-          console.log(spawn.name + ' spawning room-specific upgrader for ' + room.name + ': ' + upgraderName);
-        } else if (upgraderResult !== ERR_BUSY && upgraderResult !== ERR_NOT_ENOUGH_ENERGY) {
-          console.log('Error spawning room-specific upgrader in ', room, upgraderResult);
+          !spawn.spawning) {
+        if (spawn.room.energyAvailable >= bodyEnergyCost(upgraderOverride.body)) {
+          const upgraderName = 'StaticUpgrader-' + room.name + '-' + Game.time;
+          const upgraderResult = spawn.spawnCreep(upgraderOverride.body, upgraderName, {
+            memory: { role: 'upgrader', working: false, maxed: false },
+            directions: upgraderOverride.directions || builderOverride.directions
+          });
+          if (upgraderResult === OK) {
+            console.log(spawn.name + ' spawning room-specific upgrader for ' + room.name + ': ' + upgraderName);
+          } else if (upgraderResult !== ERR_BUSY && upgraderResult !== ERR_NOT_ENOUGH_ENERGY) {
+            console.log('Error spawning room-specific upgrader in ', room, upgraderResult);
+          }
         }
+        return;
       }
     }
 
@@ -319,7 +387,17 @@ module.exports = {
     var numberOfRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'repairer');
     var numberOfWallRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'wallRepairer');
     var numberOfMiners = 1;//_.sum(creepsInRoom, (c) => c.memory.role === 'miner' && !Game.getObjectById(c.memory.sourceId).mineralType);
-    var numberOfLorries = _.sum(creepsInRoom, (c) => c.memory.role === 'lorry');
+    const spawningCreepsInRoom = _.map(
+      _.filter(room.find(FIND_MY_SPAWNS), s => s.spawning && Game.creeps[s.spawning.name]),
+      s => Game.creeps[s.spawning.name]
+    );
+    var numberOfLorries = _.sum(creepsInRoom, (c) =>
+      c.memory.role === 'lorry' &&
+      (!logisticsOverride || isDesiredRoomLorry(c, logisticsOverride.body))
+    ) + _.sum(spawningCreepsInRoom, (c) =>
+      c.memory.role === 'lorry' &&
+      (!logisticsOverride || isDesiredRoomLorry(c, logisticsOverride.body))
+    );
 
     var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
     var name = '';
@@ -456,7 +534,9 @@ module.exports = {
 
       // if not enough lorries
       else if (numberOfLorries < (Memory.rooms[spawn.room.name].creep_limit.minLorries || 0)) {
-        if (energy > 899) {
+        if (logisticsOverride && logisticsOverride.lorryEnergy) {
+          energy = logisticsOverride.lorryEnergy;
+        } else if (energy > 899) {
           energy = 900;
           if (spawn.room.controller.level > 5) {
             energy = 1300;
@@ -528,7 +608,7 @@ module.exports = {
         }
       }
       // if not enough upgraders
-      else if (Memory.rooms[spawn.room.name] && Memory.rooms[spawn.room.name].creep_limit && Memory.rooms[spawn.room.name].creep_limit.minUpgraders && numberOfUpgraders < Memory.rooms[spawn.room.name].creep_limit.minUpgraders) {
+      else if (!upgraderOverride && Memory.rooms[spawn.room.name] && Memory.rooms[spawn.room.name].creep_limit && Memory.rooms[spawn.room.name].creep_limit.minUpgraders && numberOfUpgraders < Memory.rooms[spawn.room.name].creep_limit.minUpgraders) {
         name = spawn.createCustomCreep(energy, 'upgrader');
       }
       // if not enough repairers

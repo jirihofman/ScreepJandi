@@ -1,5 +1,14 @@
 var roleLorryMineral = require('role.lorry_mineral');
 
+const isStaticControllerWorker = function (creep) {
+  return creep.memory &&
+    (creep.memory.role === 'builder' || creep.memory.role === 'upgrader') &&
+    (creep.name.indexOf('StaticBuilder-' + creep.room.name + '-') === 0 ||
+      creep.name.indexOf('StaticUpgrader-' + creep.room.name + '-') === 0) &&
+    creep.carry[RESOURCE_ENERGY] < creep.carryCapacity &&
+    creep.pos.getRangeTo(creep.room.controller) <= 3;
+};
+
 module.exports = {
   // a function to run the logic for this role
   run: function (creep) {
@@ -45,6 +54,14 @@ module.exports = {
             (s.structureType === STRUCTURE_NUKER && s.energy < s.energyCapacity && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] > 50000)
           )
         }) //|| creep.pos.findClosestByPath(FIND_STRUCTURES, { filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] < 100 && !_.some(Game.creeps, c => c.memory.role === 'miner' && c.pos.isEqualTo(s.pos))) })
+
+        if (!structure) {
+          structure = creep.pos.findClosestByPath(FIND_MY_CREEPS, {
+            filter: (s) => isStaticControllerWorker(s) &&
+              creep.room.storage &&
+              creep.room.storage.store[RESOURCE_ENERGY] >= 300000
+          });
+        }
 
         if (!structure && creep.room.storage) {
           creep.say('to_storage');
