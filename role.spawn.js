@@ -56,7 +56,7 @@ const roomLogisticsOverrides = {
   },
   'W14N53': {
     baseMinLorries: 1,
-    highStorageMinLorries: 2,
+    highStorageMinLorries: 1,
     lorryEnergy: 750,
     body: [
       CARRY, CARRY, CARRY, CARRY, CARRY,
@@ -695,17 +695,22 @@ module.exports = {
     // print name to console if spawning was a success
     // name > 0 would not work since string > 0 returns false
     if (!(name < 0)) {
-      console.log(spawn.name + ' spawned new creep in ', spawn.room, ': ' + name + ' (' + Game.creeps[name].memory.role + ')');
-      if (!spawn.memory._spawned) {
-        spawn.memory._spawned = {};
-      }
-      if (spawn.memory._spawned[Game.creeps[name].memory.role]) {
-        spawn.memory._spawned[Game.creeps[name].memory.role]++;
+      const spawnedCreep = typeof name === 'string' ? Game.creeps[name] : null;
+      if (spawnedCreep && spawnedCreep.memory && spawnedCreep.memory.role) {
+        console.log(spawn.name + ' spawned new creep in ', spawn.room, ': ' + name + ' (' + spawnedCreep.memory.role + ')');
+        if (!spawn.memory._spawned) {
+          spawn.memory._spawned = {};
+        }
+        if (spawn.memory._spawned[spawnedCreep.memory.role]) {
+          spawn.memory._spawned[spawnedCreep.memory.role]++;
+        } else {
+          spawn.memory._spawned[spawnedCreep.memory.role] = 1;
+        }
+        if (spawnedCreep.memory.target) {
+          console.log(' -- target: ', spawnedCreep.memory.target);
+        }
       } else {
-        spawn.memory._spawned[Game.creeps[name].memory.role] = 1;
-      }
-      if (Game.creeps[name].memory.target) {
-        console.log(' -- target: ', Game.creeps[name].memory.target);
+        console.log(spawn.name + ' spawning attempt in ' + spawn.room + ': ' + name);
       }
       console.log('Harvesters    : ' + numberOfHarvesters);
       console.log('Upgraders     : ' + numberOfUpgraders);

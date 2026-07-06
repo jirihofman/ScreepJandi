@@ -8,6 +8,7 @@ const DEFAULT_HOST = 'screeps.com';
 const DEFAULT_SHARD = 'shard2';
 const DEFAULT_TIMEOUT = 15000;
 const MARKER = '__SCREEPJANDI_CONSOLE__';
+const REQUEST_ID = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 function readArg(name, fallback) {
   const index = process.argv.indexOf(`--${name}`);
@@ -79,7 +80,7 @@ async function main() {
   const shard = readArg('shard', process.env.SCREEPS_SHARD || DEFAULT_SHARD);
   const timeout = Number(readArg('timeout', process.env.SCREEPS_TIMEOUT || DEFAULT_TIMEOUT));
   const expression = buildExpression();
-  const wrappedExpression = `JSON.stringify({ marker: ${JSON.stringify(MARKER)}, value: (${expression}) })`;
+  const wrappedExpression = `JSON.stringify({ marker: ${JSON.stringify(MARKER)}, requestId: ${JSON.stringify(REQUEST_ID)}, value: (${expression}) })`;
 
   const api = new ScreepsAPI({
     token,
@@ -115,7 +116,7 @@ async function main() {
         continue;
       }
 
-      if (!parsed || parsed.marker !== MARKER) {
+      if (!parsed || parsed.marker !== MARKER || parsed.requestId !== REQUEST_ID) {
         continue;
       }
 

@@ -1,3 +1,4 @@
 random*
 node_modules/
 .env
+*.log
