@@ -22,6 +22,33 @@ module.exports = {
     }
     // if creep is on top of the container
     if (creep.pos.isEqualTo(container.pos)) {
+      if (source.mineralType) {
+        const mineralType = source.mineralType;
+        if ((creep.carry[mineralType] || 0) > 0) {
+          const t = creep.transfer(container, mineralType);
+          if (t === ERR_NOT_IN_RANGE) {
+            creep.moveTo(container);
+          } else if (t !== OK && t !== ERR_FULL) {
+            console.log('error while transferring mineral ', mineralType, ' to container ', container, ' in room ', creep.room, '. Details: ', t);
+          }
+          return;
+        }
+
+        let h = creep.harvest(source);
+        if (h === ERR_TIRED) {
+          creep.say('cooldown');
+        } else if (h === ERR_NOT_ENOUGH_RESOURCES) {
+          creep.say(source.ticksToRegeneration || 'empty');
+        } else if (h === ERR_FULL) {
+          const t = creep.transfer(container, mineralType);
+          if (t !== OK && t !== ERR_FULL) {
+            console.log('error while unloading full mineral miner ', creep, ' in room ', creep.room, '. Details: ', t);
+          }
+        } else if (h !== OK && h !== ERR_BUSY) {
+          console.log('error while harvesting mineral ', source, ' in room ', creep.room, '. Details: ', h);
+        }
+        return;
+      }
       // harvest source
       let h = creep.harvest(source);
       if (h === -11){

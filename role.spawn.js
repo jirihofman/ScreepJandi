@@ -78,6 +78,11 @@ const isDesiredRoomBuilder = function (creep, body) {
     counts[MOVE] === expected[MOVE];
 };
 
+const isStaticRoomBuilder = function (creep, roomName) {
+  return creep.memory.role === 'builder' &&
+    creep.name.indexOf('StaticBuilder-' + roomName + '-') === 0;
+};
+
 const isDesiredRoomUpgrader = function (creep, body) {
   const counts = bodyCounts(creep);
   const expected = _.countBy(body);
@@ -155,6 +160,23 @@ module.exports = {
         creep => -(creep.ticksToLive || 0)
       );
       const keptBuilderName = desiredBuilders[0] && desiredBuilders[0].name;
+      const staticBuilderSpawn = Game.spawns[builderOverride.spawnName];
+      const remoteConstructionSites = staticBuilderSpawn ? room.find(FIND_MY_CONSTRUCTION_SITES, {
+        filter: site => site.pos.getRangeTo(staticBuilderSpawn) > 3
+      }) : [];
+      const infrastructureBuilders = _.sortBy(
+        _.filter(creepsInRoom, creep =>
+          creep.memory.role === 'builder' &&
+          !isStaticRoomBuilder(creep, room.name) &&
+          creep.memory.to_recycle !== 1
+        ),
+        creep => -(creep.ticksToLive || 0)
+      );
+      const maxInfrastructureBuilders = remoteConstructionSites.length > 0 ? 2 : 0;
+      const keptInfrastructureBuilderNames = _.map(
+        infrastructureBuilders.slice(0, maxInfrastructureBuilders),
+        creep => creep.name
+      );
       const desiredUpgraders = upgraderOverride ? _.sortBy(
         _.filter(creepsInRoom, creep => isDesiredRoomUpgrader(creep, upgraderOverride.body) && creep.memory.to_recycle !== 1),
         creep => -(creep.ticksToLive || 0)
@@ -164,6 +186,7 @@ module.exports = {
         const extraWorkers = _.filter(creepsInRoom, creep =>
           (creep.memory.role === 'upgrader' || creep.memory.role === 'builder') &&
           creep.name !== keptBuilderName &&
+          !_.includes(keptInfrastructureBuilderNames, creep.name) &&
           !_.includes(keptUpgraderNames, creep.name)
         );
         _.forEach(extraWorkers, creep => {
@@ -184,6 +207,28 @@ module.exports = {
             console.log(spawn.name + ' spawning room-specific builder for ' + room.name + ': ' + name);
           } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
             console.log('Error spawning room-specific builder in ', room, result);
+          }
+        }
+        return;
+      }
+
+      if (remoteConstructionSites.length > 0 &&
+          infrastructureBuilders.length < maxInfrastructureBuilders &&
+          spawn.name === builderOverride.spawnName &&
+          !spawn.spawning) {
+        const builderEnergy = Math.min(spawn.room.energyAvailable, 3200);
+        if (builderEnergy >= 500) {
+          const result = spawn.createCustomCreep(builderEnergy, 'builder', {
+            role: 'builder',
+            working: false,
+            maxed: false,
+            no_renew: true,
+            infrastructure: true
+          });
+          if (_.isString(result)) {
+            console.log(spawn.name + ' spawning infrastructure builder for ' + room.name + ': ' + result);
+          } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+            console.log('Error spawning infrastructure builder in ', room, result);
           }
         }
         return;
