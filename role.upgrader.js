@@ -21,17 +21,34 @@ const findAdjacentStaticEnergy = function (creep) {
   })[0];
 };
 
+const shouldYieldRcl8UpgradeTick = function (creep) {
+  if (!creep.room.controller || creep.room.controller.level !== 8 || Game.time % 2 !== 0) {
+    return false;
+  }
+
+  return _.some(creep.room.find(FIND_MY_CREEPS), c =>
+    c.memory.role === 'builder' &&
+    c.name.indexOf('StaticBuilder-' + creep.room.name + '-') === 0 &&
+    c.carry.energy > 0 &&
+    c.pos.getRangeTo(creep.room.controller) <= 3
+  );
+};
+
 const runStaticUpgrader = function (creep, station) {
   if (creep.pos.getRangeTo(station) > 1 || creep.pos.getRangeTo(creep.room.controller) > 3) {
     creep.moveTo(station, { reusePath: 3, visualizePathStyle: { stroke: '#ffaa00' } });
-    creep.upgradeController(creep.room.controller);
-    creep.say('⚡ upgrade');
+    if (!shouldYieldRcl8UpgradeTick(creep)) {
+      creep.upgradeController(creep.room.controller);
+      creep.say('⚡ upgrade');
+    }
     return;
   }
 
-  if (creep.carry.energy > 0) {
+  if (creep.carry.energy > 0 && !shouldYieldRcl8UpgradeTick(creep)) {
     creep.upgradeController(creep.room.controller);
     creep.say('⚡ upgrade');
+  } else if (creep.carry.energy > 0) {
+    creep.say('↔ share');
   }
 
   if (creep.carry.energy < creep.carryCapacity) {
