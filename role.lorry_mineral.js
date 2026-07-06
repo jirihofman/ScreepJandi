@@ -16,6 +16,7 @@ module.exports = {
 
     const l_task = creep.memory._task;
     const l_task_timeout = 200;
+    const l_source_idle_timeout = 10;
     if (l_task) {
       if (!l_task.startTick) {
         l_task.startTick = Game.time;
@@ -31,6 +32,22 @@ module.exports = {
       return;
     }
     creep.say('[M]' + l_task.mineral_type);
+
+    const clearSourceIdle = function () {
+      delete l_task.sourceIdleSince;
+    };
+
+    const stopIfSourceIdleTooLong = function () {
+      if (!l_task.sourceIdleSince) {
+        l_task.sourceIdleSince = Game.time;
+      }
+      if (Game.time - l_task.sourceIdleSince >= (l_task.sourceIdleTimeout || l_source_idle_timeout)) {
+        console.log('Miner lorry source idle timeout, reverting to normal mode:', creep.name, l_task.mineral_type);
+        restoreTaskState(creep, l_task);
+        return true;
+      }
+      return false;
+    };
 
     // custom flow for terminal->storage moves (does withdraw before transfer cycle)
     if (l_task && l_task.mode === 'terminal_to_storage') {
@@ -152,22 +169,39 @@ module.exports = {
     else {
       // find closest container
       let container = Game.getObjectById(creep.memory._task.id_from);
-      let l_amount = creep.carryCapacity;
+      let l_amount = creep.carryCapacity - l_creep_carry;
       if (creep.memory._task && creep.memory._task.amount){
-          l_amount = creep.memory._task.amount;
+          l_amount = Math.min(creep.memory._task.amount, l_amount);
       }
 
       if (container) {
+        const l_available = container.store && (container.store[creep.memory._task.mineral_type] || 0);
+        if (l_available <= 0) {
+          stopIfSourceIdleTooLong();
+          return;
+        }
+        l_amount = Math.min(l_amount, l_available);
         // try to withdraw energy, if the container is not in range
         let w = creep.withdraw(container, creep.memory._task.mineral_type, l_amount);
         if (w === ERR_NOT_IN_RANGE) {
+          clearSourceIdle();
           // move towards it
           creep.moveTo(container);
         } else if (w === 0) {
+          clearSourceIdle();
           creep.say('👍');
+        } else if (w === ERR_NOT_ENOUGH_RESOURCES) {
+          if (l_creep_carry > 0) {
+            creep.memory.working = true;
+            clearSourceIdle();
+          } else {
+            stopIfSourceIdleTooLong();
+          }
         } else {
           console.log('Error mineral lorry: ', w, l_amount, creep.memory._task.mineral_type);
         }
+      } else {
+        restoreTaskState(creep, l_task);
       }
     }
   }
