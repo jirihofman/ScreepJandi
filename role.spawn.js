@@ -12,7 +12,8 @@ const roomBuilderOverrides = {
   'W14N53': {
 	    spawnName: 'Spawn55',
 	    body: [
-	      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+	      WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK,
+	      WORK, WORK, WORK, WORK, WORK,
 	      CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
 	      CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
 	      MOVE, MOVE, MOVE, MOVE, MOVE
@@ -41,9 +42,9 @@ const roomUpgraderOverrides = {
       CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
       MOVE, MOVE, MOVE, MOVE, MOVE
     ],
-    max: 1,
-    storageThreshold: 300000,
-    keepThreshold: 200000,
+    max: 0,
+    storageThreshold: Infinity,
+    keepThreshold: Infinity,
     directions: [BOTTOM_LEFT]
   }
 };
@@ -81,6 +82,11 @@ const isDesiredRoomBuilder = function (creep, body) {
 const isStaticRoomBuilder = function (creep, roomName) {
   return creep.memory.role === 'builder' &&
     creep.name.indexOf('StaticBuilder-' + roomName + '-') === 0;
+};
+
+const isStaticRoomUpgrader = function (creep, roomName) {
+  return creep.memory.role === 'upgrader' &&
+    creep.name.indexOf('StaticUpgrader-' + roomName + '-') === 0;
 };
 
 const isDesiredRoomUpgrader = function (creep, body) {
@@ -156,7 +162,11 @@ module.exports = {
       Memory.rooms[room.name].creep_limit.maxUpgraders = keptUpgraders;
 
       const desiredBuilders = _.sortBy(
-        _.filter(creepsInRoom, creep => isDesiredRoomBuilder(creep, builderOverride.body) && creep.memory.to_recycle !== 1),
+        _.filter(creepsInRoom, creep =>
+          isStaticRoomBuilder(creep, room.name) &&
+          isDesiredRoomBuilder(creep, builderOverride.body) &&
+          creep.memory.to_recycle !== 1
+        ),
         creep => -(creep.ticksToLive || 0)
       );
       const keptBuilderName = desiredBuilders[0] && desiredBuilders[0].name;
@@ -182,10 +192,19 @@ module.exports = {
         creep => -(creep.ticksToLive || 0)
       ) : [];
       const keptUpgraderNames = _.map(desiredUpgraders.slice(0, keptUpgraders), creep => creep.name);
+      _.forEach(_.filter(creepsInRoom, creep =>
+        (isStaticRoomBuilder(creep, room.name) || isStaticRoomUpgrader(creep, room.name)) &&
+        creep.name !== keptBuilderName
+      ), creep => {
+        creep.memory.to_recycle = 1;
+      });
+
       if (keptBuilderName) {
         const extraWorkers = _.filter(creepsInRoom, creep =>
           (creep.memory.role === 'upgrader' || creep.memory.role === 'builder') &&
           creep.name !== keptBuilderName &&
+          !isStaticRoomBuilder(creep, room.name) &&
+          !isStaticRoomUpgrader(creep, room.name) &&
           !_.includes(keptInfrastructureBuilderNames, creep.name) &&
           !_.includes(keptUpgraderNames, creep.name)
         );
