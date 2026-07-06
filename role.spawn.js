@@ -29,9 +29,9 @@ const roomUpgraderOverrides = {
       CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
       MOVE, MOVE, MOVE, MOVE, MOVE
     ],
-    max: 1,
-    storageThreshold: 300000,
-    keepThreshold: 200000,
+    max: 0,
+    storageThreshold: Infinity,
+    keepThreshold: Infinity,
     directions: [BOTTOM_RIGHT]
   },
   'W14N53': {
