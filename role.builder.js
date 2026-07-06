@@ -93,7 +93,10 @@ module.exports = {
       // find closest constructionSite. Non-roads, non-labs first
       var constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES, {
         filter: s => (s.structureType !== STRUCTURE_ROAD) && (s.structureType !== STRUCTURE_LAB) && (s.structureType !== STRUCTURE_TERMINAL)
-      }) || creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES/*, {filter: s => s.owner === creep.owner}*/);
+      }) || creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, {
+        filter: s => (s.structureType !== STRUCTURE_ROAD) && (s.structureType !== STRUCTURE_LAB) && (s.structureType !== STRUCTURE_TERMINAL)
+      }) || creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES/*, {filter: s => s.owner === creep.owner}*/)
+        || creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
       // if one is found
       if (constructionSite) {
         // try to build, if the constructionSite is not in range
