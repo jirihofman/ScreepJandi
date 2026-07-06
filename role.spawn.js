@@ -80,13 +80,11 @@ const isDesiredRoomBuilder = function (creep, body) {
 };
 
 const isStaticRoomBuilder = function (creep, roomName) {
-  return creep.memory.role === 'builder' &&
-    creep.name.indexOf('StaticBuilder-' + roomName + '-') === 0;
+  return creep.name.indexOf('StaticBuilder-' + roomName + '-') === 0;
 };
 
 const isStaticRoomUpgrader = function (creep, roomName) {
-  return creep.memory.role === 'upgrader' &&
-    creep.name.indexOf('StaticUpgrader-' + roomName + '-') === 0;
+  return creep.name.indexOf('StaticUpgrader-' + roomName + '-') === 0;
 };
 
 const isDesiredRoomUpgrader = function (creep, body) {
@@ -315,8 +313,11 @@ module.exports = {
         console.log('Repairer count: ', l_repairer_in_room);
         if (l_repairer_in_room === 0) {
           // no repairer in the room. try 1) change builder/upgrader, 2) spawn one
+          let l_preserve_builders = _.size(room.find(FIND_MY_CONSTRUCTION_SITES, {
+            filter: (s) => s.structureType !== STRUCTURE_ROAD
+          })) > 0;
           let l_upgraders_in_room = _.size(room.find(FIND_MY_CREEPS, { filter: (s) => s.memory.role === 'builder' }));
-          if (l_upgraders_in_room > 0) {
+          if (l_upgraders_in_room > 0 && !l_preserve_builders) {
             // 1)
             let l_repairer = room.find(FIND_MY_CREEPS, { filter: (s) => s.memory.role === 'builder' })[0];
             l_repairer.memory.role = 'repairer';
@@ -455,6 +456,25 @@ module.exports = {
       _.filter(room.find(FIND_MY_SPAWNS), s => s.spawning && Game.creeps[s.spawning.name]),
       s => Game.creeps[s.spawning.name]
     );
+    if (!Memory.rooms[room.name].miner_spawn_reservations) {
+      Memory.rooms[room.name].miner_spawn_reservations = {};
+    }
+    const minerSpawnReservations = Memory.rooms[room.name].miner_spawn_reservations;
+    _.forEach(minerSpawnReservations, (tick, sourceId) => {
+      if (Game.time - tick > 200 ||
+          _.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === sourceId && c.memory.to_recycle !== 1) ||
+          _.some(spawningCreepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === sourceId && c.memory.to_recycle !== 1)) {
+        delete minerSpawnReservations[sourceId];
+      }
+    });
+    const isMinerSpawnReserved = function (sourceId) {
+      return minerSpawnReservations[sourceId] && Game.time - minerSpawnReservations[sourceId] <= 200;
+    };
+    const reserveMinerSpawn = function (sourceId, result) {
+      if (_.isString(result)) {
+        minerSpawnReservations[sourceId] = Game.time;
+      }
+    };
     var numberOfLorries = _.sum(creepsInRoom, (c) =>
       c.memory.role === 'lorry' &&
       (!logisticsOverride || isDesiredRoomLorry(c, logisticsOverride.body))
@@ -523,11 +543,13 @@ module.exports = {
             // miners for the source with acceptable age (ie. the newly created one)
             if (l_source_needs_miner) {
               // or the spawning one
-              l_source_needs_miner = !(spawn.spawning && Game.creeps[spawn.spawning.name].memory.sourceId === source.id && Game.creeps[spawn.spawning.name].memory.role === 'miner');
+              l_source_needs_miner = !(spawn.spawning && Game.creeps[spawn.spawning.name].memory.sourceId === source.id && Game.creeps[spawn.spawning.name].memory.role === 'miner') &&
+                !isMinerSpawnReserved(source.id);
             }
 
             if (l_source_needs_miner) {
               name = spawn.createMiner(source.id);
+              reserveMinerSpawn(source.id, name);
               console.log('Need [' + spawn.name + '] to replace ' + l_miner + ' dying miner [' + l_miner.pos.x + ',' + l_miner.pos.y + ']. New miner\'s name is ' + name);
             }
           }
@@ -572,8 +594,9 @@ module.exports = {
 
         // Mineral extractors are cooldown-bound and have one useful container spot.
         // Do not pre-spawn a replacement while a mineral miner still exists.
-        if (mineralMiners.length === 0 && !spawningMineralMiner) {
+        if (mineralMiners.length === 0 && !spawningMineralMiner && !isMinerSpawnReserved(source.id)) {
           name = spawn.createMiner(source.id);
+          reserveMinerSpawn(source.id, name);
           console.log('Creating mineral miner the OLD way');
           if (name === -6) {
             name = null; // nejsou mineraly na minera, udelame harvestera
