@@ -388,10 +388,12 @@ module.exports = {
           let l_preserve_builders = _.size(room.find(FIND_MY_CONSTRUCTION_SITES, {
             filter: (s) => s.structureType !== STRUCTURE_ROAD
           })) > 0;
-          let l_upgraders_in_room = _.size(room.find(FIND_MY_CREEPS, { filter: (s) => s.memory.role === 'builder' }));
-          if (l_upgraders_in_room > 0 && !l_preserve_builders) {
+          let l_repairer_candidates = room.find(FIND_MY_CREEPS, {
+            filter: (s) => s.memory.role === 'builder' && !isStaticRoomBuilder(s, room.name)
+          });
+          if (l_repairer_candidates.length > 0 && !l_preserve_builders) {
             // 1)
-            let l_repairer = room.find(FIND_MY_CREEPS, { filter: (s) => s.memory.role === 'builder' })[0];
+            let l_repairer = l_repairer_candidates[0];
             l_repairer.memory.role = 'repairer';
             l_repairer.memory._rep_treshold_max = spawn.memory._rep_treshold_min + 0.1; // repair a bit more then spawn treshold
             console.log('Changed an upgrader to repairer. Set _rep_treshold_max: ', l_repairer.memory._rep_treshold_max);
