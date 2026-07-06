@@ -89,6 +89,10 @@ const isStaticRoomBuilder = function (creep, roomName) {
   return creep.name.indexOf('StaticBuilder-' + roomName + '-') === 0;
 };
 
+const isActiveCreep = function (creep) {
+  return !creep.spawning;
+};
+
 const isSpawningStaticRoomBuilder = function (spawn, roomName) {
   return spawn.spawning &&
     spawn.spawning.name &&
@@ -213,13 +217,24 @@ module.exports = {
       const desiredBuilders = _.sortBy(
         _.filter(creepsInRoom, creep =>
           isStaticRoomBuilder(creep, room.name) &&
-          isDesiredRoomBuilder(creep, builderOverride.body) &&
-          creep.memory.to_recycle !== 1
+          isDesiredRoomBuilder(creep, builderOverride.body)
         ),
         creep => -(creep.ticksToLive || 0)
       );
-      const keptBuilderName = desiredBuilders[0] && desiredBuilders[0].name;
+      const activeDesiredBuilders = _.filter(desiredBuilders, isActiveCreep);
+      const keptBuilder = activeDesiredBuilders[0] || desiredBuilders[0];
+      const keptBuilderName = keptBuilder && keptBuilder.name;
+      const hasActiveKeptBuilder = keptBuilder && isActiveCreep(keptBuilder);
+      if (keptBuilder && keptBuilder.memory.to_recycle === 1) {
+        delete keptBuilder.memory.to_recycle;
+      }
       const staticBuilderSpawning = _.some(Game.spawns, spawn => isSpawningStaticRoomBuilder(spawn, room.name));
+      if (staticBuilderSpawning) {
+        Memory.rooms[room.name].lastStaticBuilderSpawnTick = Game.time;
+      }
+      const staticBuilderSpawnWindow = bodyEnergyCost(builderOverride.body) > 0 ? builderOverride.body.length * 3 + 25 : 100;
+      const recentStaticBuilderSpawn = Memory.rooms[room.name].lastStaticBuilderSpawnTick &&
+        Game.time - Memory.rooms[room.name].lastStaticBuilderSpawnTick < staticBuilderSpawnWindow;
       const staticBuilderSpawn = Game.spawns[builderOverride.spawnName];
       const remoteConstructionSites = staticBuilderSpawn ? room.find(FIND_MY_CONSTRUCTION_SITES, {
         filter: site => site.pos.getRangeTo(staticBuilderSpawn) > 3
@@ -242,12 +257,14 @@ module.exports = {
         creep => -(creep.ticksToLive || 0)
       ) : [];
       const keptUpgraderNames = _.map(desiredUpgraders.slice(0, keptUpgraders), creep => creep.name);
-      _.forEach(_.filter(creepsInRoom, creep =>
-        (isStaticRoomBuilder(creep, room.name) || isStaticRoomUpgrader(creep, room.name)) &&
-        creep.name !== keptBuilderName
-      ), creep => {
-        creep.memory.to_recycle = 1;
-      });
+      if (hasActiveKeptBuilder && !staticBuilderSpawning) {
+        _.forEach(_.filter(creepsInRoom, creep =>
+          (isStaticRoomBuilder(creep, room.name) || isStaticRoomUpgrader(creep, room.name)) &&
+          creep.name !== keptBuilderName
+        ), creep => {
+          creep.memory.to_recycle = 1;
+        });
+      }
 
       if (keptBuilderName) {
         const extraWorkers = _.filter(creepsInRoom, creep =>
@@ -265,6 +282,7 @@ module.exports = {
 
       if (!keptBuilderName &&
           !staticBuilderSpawning &&
+          !recentStaticBuilderSpawn &&
           spawn.name === builderOverride.spawnName &&
           !spawn.spawning) {
         if (spawn.room.energyAvailable >= bodyEnergyCost(builderOverride.body)) {
@@ -274,6 +292,7 @@ module.exports = {
             directions: builderOverride.directions
           });
           if (result === OK) {
+            Memory.rooms[room.name].lastStaticBuilderSpawnTick = Game.time;
             console.log(spawn.name + ' spawning room-specific builder for ' + room.name + ': ' + name);
           } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
             console.log('Error spawning room-specific builder in ', room, result);
