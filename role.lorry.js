@@ -72,6 +72,7 @@ module.exports = {
   run: function (creep) {
 
     if (creep.memory.linkRelay) {
+      delete creep.memory._task;
       runLinkRelay(creep);
       return;
     }

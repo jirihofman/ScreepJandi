@@ -390,7 +390,7 @@ if (Game.time % 5 === 0) {
       if (_.size(r.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] >= l_container_threshold})) > 0){
         let budovy = r.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] >= l_container_threshold) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 1000)});
         let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
-        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
+        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry' && !c.memory.linkRelay}), l=>{
           l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: l_mineral_target.id, mineral_type: l_mineral}; l.memory.working=false;
         });
       } else if (false) { // TODO: unfake
