@@ -11,6 +11,16 @@ const isStaticRoomBuilder = function (creep) {
     creep.name.indexOf('StaticBuilder-' + creep.room.name + '-') === 0;
 };
 
+const findAdjacentStaticEnergy = function (creep) {
+  return creep.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => (
+      (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_TERMINAL) &&
+      s.store[RESOURCE_ENERGY] > 0
+    ) || (s.structureType === STRUCTURE_LINK && s.energy > 0) ||
+      (s.structureType === STRUCTURE_EXTENSION && creep.memory.ext && s.energy > 0)
+  })[0];
+};
+
 module.exports = {
   // a function to run the logic for this role
   run: function (creep) {
@@ -53,7 +63,7 @@ module.exports = {
     }
 
     if (staticSpawn) {
-      if (creep.memory.working === true) {
+      if (creep.carry.energy > 0) {
         var nearbyConstructionSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3, {
           filter: s => (s.structureType !== STRUCTURE_ROAD) && (s.structureType !== STRUCTURE_LAB) && (s.structureType !== STRUCTURE_TERMINAL)
         })[0] || creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3)[0];
@@ -64,16 +74,14 @@ module.exports = {
           creep.upgradeController(creep.room.controller);
           creep.say('⚡ upgrade');
         }
-      } else {
-        let adjacentEnergy = creep.pos.findInRange(FIND_STRUCTURES, 1, {
-          filter: s => (
-            (s.structureType === STRUCTURE_CONTAINER || s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_TERMINAL) &&
-            s.store[RESOURCE_ENERGY] > 0
-          ) || (s.structureType === STRUCTURE_LINK && s.energy > 0) ||
-            (s.structureType === STRUCTURE_EXTENSION && creep.memory.ext && s.energy > 0)
-        })[0];
+      }
+
+      if (creep.carry.energy < creep.carryCapacity) {
+        let adjacentEnergy = findAdjacentStaticEnergy(creep);
         if (adjacentEnergy) {
           creep.withdraw(adjacentEnergy, RESOURCE_ENERGY);
+        } else if (creep.carry.energy === 0) {
+          creep.say('🕓 energy');
         }
       }
       return;
