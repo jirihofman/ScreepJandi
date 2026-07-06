@@ -10,9 +10,8 @@ const isStaticControllerWorker = function (creep) {
 };
 
 const runLinkRelay = function (creep) {
-  const source = Game.getObjectById(creep.memory.linkRelaySourceId);
   const link = Game.getObjectById(creep.memory.linkRelayLinkId);
-  if (!source || !link) {
+  if (!link) {
     return;
   }
 
@@ -21,8 +20,25 @@ const runLinkRelay = function (creep) {
     return;
   }
 
-  if (link.energy < link.energyCapacity && source.energy > 0) {
-    creep.withdraw(source, RESOURCE_ENERGY);
+  if (link.energy >= link.energyCapacity) {
+    return;
+  }
+
+  const droppedEnergy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {
+    filter: r => r.resourceType === RESOURCE_ENERGY && r.amount > 0
+  })[0];
+  if (droppedEnergy) {
+    creep.pickup(droppedEnergy);
+    return;
+  }
+
+  const container = creep.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => s.structureType === STRUCTURE_CONTAINER &&
+      s.store &&
+      s.store[RESOURCE_ENERGY] > 0
+  })[0];
+  if (container) {
+    creep.withdraw(container, RESOURCE_ENERGY);
   }
 };
 

@@ -57,7 +57,6 @@ const roomLogisticsOverrides = {
       spawnName: 'Spawn1',
       body: [CARRY],
       directions: [TOP],
-      sourceId: '690e0919f9273257a6fa10ff',
       linkId: '6a2665b94350a7c7abc91fc2'
     }
   },
@@ -127,7 +126,6 @@ const isLinkRelayLorry = function (creep, linkRelay) {
   }
   return creep.memory.role === 'lorry' &&
     creep.memory.linkRelay === true &&
-    creep.memory.linkRelaySourceId === linkRelay.sourceId &&
     creep.memory.linkRelayLinkId === linkRelay.linkId;
 };
 
@@ -191,7 +189,6 @@ module.exports = {
               role: 'lorry',
               working: false,
               linkRelay: true,
-              linkRelaySourceId: logisticsOverride.linkRelay.sourceId,
               linkRelayLinkId: logisticsOverride.linkRelay.linkId
             },
             directions: logisticsOverride.linkRelay.directions
