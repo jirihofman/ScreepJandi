@@ -1,5 +1,15 @@
 var roleLorryMineral = require('role.lorry_mineral');
 
+const freeLorryEnergyLinks = {
+  '69134db5fa39d052668f3ab4': true
+};
+
+const isFreeLorryEnergyLink = function (structure) {
+  return structure.structureType === STRUCTURE_LINK &&
+    freeLorryEnergyLinks[structure.id] &&
+    structure.energy > 0;
+};
+
 const isStaticControllerWorker = function (creep) {
   return creep.memory &&
     (creep.memory.role === 'builder' || creep.memory.role === 'upgrader') &&
@@ -165,14 +175,16 @@ module.exports = {
 
         // find closest container or LINK, with a lot of energy
         let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store && s.store[RESOURCE_ENERGY] > 1600)
+          filter: s => (s.structureType === STRUCTURE_CONTAINER && s.store && s.store[RESOURCE_ENERGY] > 1600) ||
+            isFreeLorryEnergyLink(s)
         });
 
         // find closest container or LINK
         if (!container) {
           container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: s => ((s.structureType === STRUCTURE_CONTAINER && s.store && s.store[RESOURCE_ENERGY] > 333)
-              || (s.structureType === STRUCTURE_TERMINAL && s.store && s.store[RESOURCE_ENERGY] > 11000))
+              || (s.structureType === STRUCTURE_TERMINAL && s.store && s.store[RESOURCE_ENERGY] > 11000)
+              || isFreeLorryEnergyLink(s))
           });
         }
         // find closest container or LINK
@@ -180,6 +192,7 @@ module.exports = {
           container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: s => ((s.structureType === STRUCTURE_CONTAINER && s.store && s.store[RESOURCE_ENERGY] > 1200)
               || (s.structureType === STRUCTURE_STORAGE && s.store && s.store[RESOURCE_ENERGY] > 100000)
+              || isFreeLorryEnergyLink(s)
               || _.some(Game.flags, c => c.color === COLOR_YELLOW && c.secondaryColor === COLOR_YELLOW && c.pos.isEqualTo(s.pos) && s.energy > creep.carryCapacity))
           });
         }
