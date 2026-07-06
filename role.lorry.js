@@ -49,6 +49,14 @@ const runLinkRelay = function (creep) {
     return;
   }
 
+  const tombstone = creep.pos.findInRange(FIND_TOMBSTONES, 1, {
+    filter: t => t.store && t.store[RESOURCE_ENERGY] > 0
+  })[0];
+  if (tombstone) {
+    creep.withdraw(tombstone, RESOURCE_ENERGY);
+    return;
+  }
+
   const container = creep.pos.findInRange(FIND_STRUCTURES, 1, {
     filter: s => s.structureType === STRUCTURE_CONTAINER &&
       s.store &&
