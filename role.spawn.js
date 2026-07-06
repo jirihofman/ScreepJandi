@@ -51,8 +51,15 @@ const roomUpgraderOverrides = {
 
 const roomLogisticsOverrides = {
   'W13N54': {
-    baseMinLorries: 2,
-    highStorageMinLorries: 2
+    baseMinLorries: 3,
+    highStorageMinLorries: 3,
+    linkRelay: {
+      spawnName: 'Spawn1',
+      body: [CARRY],
+      directions: [TOP],
+      sourceId: '690e0919f9273257a6fa10ff',
+      linkId: '6a2665b94350a7c7abc91fc2'
+    }
   },
   'W14N53': {
     baseMinLorries: 1,
@@ -83,6 +90,12 @@ const isStaticRoomBuilder = function (creep, roomName) {
   return creep.name.indexOf('StaticBuilder-' + roomName + '-') === 0;
 };
 
+const isSpawningStaticRoomBuilder = function (spawn, roomName) {
+  return spawn.spawning &&
+    spawn.spawning.name &&
+    spawn.spawning.name.indexOf('StaticBuilder-' + roomName + '-') === 0;
+};
+
 const isStaticRoomUpgrader = function (creep, roomName) {
   return creep.name.indexOf('StaticUpgrader-' + roomName + '-') === 0;
 };
@@ -98,13 +111,24 @@ const isDesiredRoomUpgrader = function (creep, body) {
 
 const isDesiredRoomLorry = function (creep, body) {
   if (!body) {
-    return creep.memory.role === 'lorry';
+    return creep.memory.role === 'lorry' && !creep.memory.linkRelay;
   }
   const counts = bodyCounts(creep);
   const expected = _.countBy(body);
   return creep.memory.role === 'lorry' &&
+    !creep.memory.linkRelay &&
     counts[CARRY] === expected[CARRY] &&
     counts[MOVE] === expected[MOVE];
+};
+
+const isLinkRelayLorry = function (creep, linkRelay) {
+  if (!linkRelay) {
+    return false;
+  }
+  return creep.memory.role === 'lorry' &&
+    creep.memory.linkRelay === true &&
+    creep.memory.linkRelaySourceId === linkRelay.sourceId &&
+    creep.memory.linkRelayLinkId === linkRelay.linkId;
 };
 
 const bodyEnergyCost = function (body) {
@@ -144,11 +168,41 @@ module.exports = {
         const keptLorryNames = _.map(desiredRoomLorries.slice(0, desiredLorries), creep => creep.name);
         _.forEach(_.filter(creepsInRoom, creep =>
           creep.memory.role === 'lorry' &&
+          !creep.memory.linkRelay &&
           creep.memory.to_recycle !== 1 &&
           !_.includes(keptLorryNames, creep.name)
         ), creep => {
           creep.memory.to_recycle = 1;
         });
+
+        const linkRelayExists = logisticsOverride.linkRelay && _.some(Game.creeps, creep =>
+          isLinkRelayLorry(creep, logisticsOverride.linkRelay) &&
+          creep.room.name === room.name &&
+          creep.memory.to_recycle !== 1
+        );
+        if (logisticsOverride.linkRelay &&
+            !linkRelayExists &&
+            spawn.name === logisticsOverride.linkRelay.spawnName &&
+            !spawn.spawning &&
+            spawn.room.energyAvailable >= bodyEnergyCost(logisticsOverride.linkRelay.body)) {
+          const relayName = 'LinkRelay-' + room.name + '-' + Game.time;
+          const relayResult = spawn.spawnCreep(logisticsOverride.linkRelay.body, relayName, {
+            memory: {
+              role: 'lorry',
+              working: false,
+              linkRelay: true,
+              linkRelaySourceId: logisticsOverride.linkRelay.sourceId,
+              linkRelayLinkId: logisticsOverride.linkRelay.linkId
+            },
+            directions: logisticsOverride.linkRelay.directions
+          });
+          if (relayResult === OK) {
+            console.log(spawn.name + ' spawning link relay lorry for ' + room.name + ': ' + relayName);
+            return;
+          } else if (relayResult !== ERR_BUSY && relayResult !== ERR_NOT_ENOUGH_ENERGY) {
+            console.log('Error spawning link relay lorry in ', room, relayResult);
+          }
+        }
       }
       spawn.memory.minBuilders = 0;
       spawn.memory.minUpgraders = requiredUpgraders;
@@ -168,6 +222,7 @@ module.exports = {
         creep => -(creep.ticksToLive || 0)
       );
       const keptBuilderName = desiredBuilders[0] && desiredBuilders[0].name;
+      const staticBuilderSpawning = _.some(Game.spawns, spawn => isSpawningStaticRoomBuilder(spawn, room.name));
       const staticBuilderSpawn = Game.spawns[builderOverride.spawnName];
       const remoteConstructionSites = staticBuilderSpawn ? room.find(FIND_MY_CONSTRUCTION_SITES, {
         filter: site => site.pos.getRangeTo(staticBuilderSpawn) > 3
@@ -212,6 +267,7 @@ module.exports = {
       }
 
       if (!keptBuilderName &&
+          !staticBuilderSpawning &&
           spawn.name === builderOverride.spawnName &&
           !spawn.spawning) {
         if (spawn.room.energyAvailable >= bodyEnergyCost(builderOverride.body)) {

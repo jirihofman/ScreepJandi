@@ -23,6 +23,11 @@ var roomPlanner = require('room.planner');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
 
+const W13N54_LINK_RELAY = {
+  room: 'W13N54',
+  sourceLinkId: '6a2665b94350a7c7abc91fc2',
+  storageLinkId: '69134db5fa39d052668f3ab4'
+};
 
 module.exports.loop = function () {
   // console.log('loop start - tick ', Game.time);
@@ -116,6 +121,14 @@ if (Game.time % 5 === 0) {
 
   /* LINKS. TODO: every 11 ticks maybe enough */
   if (Game.time % 6 === 0){
+    const relaySource = Game.getObjectById(W13N54_LINK_RELAY.sourceLinkId);
+    const relayTarget = Game.getObjectById(W13N54_LINK_RELAY.storageLinkId);
+    if (relaySource && relayTarget && relaySource.energy > 0 && relayTarget.energy < relayTarget.energyCapacity) {
+      let r = relaySource.transferEnergy(relayTarget);
+      if (r !== 0 && r !== ERR_TIRED && r !== ERR_FULL) {
+        console.log('W13N54 relay link [error] ', relaySource, ' transfering', relaySource.energy, ' energy to ', relayTarget, r);
+      }
+    }
     _.each(Game.flags, (v, k)=>{
       let l_cpu_used = Game.cpu.getUsed();
       if(Game.flags[k].color===COLOR_YELLOW && Game.flags[k].secondaryColor===COLOR_RED){

@@ -9,9 +9,31 @@ const isStaticControllerWorker = function (creep) {
     creep.pos.getRangeTo(creep.room.controller) <= 3;
 };
 
+const runLinkRelay = function (creep) {
+  const source = Game.getObjectById(creep.memory.linkRelaySourceId);
+  const link = Game.getObjectById(creep.memory.linkRelayLinkId);
+  if (!source || !link) {
+    return;
+  }
+
+  if ((creep.carry[RESOURCE_ENERGY] || 0) > 0) {
+    creep.transfer(link, RESOURCE_ENERGY);
+    return;
+  }
+
+  if (link.energy < link.energyCapacity && source.energy > 0) {
+    creep.withdraw(source, RESOURCE_ENERGY);
+  }
+};
+
 module.exports = {
   // a function to run the logic for this role
   run: function (creep) {
+
+    if (creep.memory.linkRelay) {
+      runLinkRelay(creep);
+      return;
+    }
 
     if (creep.memory._task) {
       roleLorryMineral.run(creep);
