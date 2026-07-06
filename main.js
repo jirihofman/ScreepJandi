@@ -363,14 +363,19 @@ if (Game.time % 5 === 0) {
     if (Game.time % 400 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
 
       let l_mineral_source = r.find(FIND_MINERALS)[0];
-      let l_mineral_target = r.terminal || r.storage;
-      if (!l_mineral_source || !l_mineral_target) {
+      if (!l_mineral_source) {
         continue;
       }
       let l_mineral = l_mineral_source.mineralType;
+      let l_store_mineral_in_storage = r.name === 'W14N53' && l_mineral === RESOURCE_OXYGEN && r.storage;
+      let l_mineral_target = l_store_mineral_in_storage ? r.storage : (r.terminal || r.storage);
+      if (!l_mineral_target) {
+        continue;
+      }
+      let l_container_threshold = l_store_mineral_in_storage ? 1800 : 1000;
       //_.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(l_mineral);});
-      if (_.size(r.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000})) > 0){
-        let budovy = r.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] > 1000) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 1000)});
+      if (_.size(r.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] >= l_container_threshold})) > 0){
+        let budovy = r.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] >= l_container_threshold) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 1000)});
         let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
         _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{
           l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: l_mineral_target.id, mineral_type: l_mineral}; l.memory.working=false;
