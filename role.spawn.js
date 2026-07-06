@@ -342,11 +342,16 @@ module.exports = {
         }
       } else {
         if (spawn.memory.minRepairers === 1 && spawn.memory.minBuilders < 8) {
-          // the tick when the buildings are OK
-          spawn.memory.minBuilders++; // we change back the minUpgraders (builder behaves as upgrader when there are no buildings)
-          // change role of the repairer to builder
-          room.find(FIND_MY_CREEPS, { filter: (s) => s.memory.role === 'repairer' })[0].memory.role = 'builder';
-          console.log('changing repairer back to builder');
+          const repairer = room.find(FIND_MY_CREEPS, { filter: (s) => s.memory.role === 'repairer' })[0];
+          if (repairer) {
+            // the tick when the buildings are OK
+            spawn.memory.minBuilders++; // we change back the minUpgraders (builder behaves as upgrader when there are no buildings)
+            // change role of the repairer to builder
+            repairer.memory.role = 'builder';
+            console.log('changing repairer back to builder');
+          } else {
+            console.log('No repairer found in ', room, ' while clearing repairer request');
+          }
         }
         spawn.memory.minRepairers = 0; // we dont need repairers
       }
