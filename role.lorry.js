@@ -24,13 +24,20 @@ const runLinkRelay = function (creep) {
   if (!link) {
     return;
   }
+  const spawn = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
+    filter: s => s.structureType === STRUCTURE_SPAWN && s.energy < s.energyCapacity
+  })[0];
 
   if ((creep.carry[RESOURCE_ENERGY] || 0) > 0) {
+    if (spawn) {
+      creep.transfer(spawn, RESOURCE_ENERGY);
+      return;
+    }
     creep.transfer(link, RESOURCE_ENERGY);
     return;
   }
 
-  if (link.energy >= link.energyCapacity) {
+  if (!spawn && link.energy >= link.energyCapacity) {
     return;
   }
 
