@@ -244,7 +244,9 @@ module.exports = {
     const notUpgrading8 = roomUpgradeMode.isNotUpgrading8Room(room);
     if (notUpgrading8) {
       _.forEach(_.filter(creepsInRoom, creep =>
-        creep.memory.role === 'upgrader' &&
+        (isStaticRoomBuilder(creep, room.name) ||
+          isStaticRoomUpgrader(creep, room.name) ||
+          (creep.memory.role === 'upgrader' && !creep.memory.upgrade8Maintenance)) &&
         !creep.memory.upgrade8Maintenance &&
         creep.memory.to_recycle !== 1
       ), creep => {
@@ -321,6 +323,7 @@ module.exports = {
       Memory.rooms[room.name].creep_limit.maxBuilders = 1;
       Memory.rooms[room.name].creep_limit.maxUpgraders = keptUpgraders;
 
+      if (!notUpgrading8) {
       const desiredBuilders = _.sortBy(
         _.filter(creepsInRoom, creep =>
           isStaticRoomBuilder(creep, room.name) &&
@@ -447,6 +450,7 @@ module.exports = {
           }
         }
         return;
+      }
       }
     }
 
