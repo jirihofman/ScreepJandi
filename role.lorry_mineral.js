@@ -10,6 +10,9 @@ module.exports = {
           creep.memory.maxed = l_task.restoreMaxed;
         }
       }
+      if (creep.memory.mineralPickup) {
+        creep.memory.to_recycle = 1;
+      }
       delete creep.memory._task;
       return;
     };

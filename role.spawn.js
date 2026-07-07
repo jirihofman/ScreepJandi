@@ -113,6 +113,9 @@ const isDesiredRoomUpgrader = function (creep, body) {
 };
 
 const isDesiredRoomLorry = function (creep, body) {
+  if (creep.memory.mineralPickup) {
+    return false;
+  }
   if (!body) {
     return creep.memory.role === 'lorry' && !creep.memory.linkRelay;
   }
@@ -135,6 +138,92 @@ const isLinkRelayLorry = function (creep, linkRelay) {
 
 const bodyEnergyCost = function (body) {
   return _.sum(body, part => BODYPART_COST[part]);
+};
+
+const findExtractorStockpile = function (room) {
+  const mineral = room.find(FIND_MINERALS)[0];
+  if (!mineral || mineral.mineralAmount < 10) {
+    return null;
+  }
+
+  const container = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => s.structureType === STRUCTURE_CONTAINER &&
+      s.store &&
+      s.store[mineral.mineralType] > 0
+  })[0];
+  if (!container) {
+    return null;
+  }
+
+  const storeMineralInStorage = room.name === 'W14N53' &&
+    mineral.mineralType === RESOURCE_OXYGEN &&
+    room.storage;
+  const target = storeMineralInStorage ? room.storage : (room.terminal || room.storage);
+  if (!target) {
+    return null;
+  }
+
+  return { mineral: mineral, container: container, target: target };
+};
+
+const hasExtractorLorryOnWay = function (room, stockpile) {
+  return _.some(Game.creeps, creep => {
+    if (creep.memory.role !== 'lorry' || creep.memory.linkRelay || creep.memory.to_recycle === 1) {
+      return false;
+    }
+
+    const task = creep.memory._task;
+    if (task &&
+        task.id_from === stockpile.container.id &&
+        task.mineral_type === stockpile.mineral.mineralType) {
+      return true;
+    }
+
+    if ((creep.carry[stockpile.mineral.mineralType] || 0) > 0 &&
+        creep.room.name === room.name) {
+      return true;
+    }
+
+    return creep.room.name === room.name &&
+      !creep.memory.working &&
+      !task &&
+      _.sum(creep.carry) < creep.carryCapacity &&
+      creep.pos.getRangeTo(stockpile.container) <= 12;
+  });
+};
+
+const spawnExtractorPickupLorry = function (spawn, stockpile) {
+  if (spawn.spawning || spawn.room.energyAvailable < 200 || hasExtractorLorryOnWay(spawn.room, stockpile)) {
+    return false;
+  }
+
+  const name = 'MineralPickup-' + spawn.room.name + '-' + Game.time;
+  const result = spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY], name, {
+    memory: {
+      role: 'lorry',
+      working: false,
+      maxed: false,
+      mineralPickup: true,
+      no_renew: true,
+      _task: {
+        id_from: stockpile.container.id,
+        id_to: stockpile.target.id,
+        mineral_type: stockpile.mineral.mineralType,
+        restoreWorking: false,
+        restoreMaxed: false,
+        timeout: 300
+      }
+    }
+  });
+
+  if (result === OK) {
+    console.log(spawn.name + ' spawning extractor pickup lorry for ' + spawn.room.name + ': ' + name);
+    return true;
+  } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+    console.log('Error spawning extractor pickup lorry in ', spawn.room, result);
+  }
+
+  return false;
 };
 
 module.exports = {
@@ -171,6 +260,7 @@ module.exports = {
         _.forEach(_.filter(creepsInRoom, creep =>
           creep.memory.role === 'lorry' &&
           !creep.memory.linkRelay &&
+          !(creep.memory.mineralPickup && creep.memory._task) &&
           creep.memory.to_recycle !== 1 &&
           !_.includes(keptLorryNames, creep.name)
         ), creep => {
@@ -203,6 +293,11 @@ module.exports = {
           } else if (relayResult !== ERR_BUSY && relayResult !== ERR_NOT_ENOUGH_ENERGY) {
             console.log('Error spawning link relay lorry in ', room, relayResult);
           }
+        }
+
+        const extractorStockpile = findExtractorStockpile(room);
+        if (extractorStockpile && spawnExtractorPickupLorry(spawn, extractorStockpile)) {
+          return;
         }
       }
       spawn.memory.minBuilders = 0;
