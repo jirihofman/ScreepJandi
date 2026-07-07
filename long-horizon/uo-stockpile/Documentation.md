@@ -313,7 +313,7 @@ The controller is verified through oxygen staging/sending, W13 lab loading, and 
 
 ### Milestone 5: Monitor Until Complete Or Blocked
 
-Status: in progress. Last checkpoint 2026-07-07T23:41:32Z.
+Status: in progress. Last checkpoint 2026-07-07T23:43:49Z.
 
 The target is not complete yet. Current verified UO is in the product lab, not W13 storage/terminal:
 
@@ -361,6 +361,17 @@ tick 75686440: W14 storageO=3145, terminalO=500, cooldown=0, withTask=1
 ```
 
 The product lab increased from `85 UO` at tick `75686359` to `125 UO` at tick `75686434`. W13 now has most of the required oxygen staged, W14 still has oxygen available and an active lorry task, and the product lab remains below the `500 UO` drain threshold. No code change is needed from this checkpoint.
+
+Checkpoint at 2026-07-07T23:43:49Z:
+
+```text
+tick 75686464: live console heartbeat
+tick 75686466: product lab 140 UO, input labs 1970 U / 1980 O
+tick 75686468: W13 terminal U=17135, O=13365, UO=0
+tick 75686470: W14 storageO=1645, terminalO=500, cooldown=0, withTask=1
+```
+
+The product lab increased from `125 UO` at tick `75686434` to `140 UO` at tick `75686466`. W13 oxygen staging is nearly complete, W14 still has oxygen available and a lorry task active, and the product lab remains below the `500 UO` drain threshold. No code change is needed from this checkpoint.
 
 ### Milestone 6: Commit And Report
 
