@@ -313,7 +313,7 @@ The controller is verified through oxygen staging/sending, W13 lab loading, and 
 
 ### Milestone 5: Monitor Until Complete Or Blocked
 
-Status: in progress.
+Status: in progress. Last checkpoint 2026-07-07T23:34:15Z.
 
 The target is not complete yet. Current verified UO is in the product lab, not W13 storage/terminal:
 
@@ -324,6 +324,29 @@ tick 75686222 W13 storage+terminal UO = 0
 ```
 
 This is normal Screeps timing, not a code blocker. With `LAB_REACTION_AMOUNT = 5` and `REACTION_TIME[UO] = 10`, producing the full target requires thousands of reaction ticks. The controller will drain the product lab once it reaches the configured drain threshold or once stored plus lab/in-flight UO covers the target.
+
+Checkpoint at 2026-07-07T23:34:15Z:
+
+```text
+tick 75686285: live console heartbeat
+tick 75686288: product lab 50 UO, input labs 1950 U / 1950 O
+tick 75686291: W13 terminal U=17225, O=4955, UO=0
+tick 75686293: W14 storageO=10145, terminalO=500, cooldown=7
+tick 75686330: product lab 70 UO, input labs 1980 U / 1990 O
+```
+
+The product lab increased by `20 UO` over the checkpoint window. This proves the controller is still producing, topping up inputs, and has not stalled. W13 storage plus terminal UO is still `0`, so the target is not complete yet.
+
+Checkpoint at 2026-07-07T23:36:46Z:
+
+```text
+tick 75686356: live console heartbeat
+tick 75686359: product lab 85 UO, input labs 1980 U / 1985 O
+tick 75686361: W13 terminal U=17185, O=8430, UO=0
+tick 75686364: W14 storageO=6645, terminalO=500, cooldown=6
+```
+
+The product lab increased from `70 UO` at tick `75686330` to `85 UO` at tick `75686359`. W13 oxygen staging continued, and W14 still has oxygen available. No code change is needed from this checkpoint.
 
 ### Milestone 6: Commit And Report
 
