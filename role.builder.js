@@ -1,4 +1,5 @@
 var roleUpgrader = require('role.upgrader');
+var roomUpgradeMode = require('room.upgradeMode');
 
 const staticBuilderSpawns = {
   W13N54: 'Spawn11',
@@ -70,9 +71,11 @@ module.exports = {
         if (nearbyConstructionSite) {
           creep.build(nearbyConstructionSite);
           creep.say('🔨 build');
-        } else {
+        } else if (!roomUpgradeMode.isNotUpgrading8Room(creep.room)) {
           creep.upgradeController(creep.room.controller);
           creep.say('⚡ upgrade');
+        } else {
+          creep.say('pause rcl8');
         }
       }
 
@@ -109,6 +112,10 @@ module.exports = {
       }
       // if no constructionSite is found
       else {
+        if (roomUpgradeMode.isNotUpgrading8Room(creep.room)) {
+          creep.say('pause rcl8');
+          return;
+        }
         // go upgrading the controller
         roleUpgrader.run(creep);
         // if next to link or storage, withdraw energy

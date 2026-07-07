@@ -1,3 +1,5 @@
+const roomUpgradeMode = require('room.upgradeMode');
+
 const roomBuilderOverrides = {
   'W13N54': {
 	    spawnName: 'Spawn11',
@@ -239,10 +241,20 @@ module.exports = {
     const builderOverride = roomBuilderOverrides[room.name];
     const upgraderOverride = roomUpgraderOverrides[room.name];
     const logisticsOverride = roomLogisticsOverrides[room.name];
+    const notUpgrading8 = roomUpgradeMode.isNotUpgrading8Room(room);
+    if (notUpgrading8) {
+      _.forEach(_.filter(creepsInRoom, creep =>
+        creep.memory.role === 'upgrader' &&
+        !creep.memory.upgrade8Maintenance &&
+        creep.memory.to_recycle !== 1
+      ), creep => {
+        creep.memory.to_recycle = 1;
+      });
+    }
     if (builderOverride) {
       const storageEnergy = room.storage ? room.storage.store[RESOURCE_ENERGY] : 0;
-      const requiredUpgraders = upgraderOverride && storageEnergy >= (upgraderOverride.storageThreshold || 300000) ? upgraderOverride.max : 0;
-      const keptUpgraders = upgraderOverride && storageEnergy >= (upgraderOverride.keepThreshold || 200000) ? upgraderOverride.max : requiredUpgraders;
+      const requiredUpgraders = !notUpgrading8 && upgraderOverride && storageEnergy >= (upgraderOverride.storageThreshold || 300000) ? upgraderOverride.max : 0;
+      const keptUpgraders = !notUpgrading8 && upgraderOverride && storageEnergy >= (upgraderOverride.keepThreshold || 200000) ? upgraderOverride.max : requiredUpgraders;
       if (logisticsOverride) {
         const desiredLorries = storageEnergy >= 300000 ?
           logisticsOverride.highStorageMinLorries :
@@ -438,6 +450,30 @@ module.exports = {
       }
     }
 
+    if (roomUpgradeMode.shouldSpawnMaintenanceUpgrader(room) && !spawn.spawning) {
+      const maintenanceBody = roomUpgradeMode.maintenanceUpgraderBody;
+      if (spawn.room.energyAvailable >= bodyEnergyCost(maintenanceBody)) {
+        const maintenanceName = 'MaintenanceUpgrader-' + room.name + '-' + Game.time;
+        const maintenanceResult = spawn.spawnCreep(maintenanceBody, maintenanceName, {
+          memory: {
+            role: 'upgrader',
+            working: false,
+            maxed: false,
+            no_renew: true,
+            home: room.name,
+            upgrade8Maintenance: true
+          }
+        });
+        if (maintenanceResult === OK) {
+          roomUpgradeMode.recordMaintenanceUpgraderSpawn(room);
+          console.log(spawn.name + ' spawning not-upgrading-8 maintenance upgrader for ' + room.name + ': ' + maintenanceName);
+          return;
+        } else if (maintenanceResult !== ERR_BUSY && maintenanceResult !== ERR_NOT_ENOUGH_ENERGY) {
+          console.log('Error spawning not-upgrading-8 maintenance upgrader in ', room, maintenanceResult);
+        }
+      }
+    }
+
     /* LDH. Data from Memory.rooms.ROOM.ldh */
     if (Memory && Memory.rooms && Memory.rooms[room.name] && Memory.rooms[room.name].ldh) {
       _.forEach(Memory.rooms[room.name].ldh, (v, k) => {
@@ -561,7 +597,13 @@ module.exports = {
 
     const rolesToRenew = ['longDistanceHarvester', 'longDistanceWorker', 'builder', 'miner', 'harvester', 'upgrader', 'lorry', 'attacker'];
     let _renewTarget = spawn.pos.findClosestByRange(FIND_MY_CREEPS, {
-      filter: s => s.memory && rolesToRenew.includes(s.memory.role) && s.ticksToLive > 100 && s.ticksToLive < 1400 && !s.memory.no_renew && s.pos.isNearTo(spawn.pos)
+      filter: s => s.memory &&
+        rolesToRenew.includes(s.memory.role) &&
+        !(notUpgrading8 && s.memory.role === 'upgrader' && !s.memory.upgrade8Maintenance) &&
+        s.ticksToLive > 100 &&
+        s.ticksToLive < 1400 &&
+        !s.memory.no_renew &&
+        s.pos.isNearTo(spawn.pos)
     });
     if (_renewTarget) {
       let _r = spawn.renewCreep(_renewTarget);
@@ -864,7 +906,7 @@ module.exports = {
         }
       }
       // if not enough upgraders
-      else if (!upgraderOverride && Memory.rooms[spawn.room.name] && Memory.rooms[spawn.room.name].creep_limit && Memory.rooms[spawn.room.name].creep_limit.minUpgraders && numberOfUpgraders < Memory.rooms[spawn.room.name].creep_limit.minUpgraders) {
+      else if (!notUpgrading8 && !upgraderOverride && Memory.rooms[spawn.room.name] && Memory.rooms[spawn.room.name].creep_limit && Memory.rooms[spawn.room.name].creep_limit.minUpgraders && numberOfUpgraders < Memory.rooms[spawn.room.name].creep_limit.minUpgraders) {
         name = spawn.createCustomCreep(energy, 'upgrader');
       }
       // if not enough repairers

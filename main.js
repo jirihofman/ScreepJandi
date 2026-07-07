@@ -20,6 +20,7 @@ var roleScout = require('role.scout');
 var roleTower = require('role.tower');
 var roleClaimToBuild = require('role.claimToBuild');
 var roomPlanner = require('room.planner');
+var roomUpgradeMode = require('room.upgradeMode');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
 
@@ -487,7 +488,11 @@ if (Game.time % 5 === 0) {
       }
     }
     if (r.terminal && Game.time % 201 === 0){
+      roomUpgradeMode.createEnergySellOrder(r);
       for (var prop in r.terminal.store) {
+        if (roomUpgradeMode.isNotUpgrading8Room(r) && prop === RESOURCE_ENERGY) {
+          continue;
+        }
         if (r.terminal.store[prop] > 200000){
           console.log(`r.terminal.store.${prop} = ${r.terminal.store[prop]}`);
           // TODO find the right price for the mineral

@@ -1,11 +1,22 @@
+var roomUpgradeMode = require('room.upgradeMode');
+
 const staticUpgraderStations = {
   W13N54: { x: 35, y: 12 },
   W14N53: { x: 32, y: 18 }
 };
 
 const getStaticUpgraderStation = function (creep) {
-  const station = staticUpgraderStations[creep.room.name];
-  if (!station || creep.memory.role !== 'upgrader' || creep.name.indexOf('StaticUpgrader-' + creep.room.name + '-') !== 0) {
+  let station = staticUpgraderStations[creep.room.name];
+  if (!station &&
+      creep.memory.upgrade8Maintenance &&
+      Memory.rooms &&
+      Memory.rooms[creep.room.name] &&
+      Memory.rooms[creep.room.name].upgradeSpot) {
+    station = Memory.rooms[creep.room.name].upgradeSpot;
+  }
+  if (!station || creep.memory.role !== 'upgrader' ||
+      (creep.name.indexOf('StaticUpgrader-' + creep.room.name + '-') !== 0 &&
+        !creep.memory.upgrade8Maintenance)) {
     return null;
   }
   return new RoomPosition(station.x, station.y, creep.room.name);
@@ -64,6 +75,11 @@ const runStaticUpgrader = function (creep, station) {
 module.exports = {
     // a function to run the logic for this role
   run: function(creep) {
+    if (roomUpgradeMode.isNotUpgrading8Room(creep.room) && !creep.memory.upgrade8Maintenance) {
+      creep.say('pause rcl8');
+      return;
+    }
+
         // if creep is bringing energy to the controller but has no energy left
     if (creep.memory.working && creep.carry.energy === 0) {
             // switch state

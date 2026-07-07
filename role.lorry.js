@@ -1,4 +1,5 @@
 var roleLorryMineral = require('role.lorry_mineral');
+var roomUpgradeMode = require('room.upgradeMode');
 
 const freeLorryEnergyLinks = {
   '69134db5fa39d052668f3ab4': true
@@ -114,7 +115,7 @@ module.exports = {
           filter: (s) => (s.structureType === STRUCTURE_TOWER && s.energy < s.energyCapacity / 1.5)
         }) || creep.pos.findClosestByPath(FIND_MY_STRUCTURES, {
           filter: (s) => (
-            (s.structureType === STRUCTURE_TERMINAL && s.store && s.store[RESOURCE_ENERGY] < 10000) ||
+            (s.structureType === STRUCTURE_TERMINAL && s.store && s.store[RESOURCE_ENERGY] < roomUpgradeMode.getEnergySellTerminalTarget(creep.room)) ||
             (s.structureType === STRUCTURE_NUKER && s.energy < s.energyCapacity && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] > 50000)
           )
         }) //|| creep.pos.findClosestByPath(FIND_STRUCTURES, { filter: (s) => (s.structureType === STRUCTURE_CONTAINER && s.store[RESOURCE_ENERGY] < 100 && !_.some(Game.creeps, c => c.memory.role === 'miner' && c.pos.isEqualTo(s.pos))) })

@@ -25,6 +25,19 @@ nodemon --watch . --ext js --exec "cp -r ./*.js /Users/jirihofman/Library/Applic
 
 ## Memory play (WiP)
 
+### RCL 8 upgrade modes
+
+The global RCL 8 upgrade mode is controlled by `Memory.upgrade8Mode`.
+
+1. **upgrade-8** - default mode; keeps the current level 8 upgrade behavior.
+1. **not-upgrading-8** - pauses ordinary level 8 upgrader work, spawns one unrenewed maintenance upgrader about every 30000 ticks or sooner if downgrade gets close, and sells excess terminal energy.
+
+Example console switch:
+
+```js
+Memory.upgrade8Mode = 'not-upgrading-8'
+```
+
 ### Spawn
 
 1. **energy_deflator** - reduce the energy amount that is used for building creeps. Default 0.
