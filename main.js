@@ -30,6 +30,72 @@ const W13N54_LINK_RELAY = {
   storageLinkId: '69134db5fa39d052668f3ab4'
 };
 
+const UO_STOCKPILE = {
+  mainRoom: 'W13N54',
+  supportRoom: 'W14N53',
+  secondsPerTick: 3.0,
+  days: 3,
+  transferBatch: 500,
+  labLoadTarget: 2000,
+  labDrainThreshold: 500,
+  labs: {
+    product: '69150a6b19a68026a54e5c43',
+    utrium: '6923b9afffd2ab6bd3de6cd0',
+    oxygen: '6923ef5abb5c2575a38ade0c'
+  }
+};
+
+const getStoreAmount = function (structure, resourceType) {
+  if (!structure || !structure.store) {
+    return 0;
+  }
+  return structure.store[resourceType] || 0;
+};
+
+const getFreeStoreCapacity = function (structure, resourceType) {
+  if (!structure || !structure.store) {
+    return 0;
+  }
+  if (structure.store.getFreeCapacity) {
+    return structure.store.getFreeCapacity(resourceType) || 0;
+  }
+  if (structure.storeCapacity) {
+    return Math.max(0, structure.storeCapacity - _.sum(structure.store));
+  }
+  return 0;
+};
+
+const getLabAmount = function (lab, resourceType) {
+  if (!lab || lab.mineralType !== resourceType) {
+    return 0;
+  }
+  return lab.mineralAmount || 0;
+};
+
+const getLabFreeCapacity = function (lab, resourceType) {
+  if (!lab || (lab.mineralType && lab.mineralType !== resourceType)) {
+    return 0;
+  }
+  if (lab.store && lab.store.getFreeCapacity) {
+    return lab.store.getFreeCapacity(resourceType) || 0;
+  }
+  return Math.max(0, LAB_MINERAL_CAPACITY - (lab.mineralAmount || 0));
+};
+
+const getRoomStoredAmount = function (room, resourceType) {
+  if (!room) {
+    return 0;
+  }
+  return getStoreAmount(room.storage, resourceType) + getStoreAmount(room.terminal, resourceType);
+};
+
+const getRoomCarriedAmount = function (room, resourceType) {
+  if (!room) {
+    return 0;
+  }
+  return _.sum(room.find(FIND_MY_CREEPS), c => c.carry[resourceType] || 0);
+};
+
 const assignMineralLorryTask = function (room, source, target, mineralType) {
   const existingHaulers = room.find(FIND_MY_CREEPS, {
     filter: c => c.memory.role === 'lorry' &&
@@ -62,6 +128,245 @@ const assignMineralLorryTask = function (room, source, target, mineralType) {
     timeout: 120
   };
   availableLorry.memory.working = false;
+};
+
+const assignLorryTransferTask = function (room, source, target, mineralType, amount, timeout) {
+  if (!room || !source || !target || !mineralType || amount <= 0) {
+    return false;
+  }
+
+  const existingHaulers = room.find(FIND_MY_CREEPS, {
+    filter: c => c.memory.role === 'lorry' &&
+      !c.memory.linkRelay &&
+      c.memory._task &&
+      c.memory._task.id_from === source.id &&
+      c.memory._task.id_to === target.id &&
+      c.memory._task.mineral_type === mineralType
+  });
+  if (existingHaulers.length > 0) {
+    return true;
+  }
+
+  let availableLorry = _.sortBy(room.find(FIND_MY_CREEPS, {
+    filter: c => c.memory.role === 'lorry' &&
+      !c.memory.linkRelay &&
+      !c.memory.mineralPickup &&
+      c.memory.to_recycle !== 1 &&
+      !c.memory._task &&
+      !c.memory.working &&
+      _.sum(c.carry) === 0
+  }), c => c.pos.getRangeTo(source))[0];
+  if (!availableLorry && room.storage) {
+    availableLorry = _.sortBy(room.find(FIND_MY_CREEPS, {
+      filter: c => c.memory.role === 'lorry' &&
+        !c.memory.linkRelay &&
+        !c.memory.mineralPickup &&
+        c.memory.to_recycle !== 1 &&
+        !c.memory._task &&
+        _.sum(c.carry) > 0 &&
+        (c.carry[RESOURCE_ENERGY] || 0) === _.sum(c.carry)
+    }), c => c.pos.getRangeTo(source))[0];
+  }
+  if (!availableLorry) {
+    return false;
+  }
+
+  availableLorry.memory._task = {
+    id_from: source.id,
+    id_to: target.id,
+    mineral_type: mineralType,
+    amount: amount,
+    mode: 'terminal_to_storage',
+    once: true,
+    restoreWorking: availableLorry.memory.working,
+    restoreMaxed: availableLorry.memory.maxed,
+    timeout: timeout || 180
+  };
+  availableLorry.memory.working = false;
+  availableLorry.memory.maxed = false;
+  return true;
+};
+
+const getUoStockpileTarget = function () {
+  return Math.ceil(
+    (UO_STOCKPILE.days * 24 * 60 * 60 / UO_STOCKPILE.secondsPerTick) *
+    HARVEST_MINERAL_POWER /
+    EXTRACTOR_COOLDOWN
+  );
+};
+
+const findRoomResourceSource = function (room, resourceType) {
+  if (getStoreAmount(room.terminal, resourceType) > 0) {
+    return room.terminal;
+  }
+  if (getStoreAmount(room.storage, resourceType) > 0) {
+    return room.storage;
+  }
+  return null;
+};
+
+const drainLabToStockpile = function (room, lab, target, minAmount) {
+  if (!room || !lab || !target || !lab.mineralType || lab.mineralAmount <= 0 || lab.mineralAmount < minAmount) {
+    return false;
+  }
+  return assignLorryTransferTask(
+    room,
+    lab,
+    target,
+    lab.mineralType,
+    Math.min(UO_STOCKPILE.transferBatch, lab.mineralAmount),
+    220
+  );
+};
+
+const loadLabFromStockpile = function (room, lab, resourceType, maxUsefulAmount) {
+  if (!room || !lab || maxUsefulAmount <= 0) {
+    return false;
+  }
+  if (lab.mineralType && lab.mineralType !== resourceType) {
+    return false;
+  }
+
+  const current = getLabAmount(lab, resourceType);
+  if (current >= UO_STOCKPILE.labLoadTarget) {
+    return false;
+  }
+
+  const source = findRoomResourceSource(room, resourceType);
+  if (!source) {
+    return false;
+  }
+
+  const amount = Math.min(
+    UO_STOCKPILE.transferBatch,
+    UO_STOCKPILE.labLoadTarget - current,
+    maxUsefulAmount,
+    getLabFreeCapacity(lab, resourceType),
+    getStoreAmount(source, resourceType)
+  );
+  if (amount <= 0) {
+    return false;
+  }
+
+  return assignLorryTransferTask(room, source, lab, resourceType, amount, 220);
+};
+
+const getAffordableSendAmount = function (terminal, amount, destinationRoom) {
+  let sendAmount = amount;
+  while (sendAmount > 0 &&
+      Game.market.calcTransactionCost(sendAmount, terminal.room.name, destinationRoom) > getStoreAmount(terminal, RESOURCE_ENERGY)) {
+    sendAmount = Math.floor(sendAmount / 2);
+  }
+  return sendAmount;
+};
+
+const moveSupportOxygenToMain = function (supportRoom, mainRoom, amountNeeded) {
+  if (!supportRoom || !mainRoom || amountNeeded <= 0 || !supportRoom.terminal || !mainRoom.terminal) {
+    return;
+  }
+
+  let sentAmount = 0;
+  const supportTerminalO = getStoreAmount(supportRoom.terminal, RESOURCE_OXYGEN);
+  if (supportTerminalO > 0 && supportRoom.terminal.cooldown === 0) {
+    const mainTerminalFree = getFreeStoreCapacity(mainRoom.terminal, RESOURCE_OXYGEN);
+    let amount = Math.min(supportTerminalO, amountNeeded, mainTerminalFree);
+    amount = getAffordableSendAmount(supportRoom.terminal, amount, mainRoom.name);
+    if (amount > 0) {
+      const result = supportRoom.terminal.send(RESOURCE_OXYGEN, amount, mainRoom.name);
+      if (result === OK) {
+        sentAmount = amount;
+      } else if (result !== ERR_TIRED) {
+        console.log('UO stockpile oxygen send failed: ', result, amount);
+      }
+    }
+  }
+
+  const remainingNeed = Math.max(0, amountNeeded - sentAmount - getStoreAmount(supportRoom.terminal, RESOURCE_OXYGEN));
+  const amountToStage = Math.min(
+    UO_STOCKPILE.transferBatch,
+    remainingNeed,
+    getStoreAmount(supportRoom.storage, RESOURCE_OXYGEN),
+    getFreeStoreCapacity(supportRoom.terminal, RESOURCE_OXYGEN)
+  );
+  if (amountToStage > 0) {
+    assignLorryTransferTask(
+      supportRoom,
+      supportRoom.storage,
+      supportRoom.terminal,
+      RESOURCE_OXYGEN,
+      amountToStage,
+      220
+    );
+  }
+};
+
+const runUoStockpileController = function () {
+  const mainRoom = Game.rooms[UO_STOCKPILE.mainRoom];
+  const supportRoom = Game.rooms[UO_STOCKPILE.supportRoom];
+  if (!mainRoom || !supportRoom || !mainRoom.storage || !mainRoom.terminal) {
+    return;
+  }
+
+  const productLab = Game.getObjectById(UO_STOCKPILE.labs.product);
+  const utriumLab = Game.getObjectById(UO_STOCKPILE.labs.utrium);
+  const oxygenLab = Game.getObjectById(UO_STOCKPILE.labs.oxygen);
+  if (!productLab || !utriumLab || !oxygenLab) {
+    return;
+  }
+
+  const targetUo = getUoStockpileTarget();
+  const stockpileUo = getRoomStoredAmount(mainRoom, RESOURCE_UTRIUM_OXIDE);
+  const productLabUo = getLabAmount(productLab, RESOURCE_UTRIUM_OXIDE);
+  const carriedUo = getRoomCarriedAmount(mainRoom, RESOURCE_UTRIUM_OXIDE);
+  const targetStorage = mainRoom.storage || mainRoom.terminal;
+
+  if (utriumLab.mineralType && utriumLab.mineralType !== RESOURCE_UTRIUM) {
+    drainLabToStockpile(mainRoom, utriumLab, targetStorage, 1);
+    return;
+  }
+  if (oxygenLab.mineralType && oxygenLab.mineralType !== RESOURCE_OXYGEN) {
+    drainLabToStockpile(mainRoom, oxygenLab, targetStorage, 1);
+    return;
+  }
+  if (productLab.mineralType && productLab.mineralType !== RESOURCE_UTRIUM_OXIDE) {
+    drainLabToStockpile(mainRoom, productLab, targetStorage, 1);
+    return;
+  }
+
+  if (stockpileUo >= targetUo || stockpileUo + productLabUo + carriedUo >= targetUo) {
+    drainLabToStockpile(mainRoom, productLab, targetStorage, 1);
+    drainLabToStockpile(mainRoom, utriumLab, targetStorage, 1);
+    drainLabToStockpile(mainRoom, oxygenLab, targetStorage, 1);
+    return;
+  }
+
+  const mainOxygenAvailable = getRoomStoredAmount(mainRoom, RESOURCE_OXYGEN) +
+    getLabAmount(oxygenLab, RESOURCE_OXYGEN) +
+    getRoomCarriedAmount(mainRoom, RESOURCE_OXYGEN);
+  const oxygenNeeded = Math.max(0, targetUo - stockpileUo - productLabUo - carriedUo - mainOxygenAvailable);
+  moveSupportOxygenToMain(supportRoom, mainRoom, oxygenNeeded);
+
+  const remainingAfterProduct = Math.max(0, targetUo - stockpileUo - productLabUo - carriedUo);
+  loadLabFromStockpile(mainRoom, utriumLab, RESOURCE_UTRIUM, remainingAfterProduct);
+  loadLabFromStockpile(mainRoom, oxygenLab, RESOURCE_OXYGEN, remainingAfterProduct);
+
+  if (productLabUo >= UO_STOCKPILE.labDrainThreshold ||
+      getLabFreeCapacity(productLab, RESOURCE_UTRIUM_OXIDE) < LAB_REACTION_AMOUNT) {
+    drainLabToStockpile(mainRoom, productLab, targetStorage, UO_STOCKPILE.labDrainThreshold);
+  }
+
+  if (Game.time % REACTION_TIME[RESOURCE_UTRIUM_OXIDE] !== 0 ||
+      productLab.cooldown > 0 ||
+      getLabAmount(utriumLab, RESOURCE_UTRIUM) < LAB_REACTION_AMOUNT ||
+      getLabAmount(oxygenLab, RESOURCE_OXYGEN) < LAB_REACTION_AMOUNT ||
+      getLabFreeCapacity(productLab, RESOURCE_UTRIUM_OXIDE) < LAB_REACTION_AMOUNT) {
+    return;
+  }
+
+  const result = productLab.runReaction(utriumLab, oxygenLab);
+  if (result !== OK && result !== ERR_TIRED && result !== ERR_NOT_ENOUGH_RESOURCES && result !== ERR_FULL) {
+    console.log('UO stockpile reaction failed: ', result);
+  }
 };
 
 module.exports.loop = function () {
@@ -509,6 +814,10 @@ if (Game.time % 5 === 0) {
         }
       }
     }
+  }
+
+  if (Game.time % REACTION_TIME[RESOURCE_UTRIUM_OXIDE] === 0) {
+    runUoStockpileController();
   }
 
   /* LABS hardcoded */

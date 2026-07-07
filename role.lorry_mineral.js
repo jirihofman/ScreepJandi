@@ -57,6 +57,27 @@ module.exports = {
       if (!l_task.phase) {
         l_task.phase = 'withdraw';
       }
+      const carriedTaskMineral = creep.carry[l_task.mineral_type] || 0;
+      if (l_creep_carry > carriedTaskMineral) {
+        const offloadTarget = creep.room.storage || creep.room.terminal;
+        const nonTaskResource = _.findKey(creep.carry, (amount, resourceType) =>
+          amount > 0 && resourceType !== l_task.mineral_type
+        );
+        if (!offloadTarget || !nonTaskResource) {
+          restoreTaskState(creep, l_task);
+          return;
+        }
+        const t = creep.transfer(offloadTarget, nonTaskResource);
+        if (t === ERR_NOT_IN_RANGE) {
+          creep.moveTo(offloadTarget);
+        } else if (t === ERR_FULL) {
+          restoreTaskState(creep, l_task);
+        } else if (t !== OK) {
+          console.log('Miner lorry failed to offload non-task cargo:', creep.name, nonTaskResource, t);
+          restoreTaskState(creep, l_task);
+        }
+        return;
+      }
 
       if (l_task.phase === 'withdraw') {
         let container = Game.getObjectById(l_task.id_from);
@@ -64,6 +85,14 @@ module.exports = {
         const useExplicitAmount = !!l_task.amount;
         if (l_task.amount) {
           l_amount = Math.max(0, Math.min(l_task.amount - _.sum(creep.carry), l_amount));
+        }
+        if (l_amount <= 0) {
+          if (carriedTaskMineral > 0) {
+            l_task.phase = 'transfer';
+          } else {
+            restoreTaskState(creep, l_task);
+          }
+          return;
         }
 
         if (container) {
