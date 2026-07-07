@@ -29,6 +29,40 @@ const W13N54_LINK_RELAY = {
   storageLinkId: '69134db5fa39d052668f3ab4'
 };
 
+const assignMineralLorryTask = function (room, source, target, mineralType) {
+  const existingHaulers = room.find(FIND_MY_CREEPS, {
+    filter: c => c.memory.role === 'lorry' &&
+      !c.memory.linkRelay &&
+      c.memory._task &&
+      c.memory._task.id_from === source.id &&
+      c.memory._task.mineral_type === mineralType
+  });
+  if (existingHaulers.length > 0) {
+    return;
+  }
+
+  const availableLorry = _.sortBy(room.find(FIND_MY_CREEPS, {
+    filter: c => c.memory.role === 'lorry' &&
+      !c.memory.linkRelay &&
+      !c.memory._task &&
+      !c.memory.working &&
+      _.sum(c.carry) === 0
+  }), c => c.pos.getRangeTo(source))[0];
+  if (!availableLorry) {
+    return;
+  }
+
+  availableLorry.memory._task = {
+    id_from: source.id,
+    id_to: target.id,
+    mineral_type: mineralType,
+    restoreWorking: availableLorry.memory.working,
+    restoreMaxed: availableLorry.memory.maxed,
+    timeout: 120
+  };
+  availableLorry.memory.working = false;
+};
+
 module.exports.loop = function () {
   // console.log('loop start - tick ', Game.time);
 
@@ -389,10 +423,7 @@ if (Game.time % 5 === 0) {
       //_.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry'}), l=>{l.drop(l_mineral);});
       if (_.size(r.find(FIND_STRUCTURES, {filter: c=>c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] >= l_container_threshold})) > 0){
         let budovy = r.find(FIND_STRUCTURES, {filter: c=>(c.structureType===STRUCTURE_CONTAINER && c.store[l_mineral] >= l_container_threshold) || (c.structureType===STRUCTURE_LAB && c.mineralAmount > 1000)});
-        let idcko = budovy[0].id;// TODO: make it generic for this 1000 loop
-        _.each(r.find(FIND_MY_CREEPS, {filter: c=>c.memory.role==='lorry' && !c.memory.linkRelay}), l=>{
-          l.drop(RESOURCE_ENERGY); l.memory._task = {id_from: idcko, id_to: l_mineral_target.id, mineral_type: l_mineral}; l.memory.working=false;
-        });
+        assignMineralLorryTask(r, budovy[0], l_mineral_target, l_mineral);
       } else if (false) { // TODO: unfake
         /* muzu davat neco do laboratori? */
         if (r.terminal.store[RESOURCE_LEMERGIUM] > 99 && _.size(r.find(FIND_STRUCTURES, {filter: s=>s.structureType===STRUCTURE_LAB && (s.mineralType === RESOURCE_LEMERGIUM || s.id==='59c279de62e14971c6c026e9') && s.mineralAmount < 750*3}))){
