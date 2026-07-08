@@ -144,6 +144,160 @@ const bodyEnergyCost = function (body) {
 
 const extractorPickupMinAmount = 100;
 
+const W13_UTRIUM_OPERATION = {
+  roomName: 'W13N54',
+  mineralId: '59f1c0d77d0b3d79de5f0dc2',
+  supportSpawnPos: { x: 11, y: 17 },
+  minerBody: [
+    WORK, WORK, WORK, WORK, WORK,
+    WORK, WORK, WORK, WORK, WORK,
+    MOVE, MOVE, CARRY
+  ],
+  boostResource: RESOURCE_UTRIUM_OXIDE,
+  builderTarget: 3
+};
+
+const getW13UtriumOperationState = function (room) {
+  if (!room || room.name !== W13_UTRIUM_OPERATION.roomName) {
+    return null;
+  }
+
+  const mineral = Game.getObjectById(W13_UTRIUM_OPERATION.mineralId) || room.find(FIND_MINERALS)[0];
+  if (!mineral || mineral.mineralType !== RESOURCE_UTRIUM) {
+    return null;
+  }
+
+  const supportSpawn = room.lookForAt(
+    LOOK_STRUCTURES,
+    W13_UTRIUM_OPERATION.supportSpawnPos.x,
+    W13_UTRIUM_OPERATION.supportSpawnPos.y
+  ).filter(s => s.structureType === STRUCTURE_SPAWN && s.my)[0];
+  const supportSpawnSite = room.lookForAt(
+    LOOK_CONSTRUCTION_SITES,
+    W13_UTRIUM_OPERATION.supportSpawnPos.x,
+    W13_UTRIUM_OPERATION.supportSpawnPos.y
+  ).filter(s => s.structureType === STRUCTURE_SPAWN && s.my)[0];
+  const container = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => s.structureType === STRUCTURE_CONTAINER
+  })[0];
+  const link = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => s.structureType === STRUCTURE_LINK
+  })[0];
+  const boostLab = room.find(FIND_MY_STRUCTURES, {
+    filter: s => s.structureType === STRUCTURE_LAB &&
+      s.mineralType === W13_UTRIUM_OPERATION.boostResource &&
+      (s.store[W13_UTRIUM_OPERATION.boostResource] || 0) >= 10 * LAB_BOOST_MINERAL &&
+      (s.store[RESOURCE_ENERGY] || 0) >= 10 * LAB_BOOST_ENERGY
+  })[0];
+
+  return {
+    mineral: mineral,
+    supportSpawn: supportSpawn,
+    supportSpawnSite: supportSpawnSite,
+    container: container,
+    link: link,
+    boostLab: boostLab
+  };
+};
+
+const isW13UtriumMinerBody = function (creep) {
+  const counts = bodyCounts(creep);
+  return counts[WORK] === 10 &&
+    counts[MOVE] === 2 &&
+    counts[CARRY] === 1;
+};
+
+const isW13UtriumMiner = function (creep) {
+  return creep.memory.role === 'miner' &&
+    creep.memory.sourceId === W13_UTRIUM_OPERATION.mineralId;
+};
+
+const runW13UtriumOperation = function (spawn, creepsInRoom, spawningCreepsInRoom) {
+  const state = getW13UtriumOperationState(spawn.room);
+  if (!state) {
+    return false;
+  }
+
+  if (!Memory.rooms[spawn.room.name].w13UtriumOperation) {
+    Memory.rooms[spawn.room.name].w13UtriumOperation = {};
+  }
+  const operationMemory = Memory.rooms[spawn.room.name].w13UtriumOperation;
+
+  const miners = _.filter(creepsInRoom, isW13UtriumMiner);
+  const activeMiners = _.filter(miners, c => c.memory.to_recycle !== 1);
+  const desiredMiners = _.filter(activeMiners, c =>
+    c.memory.w13UtriumBoostedMiner === true &&
+    isW13UtriumMinerBody(c)
+  );
+  const spawningDesiredMiner = _.some(spawningCreepsInRoom, c =>
+    isW13UtriumMiner(c) &&
+    c.memory.w13UtriumBoostedMiner === true &&
+    isW13UtriumMinerBody(c)
+  );
+
+  if (state.mineral.mineralAmount < 10) {
+    operationMemory.done = true;
+    _.forEach(activeMiners, c => {
+      c.memory.to_recycle = 1;
+    });
+    return true;
+  }
+
+  if (operationMemory.done) {
+    _.forEach(activeMiners, c => {
+      c.memory.to_recycle = 1;
+    });
+    return true;
+  }
+
+  if (!state.container) {
+    ensureExtractorContainerSite(spawn.room, state.mineral);
+    return true;
+  }
+
+  if (!state.supportSpawn) {
+    return true;
+  }
+
+  _.forEach(_.filter(activeMiners, c => !_.includes(desiredMiners, c)), c => {
+    c.memory.to_recycle = 1;
+    console.log('Recycling non-special W13 utrium miner [' + c.name + '] before boosted operation takeover');
+  });
+
+  if (desiredMiners.length > 1) {
+    _.forEach(_.sortBy(desiredMiners, c => -(c.ticksToLive || 0)).slice(1), c => {
+      c.memory.to_recycle = 1;
+      console.log('Recycling duplicate boosted W13 utrium miner [' + c.name + ']');
+    });
+  }
+
+  if (desiredMiners.length === 0 &&
+      !spawningDesiredMiner &&
+      state.supportSpawn.id === spawn.id &&
+      !spawn.spawning &&
+      state.boostLab &&
+      spawn.room.energyAvailable >= bodyEnergyCost(W13_UTRIUM_OPERATION.minerBody)) {
+    const name = 'W13BoostedUtriumMiner-' + Game.time;
+    const result = spawn.spawnCreep(W13_UTRIUM_OPERATION.minerBody, name, {
+      memory: {
+        role: 'miner',
+        sourceId: state.mineral.id,
+        w13UtriumBoostedMiner: true,
+        boostResource: W13_UTRIUM_OPERATION.boostResource
+      },
+      directions: [TOP_RIGHT, RIGHT]
+    });
+    if (result === OK) {
+      console.log(spawn.name + ' spawning W13 boosted utrium miner: ' + name);
+    } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+      console.log('Error spawning W13 boosted utrium miner in ', spawn.room, result);
+    }
+    return true;
+  }
+
+  return true;
+};
+
 const ensureExtractorContainerSite = function (room, mineral) {
   const existingContainer = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
     filter: s => s.structureType === STRUCTURE_CONTAINER
@@ -301,6 +455,12 @@ module.exports = {
     const upgraderOverride = roomUpgraderOverrides[room.name];
     const logisticsOverride = roomLogisticsOverrides[room.name];
     const notUpgrading8 = roomUpgradeMode.isNotUpgrading8Room(room);
+    const w13UtriumState = getW13UtriumOperationState(room);
+    const w13OperationMemory = Memory.rooms[room.name].w13UtriumOperation || {};
+    const w13SupportSpawnNeedsBuild = w13UtriumState &&
+      w13UtriumState.supportSpawnSite &&
+      !w13UtriumState.supportSpawn &&
+      !w13OperationMemory.done;
     if (notUpgrading8) {
       _.forEach(_.filter(creepsInRoom, creep =>
         (isStaticRoomBuilder(creep, room.name) ||
@@ -382,8 +542,9 @@ module.exports = {
       Memory.rooms[room.name].creep_limit.maxBuilders = 1;
       Memory.rooms[room.name].creep_limit.maxUpgraders = keptUpgraders;
       if (notUpgrading8 && room.find(FIND_MY_CONSTRUCTION_SITES).length > 0) {
-        spawn.memory.minBuilders = 1;
-        Memory.rooms[room.name].creep_limit.minBuilders = 1;
+        const targetBuilders = w13SupportSpawnNeedsBuild ? W13_UTRIUM_OPERATION.builderTarget : 1;
+        spawn.memory.minBuilders = targetBuilders;
+        Memory.rooms[room.name].creep_limit.minBuilders = targetBuilders;
       }
 
       if (notUpgrading8 &&
@@ -394,7 +555,8 @@ module.exports = {
           creep.memory.role === 'builder' &&
           creep.memory.to_recycle !== 1
         );
-        if (builders.length < 1) {
+        const targetBuilders = w13SupportSpawnNeedsBuild ? W13_UTRIUM_OPERATION.builderTarget : 1;
+        if (builders.length < targetBuilders) {
           const builderEnergy = Math.min(spawn.room.energyAvailable, 3200);
           if (builderEnergy >= 500) {
             const result = spawn.createCustomCreep(builderEnergy, 'builder', {
@@ -448,7 +610,9 @@ module.exports = {
         ),
         creep => -(creep.ticksToLive || 0)
       );
-      const maxInfrastructureBuilders = remoteConstructionSites.length > 0 ? 2 : 0;
+      const maxInfrastructureBuilders = w13SupportSpawnNeedsBuild ?
+        W13_UTRIUM_OPERATION.builderTarget :
+        (remoteConstructionSites.length > 0 ? 2 : 0);
       const keptInfrastructureBuilderNames = _.map(
         infrastructureBuilders.slice(0, maxInfrastructureBuilders),
         creep => creep.name
@@ -869,10 +1033,14 @@ module.exports = {
 
       /* LOOP MIONERAL MINERS */
       // check if all sources have miners
+      const handledW13UtriumOperation = runW13UtriumOperation(spawn, creepsInRoom, spawningCreepsInRoom);
 
       let minerals = spawn.room.find(FIND_MINERALS);
       // iterate over all sources
       for (let source of minerals) {
+        if (handledW13UtriumOperation && source.id === W13_UTRIUM_OPERATION.mineralId) {
+          continue;
+        }
         if (source.mineralAmount < 10) {
           break; // donw want to build miners where there are almost no minerals
         }
