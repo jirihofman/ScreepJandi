@@ -154,7 +154,7 @@ const W13_UTRIUM_OPERATION = {
     MOVE, MOVE, CARRY
   ],
   boostResource: RESOURCE_UTRIUM_OXIDE,
-  builderTarget: 3
+  builderTarget: 5
 };
 
 const getW13UtriumOperationState = function (room) {
@@ -528,7 +528,7 @@ module.exports = {
           }
         }
 
-        const extractorStockpile = findExtractorStockpile(room);
+        const extractorStockpile = w13SupportSpawnNeedsBuild ? null : findExtractorStockpile(room);
         if (extractorStockpile && spawnExtractorPickupLorry(spawn, extractorStockpile)) {
           return;
         }
