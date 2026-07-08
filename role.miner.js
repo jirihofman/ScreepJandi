@@ -10,6 +10,10 @@ module.exports = {
       filter: s => s.structureType === STRUCTURE_CONTAINER
     })[0];
     if (!container) {
+      if (source.mineralType) {
+        creep.say('no cont');
+        return;
+      }
       // Try harvesting
       let h = creep.harvest(source);
       // if not close enough, move to source

@@ -142,6 +142,65 @@ const bodyEnergyCost = function (body) {
   return _.sum(body, part => BODYPART_COST[part]);
 };
 
+const extractorPickupMinAmount = 100;
+
+const ensureExtractorContainerSite = function (room, mineral) {
+  const existingContainer = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => s.structureType === STRUCTURE_CONTAINER
+  })[0];
+  if (existingContainer) {
+    return false;
+  }
+
+  const existingSite = mineral.pos.findInRange(FIND_MY_CONSTRUCTION_SITES, 1, {
+    filter: s => s.structureType === STRUCTURE_CONTAINER
+  })[0];
+  if (existingSite) {
+    return false;
+  }
+
+  const terrain = room.getTerrain();
+  const anchors = _.filter([room.storage].concat(room.find(FIND_MY_SPAWNS)), Boolean);
+  const positions = [];
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      if (dx === 0 && dy === 0) {
+        continue;
+      }
+      const x = mineral.pos.x + dx;
+      const y = mineral.pos.y + dy;
+      if (x <= 0 || x >= 49 || y <= 0 || y >= 49 || terrain.get(x, y) === TERRAIN_MASK_WALL) {
+        continue;
+      }
+      const pos = new RoomPosition(x, y, room.name);
+      const blockingStructure = pos.lookFor(LOOK_STRUCTURES).some(s =>
+        s.structureType !== STRUCTURE_ROAD &&
+        s.structureType !== STRUCTURE_RAMPART
+      );
+      if (blockingStructure || pos.lookFor(LOOK_CONSTRUCTION_SITES).length > 0) {
+        continue;
+      }
+      const anchorRange = anchors.length > 0 ? _.min(anchors, a => pos.getRangeTo(a)).pos.getRangeTo(pos) : 0;
+      positions.push({ pos: pos, anchorRange: anchorRange });
+    }
+  }
+
+  const ordered = _.sortBy(positions, p => p.anchorRange);
+  for (let i = 0; i < ordered.length; i++) {
+    const result = ordered[i].pos.createConstructionSite(STRUCTURE_CONTAINER);
+    if (result === OK) {
+      console.log('Created extractor container site in ', room.name, ' at ', ordered[i].pos.x, ordered[i].pos.y);
+      return true;
+    }
+    if (result === ERR_FULL) {
+      return false;
+    }
+  }
+
+  console.log('Could not place extractor container site in ', room.name, ' for mineral ', mineral.id);
+  return false;
+};
+
 const findExtractorStockpile = function (room) {
   const mineral = room.find(FIND_MINERALS)[0];
   if (!mineral || mineral.mineralAmount < 10) {
@@ -151,7 +210,7 @@ const findExtractorStockpile = function (room) {
   const container = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
     filter: s => s.structureType === STRUCTURE_CONTAINER &&
       s.store &&
-      s.store[mineral.mineralType] > 0
+      s.store[mineral.mineralType] >= extractorPickupMinAmount
   })[0];
   if (!container) {
     return null;
@@ -322,6 +381,38 @@ module.exports = {
       Memory.rooms[room.name].creep_limit.minUpgraders = requiredUpgraders;
       Memory.rooms[room.name].creep_limit.maxBuilders = 1;
       Memory.rooms[room.name].creep_limit.maxUpgraders = keptUpgraders;
+      if (notUpgrading8 && room.find(FIND_MY_CONSTRUCTION_SITES).length > 0) {
+        spawn.memory.minBuilders = 1;
+        Memory.rooms[room.name].creep_limit.minBuilders = 1;
+      }
+
+      if (notUpgrading8 &&
+          room.find(FIND_MY_CONSTRUCTION_SITES).length > 0 &&
+          spawn.name === builderOverride.spawnName &&
+          !spawn.spawning) {
+        const builders = _.filter(creepsInRoom, creep =>
+          creep.memory.role === 'builder' &&
+          creep.memory.to_recycle !== 1
+        );
+        if (builders.length < 1) {
+          const builderEnergy = Math.min(spawn.room.energyAvailable, 3200);
+          if (builderEnergy >= 500) {
+            const result = spawn.createCustomCreep(builderEnergy, 'builder', {
+              role: 'builder',
+              working: false,
+              maxed: false,
+              no_renew: true,
+              infrastructure: true
+            });
+            if (_.isString(result)) {
+              console.log(spawn.name + ' spawning not-upgrading infrastructure builder for ' + room.name + ': ' + result);
+              return;
+            } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+              console.log('Error spawning not-upgrading infrastructure builder in ', room, result);
+            }
+          }
+        }
+      }
 
       if (!notUpgrading8) {
       const desiredBuilders = _.sortBy(
@@ -790,6 +881,7 @@ module.exports = {
           filter: s => s.structureType === STRUCTURE_CONTAINER
         });
         if (containers.length === 0) {
+          ensureExtractorContainerSite(spawn.room, source);
           continue;
         }
 
