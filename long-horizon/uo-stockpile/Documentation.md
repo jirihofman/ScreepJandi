@@ -313,7 +313,7 @@ The controller is verified through oxygen staging/sending, W13 lab loading, and 
 
 ### Milestone 5: Monitor Until Complete Or Blocked
 
-Status: in progress. Last checkpoint 2026-07-07T23:43:49Z.
+Status: in progress. Last checkpoint 2026-07-08T00:37:59Z.
 
 The target is not complete yet. Current verified UO is in the product lab, not W13 storage/terminal:
 
@@ -372,6 +372,29 @@ tick 75686470: W14 storageO=1645, terminalO=500, cooldown=0, withTask=1
 ```
 
 The product lab increased from `125 UO` at tick `75686434` to `140 UO` at tick `75686466`. W13 oxygen staging is nearly complete, W14 still has oxygen available and a lorry task active, and the product lab remains below the `500 UO` drain threshold. No code change is needed from this checkpoint.
+
+Checkpoint at 2026-07-08T00:37:59Z:
+
+```text
+tick 75686493: live console heartbeat
+tick 75686495: product lab 155 UO, input labs 1985 U / 1980 O
+tick 75686497: W13 terminal U=17110, O=14635, UO=0
+tick 75686500: W14 storageO=645, terminalO=220, cooldown=0, withTask=1
+tick 75686504: W14 mineral O amount=17040
+tick 75686510: no creep currently targeting W14 mineral id 59f1c0d67d0b3d79de5f0d78
+tick 75686675: product lab 245 UO, input labs 1980 U / 1985 O
+tick 75686679: W13 terminal U=17025, O=15050, UO=0
+tick 75686682: W14 storageO=365, terminalO=0, cooldown=0, withTask=0
+tick 75687129: product lab 470 UO, input labs 1985 U / 1975 O
+tick 75687205: product lab 510 UO, input labs 1970 U / 1980 O
+tick 75687234: W13 lorries total=4, withTask=2, carryingUO=0, idleEmpty=1
+tick 75687237: visible W13 task was an O top-up task; drain task was not visible in that narrow sample
+tick 75687271: product lab drained to 45 UO, input labs 1980 U / 1975 O
+tick 75687274: W13 storage UO=500, terminal U=16735, O=14750, UO=0
+tick 75687277: W14 storageO=365, terminalO=0, cooldown=0, withTask=0
+```
+
+The first product-drain cycle is verified. The product lab crossed the `500 UO` drain threshold, then W13 storage received `500 UO` and the product lab restarted production with `45 UO`. W14's pre-mined oxygen stock is nearly depleted, but W13 plus labs still hold enough staged oxygen for the current `17,280 UO` target; fresh W14 mineral oxygen remains available if the room resumes mineral mining. No code change was needed from this checkpoint.
 
 ### Milestone 6: Commit And Report
 
