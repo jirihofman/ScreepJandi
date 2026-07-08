@@ -313,7 +313,7 @@ The controller is verified through oxygen staging/sending, W13 lab loading, and 
 
 ### Milestone 5: Monitor Until Complete Or Blocked
 
-Status: in progress. Last checkpoint 2026-07-08T00:37:59Z.
+Status: in progress. Last checkpoint 2026-07-08T00:40:35Z.
 
 The target is not complete yet. Current verified UO is in the product lab, not W13 storage/terminal:
 
@@ -395,6 +395,17 @@ tick 75687277: W14 storageO=365, terminalO=0, cooldown=0, withTask=0
 ```
 
 The first product-drain cycle is verified. The product lab crossed the `500 UO` drain threshold, then W13 storage received `500 UO` and the product lab restarted production with `45 UO`. W14's pre-mined oxygen stock is nearly depleted, but W13 plus labs still hold enough staged oxygen for the current `17,280 UO` target; fresh W14 mineral oxygen remains available if the room resumes mineral mining. No code change was needed from this checkpoint.
+
+Checkpoint at 2026-07-08T00:40:35Z:
+
+```text
+tick 75687301: live console heartbeat
+tick 75687303: product lab 60 UO, input labs 1980 U / 1970 O
+tick 75687305: W13 storage UO=500, terminal U=16720, O=14730, UO=0
+tick 75687309: W14 storageO=365, terminalO=0, cooldown=0, withTask=0
+```
+
+The post-drain restart remains healthy: product lab increased from `45 UO` at tick `75687271` to `60 UO` at tick `75687303`, and W13 storage still holds the first `500 UO` batch. Current staged oxygen is tight but still sufficient for the configured target on live counts: W13 terminal `14730 O` plus input lab `1970 O` plus W14 storage `365 O` leaves enough oxygen to finish `17,280 UO` when combined with stored and in-lab UO. No code change is needed from this checkpoint.
 
 ### Milestone 6: Commit And Report
 
