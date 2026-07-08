@@ -313,7 +313,7 @@ The controller is verified through oxygen staging/sending, W13 lab loading, and 
 
 ### Milestone 5: Monitor Until Complete Or Blocked
 
-Status: in progress. Last checkpoint 2026-07-08T00:42:54Z.
+Status: in progress. Last checkpoint 2026-07-08T00:56:08Z.
 
 The target is not complete yet. Current verified UO is in the product lab, not W13 storage/terminal:
 
@@ -417,6 +417,21 @@ tick 75687347: W14 storageO=365, terminalO=0, cooldown=0, withTask=0
 ```
 
 Production is still advancing after the first drain cycle. Current verified UO is `580` total (`500` stored plus `80` in the product lab). Remaining target is `16,700 UO`; live oxygen available for that remaining production is `17,065 O` (`14,715` W13 terminal, `1,985` O input lab, `365` W14 storage). This still covers the configured target, but the margin is narrow and should be watched. No code change is needed from this checkpoint.
+
+Checkpoint at 2026-07-08T00:56:08Z:
+
+```text
+tick 75687372: live console heartbeat
+tick 75687375: product lab 95 UO, input labs 1975 U / 1980 O
+tick 75687378: W13 storage UO=500, terminal U=16675, O=14690, UO=0
+tick 75687381: W14 storageO=365, terminalO=0, cooldown=0, withTask=0
+tick 75687383: no creep currently targeting W14 mineral id 59f1c0d67d0b3d79de5f0d78
+tick 75687543: product lab 180 UO, input labs 1970 U / 1980 O
+tick 75687546: W13 storage UO=500, terminal U=16595, O=14610, UO=0
+tick 75687549: W14 storageO=365, terminalO=0, cooldown=0, withTask=0
+```
+
+Production advanced from `95 UO` to `180 UO` over the checkpoint window. Current verified UO is `680` total (`500` stored plus `180` in the product lab). Remaining target is `16,600 UO`; live oxygen available for that remaining production is `16,955 O` (`14,610` W13 terminal, `1,980` O input lab, `365` W14 storage), leaving about `355 O` margin. No code change is needed from this checkpoint, but oxygen margin remains narrow and W14 mineral mining is still not active.
 
 ### Milestone 6: Commit And Report
 
