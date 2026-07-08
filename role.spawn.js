@@ -861,6 +861,8 @@ module.exports = {
         !(notUpgrading8 && s.memory.role === 'upgrader' && !s.memory.upgrade8Maintenance) &&
         s.ticksToLive > 100 &&
         s.ticksToLive < 1400 &&
+        !s.memory.boostResource &&
+        !s.memory.w13UtriumBoostedMiner &&
         !s.memory.no_renew &&
         s.pos.isNearTo(spawn.pos)
     });

@@ -9,6 +9,23 @@ module.exports = {
       return;
     }
 
+    if (source && source.mineralType && (creep.carry[source.mineralType] || 0) > 0) {
+      const mineralContainer = source.pos.findInRange(FIND_STRUCTURES, 1, {
+        filter: s => s.structureType === STRUCTURE_CONTAINER
+      })[0];
+      if (mineralContainer) {
+        if (creep.pos.isEqualTo(mineralContainer.pos)) {
+          const transferResult = creep.transfer(mineralContainer, source.mineralType);
+          if (transferResult !== OK && transferResult !== ERR_FULL) {
+            console.log('error while unloading carried mineral before boost ', source.mineralType, ' in room ', creep.room, '. Details: ', transferResult);
+          }
+        } else {
+          creep.moveTo(mineralContainer, { reusePath: 10, visualizePathStyle: { stroke: '#ffaa00' } });
+        }
+        return;
+      }
+    }
+
     if (creep.memory.boostResource && source && source.mineralType) {
       const unboostedWorkParts = _.filter(creep.body, part => part.type === WORK && part.boost !== creep.memory.boostResource).length;
       if (unboostedWorkParts > 0) {
