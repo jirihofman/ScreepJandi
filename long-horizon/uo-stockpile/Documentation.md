@@ -548,6 +548,17 @@ tick 75693092: W14 storageO=365, terminalO=0, cooldown=0, withTask=0, carryingO=
 
 Production continued normally through the scheduled two-hour interval. W13 storage increased from `2500 UO` to `3000 UO`, and the product lab held another `450 UO` toward the next drain. Current verified UO is `3450` total (`3000` stored plus `450` in the product lab). Remaining target is `13,830 UO`; live oxygen available for that remaining production is `14,195 O` (`11,850` W13 terminal, `1,980` O input lab, `365` W14 storage), leaving about `365 O` margin. No code change is needed from this checkpoint.
 
+Checkpoint at 2026-07-08T07:16:58Z:
+
+```text
+tick 75693254: live console heartbeat after short drain wait
+tick 75693256: product lab 35 UO, input labs 1975 U / 1980 O
+tick 75693259: W13 storage UO=3500, terminal U=13735, O=11765, UO=0
+tick 75693263: W14 storageO=365, terminalO=0, cooldown=0, withTask=0, carryingO=0
+```
+
+The follow-up drain after the scheduled checkpoint is verified. W13 storage increased from `3000 UO` to `3500 UO`, and the product lab restarted at `35 UO`. Current verified UO is `3535` total (`3500` stored plus `35` in the product lab). Remaining target is `13,745 UO`; live oxygen available for that remaining production is `14,110 O` (`11,765` W13 terminal, `1,980` O input lab, `365` W14 storage), leaving about `365 O` margin. No code change is needed from this checkpoint.
+
 ### Milestone 6: Commit And Report
 
 Status: completed at 2026-07-07T23:28:26Z.
