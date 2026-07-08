@@ -479,6 +479,22 @@ tick 75687852: W14 storageO=365, terminalO=0, cooldown=0, withTask=0, carryingO=
 
 Production advanced from `245 UO` to `330 UO` in the product lab since the previous checkpoint. Current verified UO is `830` total (`500` stored plus `330` in the product lab). Remaining target is `16,450 UO`; live oxygen available for that remaining production is `16,815 O` (`14,470` W13 terminal, `1,980` O input lab, `365` W14 storage), leaving about `365 O` margin. Upload parity is still clean. No code change is needed from this checkpoint.
 
+Checkpoint at 2026-07-08T01:44:07Z:
+
+```text
+upload dry-run: Same: 27
+tick 75688158: live console heartbeat
+tick 75688160: product lab 485 UO, input labs 1980 U / 1975 O
+tick 75688162: W13 storage UO=500, terminal U=16280, O=14305, UO=0
+tick 75688164: W14 storageO=365, terminalO=0, cooldown=0, withTask=0, carryingO=0
+tick 75688241: live console heartbeat after short drain wait
+tick 75688243: product lab 30 UO, input labs 1980 U / 1975 O
+tick 75688245: W13 storage UO=1000, terminal U=16250, O=14260, UO=0
+tick 75688248: W14 storageO=365, terminalO=0, cooldown=0, withTask=0, carryingO=0
+```
+
+The second product-drain cycle is verified. The product lab reached the drain threshold after the near-threshold `485 UO` sample, then W13 storage increased from `500 UO` to `1000 UO` and the product lab restarted production at `30 UO`. Current verified UO is `1030` total (`1000` stored plus `30` in the product lab). Remaining target is `16,250 UO`; live oxygen available for that remaining production is `16,600 O` (`14,260` W13 terminal, `1,975` O input lab, `365` W14 storage), leaving about `350 O` margin. No code change is needed from this checkpoint.
+
 ### Milestone 6: Commit And Report
 
 Status: completed at 2026-07-07T23:28:26Z.
