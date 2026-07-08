@@ -511,6 +511,19 @@ tick 75689267: W14 storageO=365, terminalO=0, cooldown=0, withTask=0, carryingO=
 
 The third product-drain cycle is verified. W13 storage increased from `1000 UO` to `1500 UO`, and the product lab restarted at `40 UO`. Current verified UO is `1540` total (`1500` stored plus `40` in the product lab). Remaining target is `15,740 UO`; live oxygen available for that remaining production is `16,090 O` (`13,750` W13 terminal, `1,975` O input lab, `365` W14 storage), leaving about `350 O` margin. No code change is needed from this checkpoint.
 
+Checkpoint at 2026-07-08T04:52:18Z:
+
+```text
+upload dry-run: Same: 27
+worktree: role.spawn.js dirty, role.lorry.js dirty
+tick 75691083: live console heartbeat
+tick 75691085: product lab 450 UO, input labs 1980 U / 1970 O
+tick 75691088: W13 storage UO=2000, terminal U=14830, O=12840, UO=0
+tick 75691090: W14 storageO=365, terminalO=0, cooldown=0, withTask=0, carryingO=0
+```
+
+Production continued during the longer monitoring interval. W13 storage increased from `1500 UO` to `2000 UO`, and the product lab already held another `450 UO` toward the next drain. Current verified UO is `2450` total (`2000` stored plus `450` in the product lab). Remaining target is `14,830 UO`; live oxygen available for that remaining production is `15,175 O` (`12,840` W13 terminal, `1,970` O input lab, `365` W14 storage), leaving about `345 O` margin. Upload parity is still clean. The newly observed `role.lorry.js` dirty diff is limited to link-relay energy behavior and is not part of this UO checkpoint commit.
+
 ### Milestone 6: Commit And Report
 
 Status: completed at 2026-07-07T23:28:26Z.
