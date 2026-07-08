@@ -408,12 +408,21 @@ const hasExtractorLorryOnWay = function (room, stockpile) {
 };
 
 const spawnExtractorPickupLorry = function (spawn, stockpile) {
-  if (spawn.spawning || spawn.room.energyAvailable < 200 || hasExtractorLorryOnWay(spawn.room, stockpile)) {
+  const boostedW13Pickup = stockpile.mineral.id === W13_UTRIUM_OPERATION.mineralId &&
+    !!Memory.rooms[spawn.room.name].w13UtriumOperation &&
+    !Memory.rooms[spawn.room.name].w13UtriumOperation.done;
+  const body = boostedW13Pickup ? [
+    MOVE, MOVE, MOVE, MOVE, MOVE,
+    CARRY, CARRY, CARRY, CARRY, CARRY,
+    CARRY, CARRY, CARRY, CARRY, CARRY
+  ] : [MOVE, MOVE, CARRY, CARRY];
+
+  if (spawn.spawning || spawn.room.energyAvailable < bodyEnergyCost(body) || hasExtractorLorryOnWay(spawn.room, stockpile)) {
     return false;
   }
 
   const name = 'MineralPickup-' + spawn.room.name + '-' + Game.time;
-  const result = spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY], name, {
+  const result = spawn.spawnCreep(body, name, {
     memory: {
       role: 'lorry',
       working: false,
