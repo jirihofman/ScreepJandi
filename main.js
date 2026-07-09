@@ -98,10 +98,28 @@ const getRoomCarriedAmount = function (room, resourceType) {
   return _.sum(room.find(FIND_MY_CREEPS), c => c.carry[resourceType] || 0);
 };
 
+const roomUsesSplitLogistics = function (room) {
+  return room &&
+    room.controller &&
+    room.controller.level === 8 &&
+    room.find(FIND_MY_STRUCTURES, {
+      filter: s => s.structureType === STRUCTURE_LAB &&
+        (s.mineralType || s.mineralAmount > 0)
+    }).length > 0;
+};
+
+const isMineralTaskLorry = function (creep, splitLogistics) {
+  return creep.memory.role === 'lorry' &&
+    !creep.memory.linkRelay &&
+    !creep.memory.mineralPickup &&
+    creep.memory.to_recycle !== 1 &&
+    (!splitLogistics || creep.memory.logisticsType === 'mineral');
+};
+
 const assignMineralLorryTask = function (room, source, target, mineralType) {
+  const splitLogistics = roomUsesSplitLogistics(room);
   const existingHaulers = room.find(FIND_MY_CREEPS, {
-    filter: c => c.memory.role === 'lorry' &&
-      !c.memory.linkRelay &&
+    filter: c => isMineralTaskLorry(c, splitLogistics) &&
       c.memory._task &&
       c.memory._task.id_from === source.id &&
       c.memory._task.mineral_type === mineralType
@@ -111,8 +129,7 @@ const assignMineralLorryTask = function (room, source, target, mineralType) {
   }
 
   const availableLorry = _.sortBy(room.find(FIND_MY_CREEPS, {
-    filter: c => c.memory.role === 'lorry' &&
-      !c.memory.linkRelay &&
+    filter: c => isMineralTaskLorry(c, splitLogistics) &&
       !c.memory._task &&
       !c.memory.working &&
       _.sum(c.carry) === 0
@@ -136,10 +153,10 @@ const assignLorryTransferTask = function (room, source, target, mineralType, amo
   if (!room || !source || !target || !mineralType || amount <= 0) {
     return false;
   }
+  const splitLogistics = roomUsesSplitLogistics(room);
 
   const existingHaulers = room.find(FIND_MY_CREEPS, {
-    filter: c => c.memory.role === 'lorry' &&
-      !c.memory.linkRelay &&
+    filter: c => isMineralTaskLorry(c, splitLogistics) &&
       c.memory._task &&
       c.memory._task.id_from === source.id &&
       c.memory._task.id_to === target.id &&
@@ -150,20 +167,14 @@ const assignLorryTransferTask = function (room, source, target, mineralType, amo
   }
 
   let availableLorry = _.sortBy(room.find(FIND_MY_CREEPS, {
-    filter: c => c.memory.role === 'lorry' &&
-      !c.memory.linkRelay &&
-      !c.memory.mineralPickup &&
-      c.memory.to_recycle !== 1 &&
+    filter: c => isMineralTaskLorry(c, splitLogistics) &&
       !c.memory._task &&
       !c.memory.working &&
       _.sum(c.carry) === 0
   }), c => c.pos.getRangeTo(source))[0];
   if (!availableLorry && room.storage) {
     availableLorry = _.sortBy(room.find(FIND_MY_CREEPS, {
-      filter: c => c.memory.role === 'lorry' &&
-        !c.memory.linkRelay &&
-        !c.memory.mineralPickup &&
-        c.memory.to_recycle !== 1 &&
+      filter: c => isMineralTaskLorry(c, splitLogistics) &&
         !c.memory._task &&
         _.sum(c.carry) > 0 &&
         (c.carry[RESOURCE_ENERGY] || 0) === _.sum(c.carry)

@@ -118,6 +118,9 @@ const isDesiredRoomLorry = function (creep, body) {
   if (creep.memory.mineralPickup) {
     return false;
   }
+  if (creep.memory.logisticsType === 'mineral') {
+    return false;
+  }
   if (!body) {
     return creep.memory.role === 'lorry' && !creep.memory.linkRelay;
   }
@@ -140,6 +143,92 @@ const isLinkRelayLorry = function (creep, linkRelay) {
 
 const bodyEnergyCost = function (body) {
   return _.sum(body, part => BODYPART_COST[part]);
+};
+
+const buildLorryBody = function (energy) {
+  const numberOfParts = Math.floor(energy / 150);
+  const body = [];
+  for (let i = 0; i < numberOfParts * 2; i++) {
+    body.push(CARRY);
+  }
+  for (let i = 0; i < numberOfParts; i++) {
+    body.push(MOVE);
+  }
+  return body;
+};
+
+const getRoomLorryEnergy = function (room, energy, logisticsOverride) {
+  if (logisticsOverride && logisticsOverride.lorryEnergy) {
+    return logisticsOverride.lorryEnergy;
+  }
+  if (energy > 899) {
+    energy = 900;
+    if (room.controller.level > 5) {
+      energy = 1300;
+    }
+    if (room.controller.level === 8) {
+      energy = 1600;
+    }
+  }
+  return energy;
+};
+
+const hasActiveLabs = function (room) {
+  return room.controller &&
+    room.controller.level === 8 &&
+    room.find(FIND_MY_STRUCTURES, {
+      filter: s => s.structureType === STRUCTURE_LAB &&
+        (s.mineralType || s.mineralAmount > 0)
+    }).length > 0;
+};
+
+const getMineralLorryTarget = function (room) {
+  return hasActiveLabs(room) ? 1 : 0;
+};
+
+const getExtraEnergyLorryTarget = function (room) {
+  if (!hasActiveLabs(room)) {
+    return 0;
+  }
+
+  const droppedEnergy = _.sum(room.find(FIND_DROPPED_RESOURCES, {
+    filter: r => r.resourceType === RESOURCE_ENERGY
+  }), r => r.amount);
+  const fullSourceContainers = _.sum(room.find(FIND_SOURCES), source =>
+    source.pos.findInRange(FIND_STRUCTURES, 1, {
+      filter: s => s.structureType === STRUCTURE_CONTAINER &&
+        s.store &&
+        (s.store[RESOURCE_ENERGY] || 0) >= 1800
+    }).length > 0 ? 1 : 0
+  );
+
+  if (droppedEnergy <= 500 && fullSourceContainers === 0) {
+    return 0;
+  }
+
+  return Math.min(2, Math.ceil(droppedEnergy / 2000) + fullSourceContainers);
+};
+
+const isMineralLorry = function (creep) {
+  return creep.memory.role === 'lorry' &&
+    creep.memory.logisticsType === 'mineral' &&
+    !creep.memory.linkRelay &&
+    creep.memory.to_recycle !== 1;
+};
+
+const spawnMineralLorry = function (spawn, energy, logisticsOverride) {
+  const lorryEnergy = getRoomLorryEnergy(spawn.room, energy, logisticsOverride);
+  const body = buildLorryBody(lorryEnergy);
+  if (spawn.room.energyAvailable < bodyEnergyCost(body)) {
+    return ERR_NOT_ENOUGH_ENERGY;
+  }
+  return spawn.createCreep(body, null, {
+    role: 'lorry',
+    working: false,
+    maxed: false,
+    logisticsType: 'mineral',
+    no_renew: true
+  });
 };
 
 const extractorPickupMinAmount = 100;
@@ -983,16 +1072,61 @@ module.exports = {
         minerSpawnReservations[sourceId] = Game.time;
       }
     };
+    if (!Memory.rooms[room.name].lorry_spawn_reservation) {
+      Memory.rooms[room.name].lorry_spawn_reservation = {};
+    }
+    const lorrySpawnReservation = Memory.rooms[room.name].lorry_spawn_reservation;
+    if (lorrySpawnReservation.tick && Game.time - lorrySpawnReservation.tick > 5) {
+      delete lorrySpawnReservation.tick;
+      delete lorrySpawnReservation.name;
+    }
+    const reserveLorrySpawn = function (result) {
+      if (_.isString(result)) {
+        lorrySpawnReservation.tick = Game.time;
+        lorrySpawnReservation.name = result;
+      }
+    };
+    const hasRecentLorrySpawnReservation = lorrySpawnReservation.tick &&
+      Game.time - lorrySpawnReservation.tick <= 5;
+    if (!Memory.rooms[room.name].mineral_lorry_spawn_reservation) {
+      Memory.rooms[room.name].mineral_lorry_spawn_reservation = {};
+    }
+    const mineralLorrySpawnReservation = Memory.rooms[room.name].mineral_lorry_spawn_reservation;
+    if (mineralLorrySpawnReservation.tick && Game.time - mineralLorrySpawnReservation.tick > 5) {
+      delete mineralLorrySpawnReservation.tick;
+      delete mineralLorrySpawnReservation.name;
+    }
+    const reserveMineralLorrySpawn = function (result) {
+      if (_.isString(result)) {
+        mineralLorrySpawnReservation.tick = Game.time;
+        mineralLorrySpawnReservation.name = result;
+      }
+    };
+    const hasRecentMineralLorrySpawnReservation = mineralLorrySpawnReservation.tick &&
+      Game.time - mineralLorrySpawnReservation.tick <= 5;
     var numberOfLorries = _.sum(creepsInRoom, (c) =>
       c.memory.role === 'lorry' &&
       (!logisticsOverride || isDesiredRoomLorry(c, logisticsOverride.body))
     ) + _.sum(spawningCreepsInRoom, (c) =>
       c.memory.role === 'lorry' &&
       (!logisticsOverride || isDesiredRoomLorry(c, logisticsOverride.body))
-    );
+    ) + (hasRecentLorrySpawnReservation ? 1 : 0);
 
     var energy = spawn.room.energyCapacityAvailable - (spawn.memory.energy_deflator || 0);
     var name = '';
+    const mineralLorryTarget = getMineralLorryTarget(room);
+    const mineralLorries = _.sortBy(
+      _.filter(creepsInRoom, isMineralLorry),
+      c => (c.memory._task ? 0 : 10000) - (c.ticksToLive || 0)
+    );
+    _.forEach(mineralLorries.slice(mineralLorryTarget), c => {
+      c.memory.to_recycle = 1;
+    });
+    const numberOfMineralLorries = _.sum(creepsInRoom, isMineralLorry) +
+      _.sum(spawningCreepsInRoom, isMineralLorry) +
+      (hasRecentMineralLorrySpawnReservation ? 1 : 0);
+    const targetEnergyLorries = (Memory.rooms[spawn.room.name].creep_limit.minLorries || 0) +
+      getExtraEnergyLorryTarget(room);
 
     // if no harvesters are left AND either no miners or no lorries are left
     //  create a backup creep
@@ -1003,6 +1137,7 @@ module.exports = {
         // create a lorry
         console.log('Creating small lorry. Number of miner:', numberOfMiners, ' in room ', spawn.room);
         name = spawn.createLorry(150);
+        reserveLorrySpawn(name);
       }
       // if there is no miner left
       else {
@@ -1127,25 +1262,21 @@ module.exports = {
         name = spawn.createCustomCreep(energy, 'harvester');
       }
 
+      else if (numberOfMineralLorries < mineralLorryTarget) {
+        name = spawnMineralLorry(spawn, energy, logisticsOverride);
+        reserveMineralLorrySpawn(name);
+      }
+
       // if not enough lorries
-      else if (numberOfLorries < (Memory.rooms[spawn.room.name].creep_limit.minLorries || 0)) {
-        if (logisticsOverride && logisticsOverride.lorryEnergy) {
-          energy = logisticsOverride.lorryEnergy;
-        } else if (energy > 899) {
-          energy = 900;
-          if (spawn.room.controller.level > 5) {
-            energy = 1300;
-          }
-          if (spawn.room.controller.level === 8) {
-            energy = 1600; //floor 1600/150=10
-          }
-        }
+      else if (numberOfLorries < targetEnergyLorries) {
+        energy = getRoomLorryEnergy(spawn.room, energy, logisticsOverride);
         name = spawn.createLorry(energy);
         // if not enough energy to create lorry
         if (name === -6) {
           // create harvester instead
           name = spawn.createLorry(150);
         }
+        reserveLorrySpawn(name);
       }
       // if there is a claim order defined
       else if (spawn.memory.claimRoom) {

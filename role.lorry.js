@@ -20,6 +20,31 @@ const isStaticControllerWorker = function (creep) {
     creep.pos.getRangeTo(creep.room.controller) <= 3;
 };
 
+const roomUsesSplitLogistics = function (room) {
+  return room &&
+    room.controller &&
+    room.controller.level === 8 &&
+    room.find(FIND_MY_STRUCTURES, {
+      filter: s => s.structureType === STRUCTURE_LAB &&
+        (s.mineralType || s.mineralAmount > 0)
+    }).length > 0;
+};
+
+const releaseSplitMineralTaskIfEmpty = function (creep) {
+  if (!creep.memory._task ||
+      creep.memory.logisticsType === 'mineral' ||
+      !roomUsesSplitLogistics(creep.room) ||
+      creep.memory._task.mineral_type === RESOURCE_ENERGY ||
+      _.sum(creep.carry) > 0) {
+    return false;
+  }
+
+  delete creep.memory._task;
+  creep.memory.working = false;
+  creep.memory.maxed = false;
+  return true;
+};
+
 const runLinkRelay = function (creep) {
   const link = Game.getObjectById(creep.memory.linkRelayLinkId);
   if (!link) {
@@ -96,8 +121,25 @@ module.exports = {
       return;
     }
 
+    if (releaseSplitMineralTaskIfEmpty(creep)) {
+      return;
+    }
+
     if (creep.memory._task) {
       roleLorryMineral.run(creep);
+    } else if (creep.memory.logisticsType === 'mineral') {
+      creep.memory.working = false;
+      creep.memory.maxed = false;
+      if (_.sum(creep.carry) > 0) {
+        const target = creep.room.storage || creep.room.terminal;
+        const resourceType = _.findKey(creep.carry, amount => amount > 0);
+        if (target && resourceType) {
+          const result = creep.transfer(target, resourceType);
+          if (result === ERR_NOT_IN_RANGE) {
+            creep.moveTo(target, { reusePath: 10 });
+          }
+        }
+      }
     } else {
       // if creep is bringing energy to a structure but has no energy left
       if (creep.memory.working === true && _.sum(creep.carry) === 0) {
@@ -241,8 +283,9 @@ module.exports = {
         let energy_dropped = null;
         let energy_dropped_huge = null;
         if (Game.time % 1 === 0) {
+          const droppedEnergyMin = roomUsesSplitLogistics(creep.room) ? 0 : 440;
           energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
-            filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 440
+            filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > droppedEnergyMin
           });
 
           energy_dropped_huge = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
