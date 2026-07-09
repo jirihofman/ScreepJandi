@@ -108,6 +108,14 @@ const roomUsesSplitLogistics = function (room) {
     }).length > 0;
 };
 
+const isRoomMineralRegenerating = function (room) {
+  if (!room) {
+    return false;
+  }
+  const mineral = room.find(FIND_MINERALS)[0];
+  return !!(mineral && mineral.mineralAmount < 10 && mineral.ticksToRegeneration > 0);
+};
+
 const isMineralTaskLorry = function (creep, splitLogistics) {
   return creep.memory.role === 'lorry' &&
     !creep.memory.linkRelay &&
@@ -234,12 +242,7 @@ const drainLabToStockpile = function (room, lab, target, minAmount) {
 
 const isW13UtriumMiningActive = function () {
   const mineral = Game.getObjectById(W13_UTRIUM_MINERAL_ID);
-  const operationMemory = Memory.rooms &&
-    Memory.rooms[UO_STOCKPILE.mainRoom] &&
-    Memory.rooms[UO_STOCKPILE.mainRoom].w13UtriumOperation;
-  return mineral &&
-    mineral.mineralAmount >= 10 &&
-    !(operationMemory && operationMemory.done);
+  return mineral && mineral.mineralAmount >= 10;
 };
 
 const loadLabFromStockpile = function (room, lab, resourceType, maxUsefulAmount) {
@@ -327,6 +330,10 @@ const runUoStockpileController = function () {
   const mainRoom = Game.rooms[UO_STOCKPILE.mainRoom];
   const supportRoom = Game.rooms[UO_STOCKPILE.supportRoom];
   if (!mainRoom || !supportRoom || !mainRoom.storage || !mainRoom.terminal) {
+    return;
+  }
+
+  if (isRoomMineralRegenerating(mainRoom) || isRoomMineralRegenerating(supportRoom)) {
     return;
   }
 

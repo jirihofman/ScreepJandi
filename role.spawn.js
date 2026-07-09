@@ -182,8 +182,17 @@ const hasActiveLabs = function (room) {
     }).length > 0;
 };
 
+const getRoomMineral = function (room) {
+  return room.find(FIND_MINERALS)[0];
+};
+
+const isMineralRegenerating = function (room) {
+  const mineral = getRoomMineral(room);
+  return !!(mineral && mineral.mineralAmount < 10 && mineral.ticksToRegeneration > 0);
+};
+
 const getMineralLorryTarget = function (room) {
-  return hasActiveLabs(room) ? 1 : 0;
+  return hasActiveLabs(room) && !isMineralRegenerating(room) ? 1 : 0;
 };
 
 const getExtraEnergyLorryTarget = function (room) {
@@ -326,19 +335,16 @@ const runW13UtriumOperation = function (spawn, creepsInRoom, spawningCreepsInRoo
   );
 
   if (state.mineral.mineralAmount < 10) {
-    operationMemory.done = true;
+    operationMemory.pausedUntil = Game.time + (state.mineral.ticksToRegeneration || 50000);
+    delete operationMemory.done;
     _.forEach(activeMiners, c => {
       c.memory.to_recycle = 1;
     });
     return true;
   }
 
-  if (operationMemory.done) {
-    _.forEach(activeMiners, c => {
-      c.memory.to_recycle = 1;
-    });
-    return true;
-  }
+  delete operationMemory.pausedUntil;
+  delete operationMemory.done;
 
   if (!state.container) {
     ensureExtractorContainerSite(spawn.room, state.mineral);
@@ -573,17 +579,18 @@ module.exports = {
     const logisticsOverride = roomLogisticsOverrides[room.name];
     const notUpgrading8 = roomUpgradeMode.isNotUpgrading8Room(room);
     const w13UtriumState = getW13UtriumOperationState(room);
-    const w13OperationMemory = Memory.rooms[room.name].w13UtriumOperation || {};
+    const w13MineralAvailable = w13UtriumState && w13UtriumState.mineral.mineralAmount >= 10;
     const w13SupportSpawnNeedsBuild = w13UtriumState &&
+      w13MineralAvailable &&
       w13UtriumState.supportSpawnSite &&
-      !w13UtriumState.supportSpawn &&
-      !w13OperationMemory.done;
+      !w13UtriumState.supportSpawn;
     if (w13UtriumState &&
         w13UtriumState.supportSpawn &&
-        w13UtriumState.supportSpawn.id === spawn.id &&
-        !w13OperationMemory.done) {
+        w13UtriumState.supportSpawn.id === spawn.id) {
       runW13UtriumOperation(spawn, creepsInRoom, spawningCreepsInRoom);
-      return;
+      if (w13MineralAvailable) {
+        return;
+      }
     }
     if (notUpgrading8) {
       _.forEach(_.filter(creepsInRoom, creep =>
@@ -617,6 +624,7 @@ module.exports = {
         _.forEach(_.filter(creepsInRoom, creep =>
           creep.memory.role === 'lorry' &&
           !creep.memory.linkRelay &&
+          creep.memory.logisticsType !== 'mineral' &&
           !(creep.memory.mineralPickup && creep.memory._task) &&
           creep.memory.to_recycle !== 1 &&
           !_.includes(keptLorryNames, creep.name)
