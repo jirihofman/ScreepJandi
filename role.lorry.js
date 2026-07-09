@@ -30,6 +30,10 @@ const runLinkRelay = function (creep) {
   })[0];
 
   if ((creep.carry[RESOURCE_ENERGY] || 0) > 0) {
+    if (link.energy < link.energyCapacity) {
+      creep.transfer(link, RESOURCE_ENERGY);
+      return;
+    }
     if (spawn) {
       creep.transfer(spawn, RESOURCE_ENERGY);
       return;
@@ -41,6 +45,15 @@ const runLinkRelay = function (creep) {
   if (!spawn && link.energy >= link.energyCapacity) {
     return;
   }
+
+  const sourceSpawn = !spawn &&
+    link.energy < link.energyCapacity &&
+    creep.room.energyAvailable === creep.room.energyCapacityAvailable &&
+    creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
+      filter: s => s.structureType === STRUCTURE_SPAWN &&
+        s.store &&
+        s.store[RESOURCE_ENERGY] > 0
+    })[0];
 
   const droppedEnergy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 1, {
     filter: r => r.resourceType === RESOURCE_ENERGY && r.amount > 0
@@ -55,6 +68,11 @@ const runLinkRelay = function (creep) {
   })[0];
   if (tombstone) {
     creep.withdraw(tombstone, RESOURCE_ENERGY);
+    return;
+  }
+
+  if (sourceSpawn) {
+    creep.withdraw(sourceSpawn, RESOURCE_ENERGY);
     return;
   }
 
