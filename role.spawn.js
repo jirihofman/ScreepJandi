@@ -154,7 +154,8 @@ const W13_UTRIUM_OPERATION = {
     MOVE, MOVE, CARRY
   ],
   boostResource: RESOURCE_UTRIUM_OXIDE,
-  builderTarget: 5
+  builderTarget: 5,
+  replacementTtl: 650
 };
 
 const getW13UtriumOperationState = function (room) {
@@ -271,7 +272,10 @@ const runW13UtriumOperation = function (spawn, creepsInRoom, spawningCreepsInRoo
     });
   }
 
-  if (desiredMiners.length === 0 &&
+  const needsReplacementMiner = desiredMiners.length === 0 ||
+    _.max(desiredMiners, c => c.ticksToLive || 0).ticksToLive <= W13_UTRIUM_OPERATION.replacementTtl;
+
+  if (needsReplacementMiner &&
       !spawningDesiredMiner &&
       state.supportSpawn.id === spawn.id &&
       !spawn.spawning &&
@@ -364,21 +368,30 @@ const findExtractorStockpile = function (room) {
   const container = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
     filter: s => s.structureType === STRUCTURE_CONTAINER &&
       s.store &&
-      s.store[mineral.mineralType] >= extractorPickupMinAmount
+      (s.store[mineral.mineralType] >= extractorPickupMinAmount ||
+        (room.name === W13_UTRIUM_OPERATION.roomName &&
+          mineral.id === W13_UTRIUM_OPERATION.mineralId &&
+          s.store[RESOURCE_ENERGY] > 0 &&
+          _.sum(s.store) >= 1800))
   })[0];
   if (!container) {
     return null;
   }
 
+  const clearW13ContainerEnergy = room.name === W13_UTRIUM_OPERATION.roomName &&
+    mineral.id === W13_UTRIUM_OPERATION.mineralId &&
+    container.store[RESOURCE_ENERGY] > 0 &&
+    _.sum(container.store) >= 1800;
+  const resourceType = clearW13ContainerEnergy ? RESOURCE_ENERGY : mineral.mineralType;
   const storeMineralInStorage = room.name === 'W14N53' &&
     mineral.mineralType === RESOURCE_OXYGEN &&
     room.storage;
-  const target = storeMineralInStorage ? room.storage : (room.terminal || room.storage);
+  const target = clearW13ContainerEnergy ? (room.storage || room.terminal) : (storeMineralInStorage ? room.storage : (room.terminal || room.storage));
   if (!target) {
     return null;
   }
 
-  return { mineral: mineral, container: container, target: target };
+  return { mineral: mineral, container: container, target: target, resourceType: resourceType };
 };
 
 const hasExtractorLorryOnWay = function (room, stockpile) {
@@ -390,16 +403,18 @@ const hasExtractorLorryOnWay = function (room, stockpile) {
     const task = creep.memory._task;
     if (task &&
         task.id_from === stockpile.container.id &&
-        task.mineral_type === stockpile.mineral.mineralType) {
+        task.mineral_type === stockpile.resourceType) {
       return true;
     }
 
-    if ((creep.carry[stockpile.mineral.mineralType] || 0) > 0 &&
+    if ((creep.carry[stockpile.resourceType] || 0) > 0 &&
+        (stockpile.resourceType !== RESOURCE_ENERGY || creep.memory.mineralPickup) &&
         creep.room.name === room.name) {
       return true;
     }
 
-    return creep.room.name === room.name &&
+    return stockpile.resourceType !== RESOURCE_ENERGY &&
+      creep.room.name === room.name &&
       !creep.memory.working &&
       !task &&
       _.sum(creep.carry) < creep.carryCapacity &&
@@ -432,7 +447,7 @@ const spawnExtractorPickupLorry = function (spawn, stockpile) {
       _task: {
         id_from: stockpile.container.id,
         id_to: stockpile.target.id,
-        mineral_type: stockpile.mineral.mineralType,
+        mineral_type: stockpile.resourceType,
         restoreWorking: false,
         restoreMaxed: false,
         timeout: 300
