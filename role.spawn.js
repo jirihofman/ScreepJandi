@@ -475,6 +475,10 @@ module.exports = {
     //spawn.createCustomCreep(energy+energy+20000, 'builderr');
     let creepsInRoom = spawn.room.find(FIND_MY_CREEPS);
     let room = spawn.room;
+    const spawningCreepsInRoom = _.map(
+      _.filter(room.find(FIND_MY_SPAWNS), s => s.spawning && Game.creeps[s.spawning.name]),
+      s => Game.creeps[s.spawning.name]
+    );
     const builderOverride = roomBuilderOverrides[room.name];
     const upgraderOverride = roomUpgraderOverrides[room.name];
     const logisticsOverride = roomLogisticsOverrides[room.name];
@@ -485,6 +489,13 @@ module.exports = {
       w13UtriumState.supportSpawnSite &&
       !w13UtriumState.supportSpawn &&
       !w13OperationMemory.done;
+    if (w13UtriumState &&
+        w13UtriumState.supportSpawn &&
+        w13UtriumState.supportSpawn.id === spawn.id &&
+        !w13OperationMemory.done) {
+      runW13UtriumOperation(spawn, creepsInRoom, spawningCreepsInRoom);
+      return;
+    }
     if (notUpgrading8) {
       _.forEach(_.filter(creepsInRoom, creep =>
         (isStaticRoomBuilder(creep, room.name) ||
@@ -953,10 +964,6 @@ module.exports = {
     var numberOfRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'repairer');
     var numberOfWallRepairers = _.sum(creepsInRoom, (c) => c.memory.role === 'wallRepairer');
     var numberOfMiners = 1;//_.sum(creepsInRoom, (c) => c.memory.role === 'miner' && !Game.getObjectById(c.memory.sourceId).mineralType);
-    const spawningCreepsInRoom = _.map(
-      _.filter(room.find(FIND_MY_SPAWNS), s => s.spawning && Game.creeps[s.spawning.name]),
-      s => Game.creeps[s.spawning.name]
-    );
     if (!Memory.rooms[room.name].miner_spawn_reservations) {
       Memory.rooms[room.name].miner_spawn_reservations = {};
     }
