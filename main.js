@@ -725,7 +725,7 @@ if (Game.time % 5 === 0) {
       }
     }
 
-    if (Game.time % 10 === 0 && r.controller && r.controller.owner && r.controller.owner.username === 'Jenjandi'){
+    if (Game.time % 10 === 0 && r.controller && r.controller.my){
       roomPlanner.plan(r);
     }
 
