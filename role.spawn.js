@@ -1,4 +1,5 @@
 const roomUpgradeMode = require('room.upgradeMode');
+const roomMineralState = require('room.mineralState');
 
 const roomBuilderOverrides = {
   'W13N54': {
@@ -182,17 +183,8 @@ const hasActiveLabs = function (room) {
     }).length > 0;
 };
 
-const getRoomMineral = function (room) {
-  return room.find(FIND_MINERALS)[0];
-};
-
-const isMineralRegenerating = function (room) {
-  const mineral = getRoomMineral(room);
-  return !!(mineral && mineral.mineralAmount < 10 && mineral.ticksToRegeneration > 0);
-};
-
 const getMineralLorryTarget = function (room) {
-  return hasActiveLabs(room) && !isMineralRegenerating(room) ? 1 : 0;
+  return hasActiveLabs(room) && !roomMineralState.isRegenerating(room) ? 1 : 0;
 };
 
 const getExtraEnergyLorryTarget = function (room) {
@@ -570,6 +562,7 @@ module.exports = {
     //spawn.createCustomCreep(energy+energy+20000, 'builderr');
     let creepsInRoom = spawn.room.find(FIND_MY_CREEPS);
     let room = spawn.room;
+    roomMineralState.syncMemory(room);
     const spawningCreepsInRoom = _.map(
       _.filter(room.find(FIND_MY_SPAWNS), s => s.spawning && Game.creeps[s.spawning.name]),
       s => Game.creeps[s.spawning.name]

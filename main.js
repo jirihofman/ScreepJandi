@@ -21,6 +21,7 @@ var roleTower = require('role.tower');
 var roleClaimToBuild = require('role.claimToBuild');
 var roomPlanner = require('room.planner');
 var roomUpgradeMode = require('room.upgradeMode');
+var roomMineralState = require('room.mineralState');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
 
@@ -106,14 +107,6 @@ const roomUsesSplitLogistics = function (room) {
       filter: s => s.structureType === STRUCTURE_LAB &&
         (s.mineralType || s.mineralAmount > 0)
     }).length > 0;
-};
-
-const isRoomMineralRegenerating = function (room) {
-  if (!room) {
-    return false;
-  }
-  const mineral = room.find(FIND_MINERALS)[0];
-  return !!(mineral && mineral.mineralAmount < 10 && mineral.ticksToRegeneration > 0);
 };
 
 const isMineralTaskLorry = function (creep, splitLogistics) {
@@ -333,7 +326,7 @@ const runUoStockpileController = function () {
     return;
   }
 
-  if (isRoomMineralRegenerating(mainRoom) || isRoomMineralRegenerating(supportRoom)) {
+  if (roomMineralState.isRegenerating(mainRoom) || roomMineralState.isRegenerating(supportRoom)) {
     return;
   }
 
@@ -684,6 +677,9 @@ if (Game.time % 5 === 0) {
 
   for (let ro in Game.rooms) {
     let r = Game.rooms[ro];
+    if (r.controller && r.controller.my) {
+      roomMineralState.syncMemory(r);
+    }
 
     // Defender spawning disabled.
     if (false && Game.time % 5 === 0 && r.controller && r.controller.my) {
