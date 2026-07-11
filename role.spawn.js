@@ -54,8 +54,8 @@ const roomUpgraderOverrides = {
 
 const roomLogisticsOverrides = {
   'W13N54': {
-    baseMinLorries: 3,
-    highStorageMinLorries: 3,
+    baseMinLorries: 2,
+    highStorageMinLorries: 2,
     linkRelay: {
       spawnName: 'Spawn1',
       body: [CARRY],
