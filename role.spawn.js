@@ -75,6 +75,51 @@ const roomLogisticsOverrides = {
   }
 };
 
+const logisticsExperimentProfiles = {
+  baseline: {},
+  lean: {
+    'W13N54': {
+      baseMinLorries: 2,
+      highStorageMinLorries: 2
+    }
+  },
+  distributed: {
+    'W13N54': {
+      baseMinLorries: 5,
+      highStorageMinLorries: 5,
+      body: [
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+        CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE
+      ]
+    },
+    'W14N53': {
+      baseMinLorries: 2,
+      highStorageMinLorries: 2,
+      lorryEnergy: null,
+      body: [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
+    }
+  }
+};
+
+const getRoomLogisticsOverride = function (roomName) {
+  const base = roomLogisticsOverrides[roomName];
+  const experiment = Memory.logisticsExperiment;
+  if (!base || !experiment || !experiment.enabled) {
+    return base;
+  }
+
+  const profile = logisticsExperimentProfiles[experiment.scenario];
+  const roomProfile = profile && profile[roomName];
+  const result = roomProfile ? Object.assign({}, base, roomProfile) : Object.assign({}, base);
+  if (result.linkRelay && experiment.linkRelayLinkIds && experiment.linkRelayLinkIds[roomName]) {
+    result.linkRelay = Object.assign({}, result.linkRelay, {
+      linkId: experiment.linkRelayLinkIds[roomName]
+    });
+  }
+  return result;
+};
+
 const bodyCounts = function (creep) {
   return _.countBy(creep.body, part => part.type);
 };
@@ -230,6 +275,20 @@ const spawnMineralLorry = function (spawn, energy, logisticsOverride) {
     logisticsType: 'mineral',
     no_renew: true
   });
+};
+
+const spawnEnergyLorry = function (spawn, energy, logisticsOverride) {
+  if (!logisticsOverride || !logisticsOverride.body) {
+    return spawn.createLorry(getRoomLorryEnergy(spawn.room, energy, logisticsOverride));
+  }
+  if (spawn.room.energyAvailable < bodyEnergyCost(logisticsOverride.body)) {
+    return ERR_NOT_ENOUGH_ENERGY;
+  }
+  return spawn.spawnCreep(
+    logisticsOverride.body,
+    'ExperimentLorry-' + spawn.room.name + '-' + spawn.name + '-' + Game.time,
+    { memory: { role: 'lorry', working: false, maxed: false } }
+  );
 };
 
 const extractorPickupMinAmount = 100;
@@ -569,7 +628,7 @@ module.exports = {
     );
     const builderOverride = roomBuilderOverrides[room.name];
     const upgraderOverride = roomUpgraderOverrides[room.name];
-    const logisticsOverride = roomLogisticsOverrides[room.name];
+    const logisticsOverride = getRoomLogisticsOverride(room.name);
     const notUpgrading8 = roomUpgradeMode.isNotUpgrading8Room(room);
     const w13UtriumState = getW13UtriumOperationState(room);
     const w13MineralAvailable = w13UtriumState && w13UtriumState.mineral.mineralAmount >= 10;
@@ -1270,8 +1329,7 @@ module.exports = {
 
       // if not enough lorries
       else if (numberOfLorries < targetEnergyLorries) {
-        energy = getRoomLorryEnergy(spawn.room, energy, logisticsOverride);
-        name = spawn.createLorry(energy);
+        name = spawnEnergyLorry(spawn, energy, logisticsOverride);
         // if not enough energy to create lorry
         if (name === -6) {
           // create harvester instead

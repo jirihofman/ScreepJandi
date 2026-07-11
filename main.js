@@ -22,6 +22,7 @@ var roleClaimToBuild = require('role.claimToBuild');
 var roomPlanner = require('room.planner');
 var roomUpgradeMode = require('room.upgradeMode');
 var roomMineralState = require('room.mineralState');
+var logisticsExperiment = require('room.logisticsExperiment');
 
 console.log('-------- Loaded main.js! Happy Screeping!');
 
@@ -409,6 +410,7 @@ const runUoStockpileController = function () {
 };
 
 module.exports.loop = function () {
+  logisticsExperiment.beginTick();
   // console.log('loop start - tick ', Game.time);
 
   // REMOVE me
@@ -885,6 +887,8 @@ if (Game.time % 5 === 0) {
   if (Game.time % 10 === 0){
     //
   }
+
+  logisticsExperiment.endTick();
 
   /* CPU used per tick */
   //console.log('====================');
