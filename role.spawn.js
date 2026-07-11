@@ -307,6 +307,20 @@ const W13_UTRIUM_OPERATION = {
   replacementTtl: 650
 };
 
+const W14_OXYGEN_OPERATION = {
+  roomName: 'W14N53',
+  mineralId: '59f1c0d67d0b3d79de5f0d78',
+  supportSpawnName: 'Spawn5',
+  boostRoomName: 'W13N54',
+  minerBody: [
+    WORK, WORK, WORK, WORK, WORK,
+    WORK, WORK, WORK, WORK, WORK,
+    MOVE, MOVE, CARRY
+  ],
+  boostResource: RESOURCE_UTRIUM_OXIDE,
+  replacementTtl: 650
+};
+
 const getW13UtriumOperationState = function (room) {
   if (!room || room.name !== W13_UTRIUM_OPERATION.roomName) {
     return null;
@@ -441,6 +455,138 @@ const runW13UtriumOperation = function (spawn, creepsInRoom, spawningCreepsInRoo
       console.log(spawn.name + ' spawning W13 boosted utrium miner: ' + name);
     } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
       console.log('Error spawning W13 boosted utrium miner in ', spawn.room, result);
+    }
+    return true;
+  }
+
+  return true;
+};
+
+const getW14OxygenOperationState = function (room) {
+  if (!room || room.name !== W14_OXYGEN_OPERATION.roomName) {
+    return null;
+  }
+
+  const mineral = Game.getObjectById(W14_OXYGEN_OPERATION.mineralId) || room.find(FIND_MINERALS)[0];
+  if (!mineral || mineral.mineralType !== RESOURCE_OXYGEN) {
+    return null;
+  }
+
+  const supportSpawn = room.find(FIND_MY_SPAWNS).filter(s => s.name === W14_OXYGEN_OPERATION.supportSpawnName)[0];
+  const container = mineral.pos.findInRange(FIND_STRUCTURES, 1, {
+    filter: s => s.structureType === STRUCTURE_CONTAINER
+  })[0];
+  const boostRoom = Game.rooms[W14_OXYGEN_OPERATION.boostRoomName];
+  const boostLab = boostRoom && boostRoom.find(FIND_MY_STRUCTURES, {
+    filter: s => s.structureType === STRUCTURE_LAB &&
+      s.mineralType === W14_OXYGEN_OPERATION.boostResource &&
+      (s.store[W14_OXYGEN_OPERATION.boostResource] || 0) >= 10 * LAB_BOOST_MINERAL &&
+      (s.store[RESOURCE_ENERGY] || 0) >= 10 * LAB_BOOST_ENERGY
+  })[0];
+
+  return {
+    mineral: mineral,
+    supportSpawn: supportSpawn,
+    container: container,
+    boostLab: boostLab
+  };
+};
+
+const isW14OxygenMinerBody = function (creep) {
+  const counts = bodyCounts(creep);
+  return counts[WORK] === 10 &&
+    counts[MOVE] === 2 &&
+    counts[CARRY] === 1;
+};
+
+const isW14OxygenMiner = function (creep) {
+  return creep.memory.role === 'miner' &&
+    creep.memory.sourceId === W14_OXYGEN_OPERATION.mineralId;
+};
+
+const runW14OxygenOperation = function (spawn, creepsInRoom, spawningCreepsInRoom) {
+  if (Memory.mineralExperiment && Memory.mineralExperiment.enabled) {
+    return true;
+  }
+  const state = getW14OxygenOperationState(spawn.room);
+  if (!state) {
+    return false;
+  }
+
+  if (!Memory.rooms[spawn.room.name].w14OxygenOperation) {
+    Memory.rooms[spawn.room.name].w14OxygenOperation = {};
+  }
+  const operationMemory = Memory.rooms[spawn.room.name].w14OxygenOperation;
+  const miners = _.filter(Game.creeps, isW14OxygenMiner);
+  const activeMiners = _.filter(miners, c => c.memory.to_recycle !== 1);
+  const roomActiveMiners = _.filter(creepsInRoom, c =>
+    isW14OxygenMiner(c) && c.memory.to_recycle !== 1
+  );
+  const desiredMiners = _.filter(activeMiners, c =>
+    c.memory.w14OxygenBoostedMiner === true &&
+    isW14OxygenMinerBody(c)
+  );
+  const spawningDesiredMiner = _.some(spawningCreepsInRoom, c =>
+    isW14OxygenMiner(c) &&
+    c.memory.w14OxygenBoostedMiner === true &&
+    isW14OxygenMinerBody(c)
+  );
+
+  if (state.mineral.mineralAmount < 10) {
+    operationMemory.pausedUntil = Game.time + (state.mineral.ticksToRegeneration || 50000);
+    _.forEach(activeMiners, c => {
+      c.memory.to_recycle = 1;
+    });
+    return true;
+  }
+
+  delete operationMemory.pausedUntil;
+
+  if (!state.container) {
+    ensureExtractorContainerSite(spawn.room, state.mineral);
+    return true;
+  }
+
+  if (!state.supportSpawn) {
+    return true;
+  }
+
+  _.forEach(_.filter(roomActiveMiners, c => !_.includes(desiredMiners, c)), c => {
+    c.memory.to_recycle = 1;
+    console.log('Recycling non-special W14 oxygen miner [' + c.name + '] before boosted operation takeover');
+  });
+
+  if (desiredMiners.length > 1) {
+    _.forEach(_.sortBy(desiredMiners, c => -(c.ticksToLive || 0)).slice(1), c => {
+      c.memory.to_recycle = 1;
+      console.log('Recycling duplicate boosted W14 oxygen miner [' + c.name + ']');
+    });
+  }
+
+  const needsReplacementMiner = desiredMiners.length === 0 ||
+    _.max(desiredMiners, c => c.ticksToLive || 0).ticksToLive <= W14_OXYGEN_OPERATION.replacementTtl;
+
+  if (needsReplacementMiner &&
+      !spawningDesiredMiner &&
+      state.supportSpawn.id === spawn.id &&
+      !spawn.spawning &&
+      state.boostLab &&
+      spawn.room.energyAvailable >= bodyEnergyCost(W14_OXYGEN_OPERATION.minerBody)) {
+    const name = 'W14BoostedOxygenMiner-' + Game.time;
+    const result = spawn.spawnCreep(W14_OXYGEN_OPERATION.minerBody, name, {
+      memory: {
+        role: 'miner',
+        sourceId: state.mineral.id,
+        w14OxygenBoostedMiner: true,
+        boostResource: W14_OXYGEN_OPERATION.boostResource,
+        boostRoom: W14_OXYGEN_OPERATION.boostRoomName
+      },
+      directions: [TOP, TOP_RIGHT, RIGHT]
+    });
+    if (result === OK) {
+      console.log(spawn.name + ' spawning W14 boosted oxygen miner: ' + name);
+    } else if (result !== ERR_BUSY && result !== ERR_NOT_ENOUGH_ENERGY) {
+      console.log('Error spawning W14 boosted oxygen miner in ', spawn.room, result);
     }
     return true;
   }
@@ -636,6 +782,9 @@ module.exports = {
       w13MineralAvailable &&
       w13UtriumState.supportSpawnSite &&
       !w13UtriumState.supportSpawn;
+    const w14OxygenState = getW14OxygenOperationState(room);
+    const w14MineralAvailable = w14OxygenState && w14OxygenState.mineral.mineralAmount >= 10;
+    const handledW14OxygenOperation = runW14OxygenOperation(spawn, creepsInRoom, spawningCreepsInRoom);
     if (w13UtriumState &&
         w13UtriumState.supportSpawn &&
         w13UtriumState.supportSpawn.id === spawn.id) {
@@ -643,6 +792,12 @@ module.exports = {
       if (w13MineralAvailable) {
         return;
       }
+    }
+    if (w14OxygenState &&
+        w14OxygenState.supportSpawn &&
+        w14OxygenState.supportSpawn.id === spawn.id &&
+        w14MineralAvailable) {
+      return;
     }
     if (notUpgrading8) {
       _.forEach(_.filter(creepsInRoom, creep =>
@@ -1266,7 +1421,8 @@ module.exports = {
       let minerals = spawn.room.find(FIND_MINERALS);
       // iterate over all sources
       for (let source of minerals) {
-        if (handledW13UtriumOperation && source.id === W13_UTRIUM_OPERATION.mineralId) {
+        if ((handledW13UtriumOperation && source.id === W13_UTRIUM_OPERATION.mineralId) ||
+            (handledW14OxygenOperation && source.id === W14_OXYGEN_OPERATION.mineralId)) {
           continue;
         }
         if (source.mineralAmount < 10) {

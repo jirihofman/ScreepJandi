@@ -3,7 +3,8 @@ module.exports = {
   run: function (creep) {
         // get source
     let source = Game.getObjectById(creep.memory.sourceId);
-    if (creep.memory.w13UtriumBoostedMiner && source && source.mineralType && source.mineralAmount < 10 && _.sum(creep.carry) === 0) {
+    if ((creep.memory.w13UtriumBoostedMiner || creep.memory.w14OxygenBoostedMiner) &&
+        source && source.mineralType && source.mineralAmount < 10 && _.sum(creep.carry) === 0) {
       creep.memory.to_recycle = 1;
       creep.say('done');
       return;
@@ -29,14 +30,24 @@ module.exports = {
     if (creep.memory.boostResource && source && source.mineralType) {
       const unboostedWorkParts = _.filter(creep.body, part => part.type === WORK && part.boost !== creep.memory.boostResource).length;
       if (unboostedWorkParts > 0) {
-        const boostLab = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+        const boostRoomName = creep.memory.boostRoom || creep.room.name;
+        const boostRoom = Game.rooms[boostRoomName];
+        const boostLab = boostRoom && boostRoom.find(FIND_MY_STRUCTURES, {
           filter: s => s.structureType === STRUCTURE_LAB &&
             s.mineralType === creep.memory.boostResource &&
             (s.store[creep.memory.boostResource] || 0) >= unboostedWorkParts * LAB_BOOST_MINERAL &&
             (s.store[RESOURCE_ENERGY] || 0) >= unboostedWorkParts * LAB_BOOST_ENERGY
-        });
+        })[0];
         if (!boostLab) {
           creep.say('need boost');
+          return;
+        }
+        if (creep.room.name !== boostRoomName) {
+          creep.moveTo(new RoomPosition(boostLab.pos.x, boostLab.pos.y, boostRoomName), {
+            reusePath: 20,
+            visualizePathStyle: { stroke: '#66ccff' }
+          });
+          creep.say('to boost');
           return;
         }
         if (!creep.pos.isNearTo(boostLab)) {
@@ -53,6 +64,15 @@ module.exports = {
         return;
       }
       creep.memory.boosted = true;
+    }
+
+    if (creep.memory.boosted && source && source.mineralType && creep.room.name !== source.pos.roomName) {
+      creep.moveTo(new RoomPosition(source.pos.x, source.pos.y, source.pos.roomName), {
+        reusePath: 20,
+        visualizePathStyle: { stroke: '#66ff66' }
+      });
+      creep.say('to mine');
+      return;
     }
 
     if (creep.name === 'Miner2' || creep.name.startsWith('mmm')) creep.harvest(source);

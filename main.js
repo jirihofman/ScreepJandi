@@ -47,7 +47,8 @@ const UO_STOCKPILE = {
   }
 };
 const W13_UTRIUM_MINERAL_ID = '59f1c0d77d0b3d79de5f0dc2';
-const W13_UTRIUM_BOOST_RESERVE = 10 * LAB_BOOST_MINERAL;
+const W14_OXYGEN_MINERAL_ID = '59f1c0d67d0b3d79de5f0d78';
+const MINERAL_MINER_BOOST_RESERVE = 20 * LAB_BOOST_MINERAL;
 
 const getStoreAmount = function (structure, resourceType) {
   if (!structure || !structure.store) {
@@ -239,6 +240,11 @@ const isW13UtriumMiningActive = function () {
   return mineral && mineral.mineralAmount >= 10;
 };
 
+const isW14OxygenMiningActive = function () {
+  const mineral = Game.getObjectById(W14_OXYGEN_MINERAL_ID);
+  return mineral && mineral.mineralAmount >= 10;
+};
+
 const loadLabFromStockpile = function (room, lab, resourceType, maxUsefulAmount) {
   if (!room || !lab || maxUsefulAmount <= 0) {
     return false;
@@ -344,6 +350,8 @@ const runUoStockpileController = function () {
   const carriedUo = getRoomCarriedAmount(mainRoom, RESOURCE_UTRIUM_OXIDE);
   const targetStorage = mainRoom.storage || mainRoom.terminal;
   const w13UtriumMiningActive = isW13UtriumMiningActive();
+  const w14OxygenMiningActive = isW14OxygenMiningActive();
+  const boostedMineralMiningActive = w13UtriumMiningActive || w14OxygenMiningActive;
 
   if (utriumLab.mineralType && utriumLab.mineralType !== RESOURCE_UTRIUM) {
     drainLabToStockpile(mainRoom, utriumLab, targetStorage, 1);
@@ -358,20 +366,20 @@ const runUoStockpileController = function () {
     return;
   }
 
-  if (w13UtriumMiningActive &&
-      productLabUo < W13_UTRIUM_BOOST_RESERVE &&
+  if (boostedMineralMiningActive &&
+      productLabUo < MINERAL_MINER_BOOST_RESERVE &&
       getRoomStoredAmount(mainRoom, RESOURCE_UTRIUM_OXIDE) > 0 &&
       loadLabFromStockpile(
         mainRoom,
         productLab,
         RESOURCE_UTRIUM_OXIDE,
-        W13_UTRIUM_BOOST_RESERVE - productLabUo
+        MINERAL_MINER_BOOST_RESERVE - productLabUo
       )) {
     return;
   }
 
   if (stockpileUo >= targetUo || stockpileUo + productLabUo + carriedUo >= targetUo) {
-    if (!w13UtriumMiningActive) {
+    if (!boostedMineralMiningActive) {
       drainLabToStockpile(mainRoom, productLab, targetStorage, 1);
     }
     drainLabToStockpile(mainRoom, utriumLab, targetStorage, 1);
@@ -389,7 +397,7 @@ const runUoStockpileController = function () {
   loadLabFromStockpile(mainRoom, utriumLab, RESOURCE_UTRIUM, remainingAfterProduct);
   loadLabFromStockpile(mainRoom, oxygenLab, RESOURCE_OXYGEN, remainingAfterProduct);
 
-  if (!w13UtriumMiningActive &&
+  if (!boostedMineralMiningActive &&
       (productLabUo >= UO_STOCKPILE.labDrainThreshold ||
       getLabFreeCapacity(productLab, RESOURCE_UTRIUM_OXIDE) < LAB_REACTION_AMOUNT)) {
     drainLabToStockpile(mainRoom, productLab, targetStorage, UO_STOCKPILE.labDrainThreshold);
