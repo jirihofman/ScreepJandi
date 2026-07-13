@@ -141,6 +141,21 @@ module.exports = {
         }
       }
     } else {
+      const nearbyEnergyLink = creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 &&
+        creep.pos.findInRange(FIND_STRUCTURES, 3, {
+          filter: isFreeLorryEnergyLink
+        })[0];
+      if (nearbyEnergyLink) {
+        const result = creep.withdraw(nearbyEnergyLink, RESOURCE_ENERGY);
+        if (result === ERR_NOT_IN_RANGE) {
+          creep.moveTo(nearbyEnergyLink, { reusePath: 7 });
+        } else if (result === OK) {
+          creep.memory.working = true;
+          creep.memory.maxed = true;
+        }
+        return;
+      }
+
       const urgentDroppedEnergy = creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 &&
         creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
           filter: resource => resource.resourceType === RESOURCE_ENERGY && resource.amount > 500

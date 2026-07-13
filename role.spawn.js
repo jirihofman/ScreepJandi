@@ -248,11 +248,12 @@ const getExtraEnergyLorryTarget = function (room) {
     }).length > 0 ? 1 : 0
   );
 
-  if (droppedEnergy <= 500 && fullSourceContainers === 0) {
+  if (droppedEnergy === 0 && fullSourceContainers === 0) {
     return 0;
   }
 
-  return Math.min(2, Math.ceil(droppedEnergy / 2000) + fullSourceContainers);
+  const calculatedTarget = Math.ceil(droppedEnergy / 2000) + fullSourceContainers + 1;
+  return Math.min(4, droppedEnergy > 500 ? Math.max(4, calculatedTarget) : calculatedTarget);
 };
 
 const isMineralLorry = function (creep) {
@@ -815,11 +816,12 @@ module.exports = {
       const requiredUpgraders = !notUpgrading8 && upgraderOverride && storageEnergy >= (upgraderOverride.storageThreshold || 300000) ? upgraderOverride.max : 0;
       const keptUpgraders = !notUpgrading8 && upgraderOverride && storageEnergy >= (upgraderOverride.keepThreshold || 200000) ? upgraderOverride.max : requiredUpgraders;
       if (logisticsOverride) {
-        const desiredLorries = storageEnergy >= 300000 ?
+        const baseDesiredLorries = storageEnergy >= 300000 ?
           logisticsOverride.highStorageMinLorries :
           logisticsOverride.baseMinLorries;
-        Memory.rooms[room.name].creep_limit.minLorries = desiredLorries;
-        Memory.rooms[room.name].creep_limit.maxLorries = desiredLorries;
+        const desiredLorries = baseDesiredLorries + getExtraEnergyLorryTarget(room);
+        Memory.rooms[room.name].creep_limit.minLorries = baseDesiredLorries;
+        Memory.rooms[room.name].creep_limit.maxLorries = baseDesiredLorries;
         const desiredRoomLorries = _.sortBy(
           _.filter(creepsInRoom, creep =>
             isDesiredRoomLorry(creep, logisticsOverride.body) &&
@@ -834,6 +836,7 @@ module.exports = {
           creep.memory.logisticsType !== 'mineral' &&
           !(creep.memory.mineralPickup && creep.memory._task) &&
           creep.memory.to_recycle !== 1 &&
+          _.sum(creep.store) === 0 &&
           !_.includes(keptLorryNames, creep.name)
         ), creep => {
           creep.memory.to_recycle = 1;
@@ -1367,19 +1370,27 @@ module.exports = {
       // iterate over all sources
       for (let source of sources) {
         // if the source has no miner
-        if (!_.some(creepsInRoom, c => c.memory.role === 'miner' && c.memory.sourceId === source.id)) {
+        const activeSourceMiner = _.some(creepsInRoom, c =>
+          c.memory.role === 'miner' &&
+          c.memory.sourceId === source.id &&
+          c.memory.to_recycle !== 1
+        );
+        const spawningSourceMiner = _.some(spawningCreepsInRoom, c =>
+          c.memory.role === 'miner' &&
+          c.memory.sourceId === source.id &&
+          c.memory.to_recycle !== 1
+        );
+        if (!activeSourceMiner && !spawningSourceMiner && !isMinerSpawnReserved(source.id)) {
           // check whether or not the source has a container
           let containers = source.pos.findInRange(FIND_STRUCTURES, 1, {
             filter: s => s.structureType === STRUCTURE_CONTAINER
           });
           // if there is a container next to the source
           if (containers.length > 0) {
-            // spawn a miner
-            // TODO: revisit. Causes problems in W13N45 - builds miner even though there is a harvester there
-            // name = spawn.createMiner(source.id);
-            console.log('NOT Creating miner the OLD way');
-            break;
-            if (name === -6) {
+            name = spawn.createMiner(source.id);
+            reserveMinerSpawn(source.id, name);
+            console.log('Creating missing energy miner for source [' + source.id + '] in room [' + room.name + ']: ' + name);
+            if (name === ERR_NOT_ENOUGH_ENERGY) {
               name = null; // nejsou mineraly na minera, udelame harvestera
             } else {
               break;
