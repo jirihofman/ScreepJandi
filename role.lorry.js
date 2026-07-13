@@ -141,6 +141,18 @@ module.exports = {
         }
       }
     } else {
+      const urgentDroppedEnergy = creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 &&
+        creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+          filter: resource => resource.resourceType === RESOURCE_ENERGY && resource.amount > 500
+        });
+      if (urgentDroppedEnergy) {
+        const result = creep.pickup(urgentDroppedEnergy);
+        if (result === ERR_NOT_IN_RANGE) {
+          creep.moveTo(urgentDroppedEnergy, { reusePath: 7, visualizePathStyle: { stroke: '#ffff00', lineStyle: 'dotted' } });
+        }
+        return;
+      }
+
       // if creep is bringing energy to a structure but has no energy left
       if (creep.memory.working === true && _.sum(creep.carry) === 0) {
         // switch state
@@ -153,7 +165,16 @@ module.exports = {
         creep.memory.working = true;
       }
 
-      if (creep.memory._move && (creep.carry[RESOURCE_ENERGY] || 0) > 400 && !creep.memory.working && Game.time % 6 === 0) {
+      const priorityDroppedEnergy = creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 &&
+        creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+          filter: resource => resource.resourceType === RESOURCE_ENERGY && resource.amount > 500
+        });
+      if (priorityDroppedEnergy) {
+        creep.memory.working = false;
+        creep.memory.maxed = false;
+      }
+
+      if (!priorityDroppedEnergy && creep.memory._move && (creep.carry[RESOURCE_ENERGY] || 0) > 400 && !creep.memory.working && Game.time % 6 === 0) {
         let l_range = creep.pos.getRangeTo(creep.memory._move.dest.x, creep.memory._move.dest.y);
         /* if the range to another pickup is too long and we have enough energy (400), fuck it */
         if (l_range > 10) {
@@ -284,11 +305,11 @@ module.exports = {
         let energy_dropped_huge = null;
         if (Game.time % 1 === 0) {
           const droppedEnergyMin = roomUsesSplitLogistics(creep.room) ? 0 : 440;
-          energy_dropped = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+          energy_dropped = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
             filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > droppedEnergyMin
           });
 
-          energy_dropped_huge = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+          energy_dropped_huge = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
             filter: s => s.resourceType === RESOURCE_ENERGY && s.amount > 500
           });
           if (energy_dropped_huge) {
