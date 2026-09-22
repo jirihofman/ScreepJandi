@@ -6,8 +6,6 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
-const { ScreepsAPI } = require('screeps-api');
-
 const DEFAULT_HOST = 'screeps.com';
 const DEFAULT_BRANCH = 'ScreepJandi';
 const DEFAULT_TIMEOUT = 30000;
@@ -145,16 +143,15 @@ async function main() {
     );
   }
 
-  const api = new ScreepsAPI({
+  const { ScreepsHttpClient } = await import('screeps-api');
+  const api = new ScreepsHttpClient({
     token,
     protocol: 'https',
     hostname: process.env.SCREEPS_HOST || DEFAULT_HOST,
     port: 443,
     path: '/',
   });
-  api.token = token;
-
-  const live = await withTimeout(api.code.get(branch), timeout, `Fetching ${branch}`);
+  const live = await withTimeout(api.userCodeGet(branch), timeout, `Fetching ${branch}`);
   const liveModules = live.modules || {};
   const before = compareModules(localModules, liveModules);
 
@@ -177,10 +174,10 @@ async function main() {
     console.log(`Removing unmanaged live modules: ${before.liveOnly.join(', ')}`);
   }
 
-  const result = await withTimeout(api.code.set(branch, modulesToUpload), timeout, `Uploading ${branch}`);
+  const result = await withTimeout(api.userCodeSet({ branch, modules: modulesToUpload }), timeout, `Uploading ${branch}`);
   console.log(JSON.stringify(result));
 
-  const updated = await withTimeout(api.code.get(branch), timeout, `Verifying ${branch}`);
+  const updated = await withTimeout(api.userCodeGet(branch), timeout, `Verifying ${branch}`);
   const after = compareModules(modulesToUpload, updated.modules || {});
   if (after.changed.length || after.localOnly.length || after.liveOnly.length) {
     throw new Error(`Upload verification failed: ${JSON.stringify(after)}`);

@@ -1,6 +1,8 @@
 # ScreepJandi
 
 ## Development
+Local tooling requires Node.js 22 or 24.
+
 1. Open repo in VSCode.
 1. Install local tooling with `npm install`.
 1. Check live console access:
