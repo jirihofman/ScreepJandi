@@ -2,8 +2,6 @@
 
 require('dotenv').config();
 
-const { ScreepsAPI } = require('screeps-api');
-
 const DEFAULT_HOST = 'screeps.com';
 const DEFAULT_SHARD = 'shard2';
 const DEFAULT_TIMEOUT = 15000;
@@ -37,7 +35,7 @@ Options:
 
 Environment:
   SCREEPS_TOKEN     Required auth token.
-  SCREEPS_USER_ID   Optional. If omitted, /api/auth/me is used to discover it.
+  SCREEPS_HOST      Optional host. Defaults to ${DEFAULT_HOST}.
 `;
 
   console.log(text.trim());
@@ -82,17 +80,14 @@ async function main() {
   const expression = buildExpression();
   const wrappedExpression = `JSON.stringify({ marker: ${JSON.stringify(MARKER)}, requestId: ${JSON.stringify(REQUEST_ID)}, value: (${expression}) })`;
 
-  const api = new ScreepsAPI({
+  const { ScreepsHttpClient } = await import('screeps-api');
+  const api = new ScreepsHttpClient({
     token,
     protocol: 'https',
     hostname: process.env.SCREEPS_HOST || DEFAULT_HOST,
     port: 443,
     path: '/',
   });
-  api.token = token;
-
-  const userId = process.env.SCREEPS_USER_ID || (await api.raw.auth.me())._id;
-
   await api.socket.connect();
 
   const timer = setTimeout(() => {
@@ -101,7 +96,7 @@ async function main() {
     process.exit(1);
   }, timeout);
 
-  await api.socket.subscribe(`user:${userId}/console`, event => {
+  await api.socket.subscribeUserConsole(event => {
     const data = event.data || {};
     if (data.shard !== shard) {
       return;
@@ -138,7 +133,10 @@ async function main() {
     }
   });
 
-  await api.console(wrappedExpression, shard);
+  // The subscribe call sends a socket message without waiting for the server
+  // to register it. A fast result can otherwise arrive before the listener.
+  await new Promise(resolve => setTimeout(resolve, 200));
+  await api.userConsole(wrappedExpression, shard);
 }
 
 main().catch(error => {

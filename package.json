@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "dotenv": "^16.4.7",
-    "screeps-api": "^1.16.1"
+    "screeps-api": "^2.1.0"
+  },
+  "engines": {
+    "node": "22.x || 24.x"
   }
 }
